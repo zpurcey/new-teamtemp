@@ -38,7 +38,8 @@ def submit(request, id):
         if form.is_valid():
             srf = form.cleaned_data
             # TODO check that id is unique!
-            response = TemperatureResponse(request_id = survey,
+            response = TemperatureResponse(id = srf.get('id', None),
+                                           request_id = survey,
                                            score = srf['score'],
                                            word = srf['word'],
                                            responder_id = user)

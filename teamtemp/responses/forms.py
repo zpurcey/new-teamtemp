@@ -9,7 +9,7 @@ class CreateSurveyForm(forms.Form):
 class SurveyResponseForm(forms.ModelForm):
     class Meta:
         model = TemperatureResponse
-        fields = ['score', 'word']
+        fields = ['id', 'score', 'word']
 
     def clean_score(self):
         score = self.cleaned_data['score']

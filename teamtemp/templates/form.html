@@ -6,6 +6,7 @@
 <h1>Submit your temperature</h1>
 <form method="post">
   {% csrf_token %}
+  <div class="field">{{ form.id.as_hidden }}</div>
   <div class="field">{{ form.score.errors }}
     <label for="id_score">Temperature (1-10):</label>
     {{ form.score }}
