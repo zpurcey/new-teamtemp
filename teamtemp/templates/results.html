@@ -3,5 +3,13 @@
 {% block title %}Results{% endblock %}
 
 {% block body %}
-{{ id }}
+Let your team know about this survey - send them the link to
+{% url 'teamtemp.views.submit' id %}
+
+<h1>Results</h1>
+<ul>
+  <li>Submissions: {{ stats.count }}</li>
+  <li>Average temperature: {{ stats.average }}</li>
+  <li>Words: {{ stats.words }}</li>
+</ul>
 {% endblock %}

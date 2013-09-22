@@ -1,18 +1,18 @@
 from django import forms
+from responses.models import TemperatureResponse
 import re
 
 class CreateSurveyForm(forms.Form):
     duration = forms.IntegerField(required=False)
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
 
-class SurveyResponseForm(forms.Form):
-    score = forms.IntegerField()
-    word = forms.CharField(max_length=32)
+class SurveyResponseForm(forms.ModelForm):
+    class Meta:
+        model = TemperatureResponse
+        fields = ['score', 'word']
 
     def clean_score(self):
         score = self.cleaned_data['score']
-        if not re.match(r'[0-9]+'):
-            raise forms.ValidationError('score should be a number')
         if int(score) < 1:
             raise forms.ValidationError('score is too low')
         if int(score) > 10:

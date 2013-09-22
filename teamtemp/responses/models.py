@@ -11,6 +11,14 @@ class TeamTemperature(models.Model):
     creator_id = models.ForeignKey(User)
     password = models.CharField(max_length=256)
 
+    def stats(self):
+        result = dict()
+        responses = self.temperatureresponse_set.all()
+        result['count'] = responses.count()
+        result['average'] = responses.aggregate(models.Avg('score'))
+        result['words'] = responses.values('word').annotate(models.Count("id")).order_by()
+        return result 
+
 
 class TemperatureResponse(models.Model):
     request_id = models.ForeignKey(TeamTemperature)
