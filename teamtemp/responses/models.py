@@ -2,7 +2,6 @@ from django.db import models
 
 class User(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
-    session_token = models.CharField(max_length=32)
 
 
 class TeamTemperature(models.Model):

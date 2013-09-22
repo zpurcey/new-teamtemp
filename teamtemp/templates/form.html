@@ -1,7 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Form{% endblock %}
+{% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-{{ id }}
+<h1>Submit your temperature</h1>
+<form method="post">
+  <% csrf_token %>
+  <div class="field">{{ form.score.errors }}
+    <label for="id_score">Temperature (1-10):</label>
+    {{ form.score }}
+  </div>
+  <div class="field">{{ form.word.errors }}
+    <label for="id_word">word:</label>
+    {{ form.word }}
+  </div>
+  <input type="submit" value="Submit"/>
+</form>
 {% endblock %}

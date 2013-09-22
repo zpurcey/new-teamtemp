@@ -1,7 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Index{% endblock %}
+{% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-Welcome to the Jungle
+<h1>Create a Team Temperature Survey</h1>
+<form method="post">
+  {% csrf_token %}
+  <div class="field">{{ form.duration.errors }}
+    <label for="id_duration">Duration:</label>
+    {{ form.duration }}
+  </div>
+  <div class="field">{{ form.password.errors }}
+    <label for="id_password">Password:</label>
+    {{ form.password }}
+  </div>
+  <input type="submit" value="Create"/>
+</form>
 {% endblock %}
