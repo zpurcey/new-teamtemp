@@ -32,10 +32,10 @@ def submit(request, survey_id):
     thanks = ""
     if request.method == 'POST':
         form = SurveyResponseForm(request.POST)
+        response_id = request.POST.get('id', None)
         if form.is_valid():
             srf = form.cleaned_data
             # TODO check that id is unique!
-            response_id = request.POST.get('id', None)
             response = TemperatureResponse(id = response_id,
                                            request = survey,
                                            score = srf['score'],
