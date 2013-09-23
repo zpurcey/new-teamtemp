@@ -2,7 +2,7 @@
 import os
 import dj_database_url
 
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', False)
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
