@@ -3,13 +3,17 @@
 {% block title %}Results{% endblock %}
 
 {% block body %}
-Let your team know about this survey - send them the link to
-{% url 'teamtemp.views.submit' id %}
+Let your team know about this survey - send them 
+<a href="{% url 'teamtemp.views.submit' id %}">this link</a>.
 
 <h1>Results</h1>
 <ul>
   <li>Submissions: {{ stats.count }}</li>
-  <li>Average temperature: {{ stats.average }}</li>
-  <li>Words: {{ stats.words }}</li>
+  <li>Average temperature: {{ stats.average.score__avg }}</li>
+  <li>Words: 
+  {% for word in stats.words %}
+  {{ word.word }}
+  {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+    {% endfor %}</li>
 </ul>
 {% endblock %}

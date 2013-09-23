@@ -37,11 +37,12 @@ def submit(request, survey_id):
             # TODO check that id is unique!
             response_id = request.POST.get('id', None)
             response = TemperatureResponse(id = response_id,
-                                           request_id = survey,
+                                           request = survey,
                                            score = srf['score'],
                                            word = srf['word'],
-                                           responder_id = user)
+                                           responder = user)
             response.save()
+            response_id = response.id
             form = SurveyResponseForm(instance=response)
     else:
         try: 
