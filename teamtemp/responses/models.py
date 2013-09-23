@@ -8,7 +8,7 @@ class TeamTemperature(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
     creation_date = models.DateField()
     duration = models.IntegerField()
-    creator_id = models.ForeignKey(User)
+    creator = models.ForeignKey(User)
     password = models.CharField(max_length=256)
 
     def stats(self):
@@ -19,9 +19,18 @@ class TeamTemperature(models.Model):
         result['words'] = responses.values('word').annotate(models.Count("id")).order_by()
         return result 
 
+    def __unicode__(self):
+        return u"{}: {} {} {}".format(self.id, self.creator.id,
+                                      self.creation_date, self.duration)
+
 
 class TemperatureResponse(models.Model):
-    request_id = models.ForeignKey(TeamTemperature)
-    responder_id = models.ForeignKey(User)
+    request = models.ForeignKey(TeamTemperature)
+    responder = models.ForeignKey(User)
     score = models.IntegerField()
     word = models.CharField(max_length=32)
+
+    def __unicode__(self):
+        return u"{}: {} {} {} {}".format(self.id, self.request.id, 
+                                         self.responder.id,
+                                         self.score, self.word)

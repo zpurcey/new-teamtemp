@@ -9,7 +9,7 @@ class CreateSurveyForm(forms.Form):
 class SurveyResponseForm(forms.ModelForm):
     class Meta:
         model = TemperatureResponse
-        fields = ['id', 'score', 'word']
+        fields = ['score', 'word']
 
     def clean_score(self):
         score = self.cleaned_data['score']
@@ -25,4 +25,5 @@ class SurveyResponseForm(forms.ModelForm):
             raise forms.ValidationError('word contains invalid characters')
         return word
 
-
+class ResultsPasswordForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
