@@ -17,7 +17,6 @@ def home(request):
             user, created = User.objects.get_or_create(id=userid)
             # TODO check that id is unique!
             survey = TeamTemperature(creation_date = datetime.now(),
-                                     duration = csf['duration'],
                                      password = make_password(csf['password']),
                                      creator = user,
                                      id = form_id)
