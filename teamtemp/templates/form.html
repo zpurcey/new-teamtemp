@@ -10,11 +10,11 @@
   <input type="hidden" name="id" value="{{ response_id }}"/>
   {% endif %}
   <div class="field">{{ form.score.errors }}
-    <label for="id_score">Temperature (1-10):</label>
+    <label for="id_score">Temperature (1-10):</label><br/>
     {{ form.score }}
   </div>
   <div class="field">{{ form.word.errors }}
-    <label for="id_word">word:</label>
+    <label for="id_word">One word to describe how you're feeling:</label><br/>
     {{ form.word }}
   </div>
   <input type="submit" value="Submit"/>
