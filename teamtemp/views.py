@@ -30,6 +30,7 @@ def submit(request, survey_id):
     userid = responses.get_or_create_userid(request)
     user, created = User.objects.get_or_create(id=userid)
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    thanks = ""
     if request.method == 'POST':
         form = SurveyResponseForm(request.POST)
         if form.is_valid():
@@ -44,6 +45,8 @@ def submit(request, survey_id):
             response.save()
             response_id = response.id
             form = SurveyResponseForm(instance=response)
+            thanks = "Thank you for submitting your answers. You can " \
+                     "amend them now or later if you need to"
     else:
         try: 
             previous = TemperatureResponse.objects.get(request = survey_id, 
@@ -55,7 +58,8 @@ def submit(request, survey_id):
 
          
         form = SurveyResponseForm(instance=previous)
-    return render(request, 'form.html', {'form': form, 'response_id': response_id})
+    return render(request, 'form.html', {'form': form, 'thanks': thanks,
+                                         'response_id': response_id})
 
 def admin(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
