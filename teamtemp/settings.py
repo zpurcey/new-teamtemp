@@ -84,7 +84,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '+xwx@v=q4nr_^-l@^w!zl33p#e&j1q=t!ja=zzm=!h1p+#j0le'
+SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
