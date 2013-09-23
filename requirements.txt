@@ -1,4 +1,5 @@
 Django==1.5.3
 South==0.8.2
 psycopg2==2.5.1
+py-bcrypt==0.4
 wsgiref==0.1.2

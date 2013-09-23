@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm
 from responses.models import User, TeamTemperature, TemperatureResponse
+from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
 import utils
 import responses
@@ -17,7 +18,7 @@ def home(request):
             # TODO check that id is unique!
             survey = TeamTemperature(creation_date = datetime.now(),
                                      duration = csf['duration'],
-                                     password = csf['password'],
+                                     password = make_password(csf['password']),
                                      creator = user,
                                      id = form_id)
             survey.save()
@@ -70,14 +71,14 @@ def admin(request, survey_id):
         form = ResultsPasswordForm(request.POST)
         if form.is_valid():
             rpf = form.cleaned_data
-            password = rpf['password']
+            password = rpf['password'].encode('utf-8')
     else: 
         try: 
             userid = request.session.get('userid', '__nothing__')
             user = User.objects.get(id=userid)
         except User.DoesNotExist:
             return render(request, 'password.html', {'form': ResultsPasswordForm()})
-    if user and survey.creator.id == user.id or survey.password == password:
+    if user and survey.creator.id == user.id or check_password(password, survey.password):
         request.session['userid'] = survey.creator.id
         return render(request, 'results.html', 
                 { 'id': survey_id, 'stats': survey.stats()})
