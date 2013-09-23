@@ -1,3 +1,8 @@
 body { 
   font-family: Tahoma, Verdana, Arial, sans-serif;
 }
+
+.footer { 
+  font-size: smaller;
+  text-align: center;
+}
