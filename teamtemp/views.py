@@ -4,8 +4,7 @@ from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswor
 from responses.models import User, TeamTemperature, TemperatureResponse
 from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
-import utils
-import responses
+from teamtemp import utils, responses
 
 def home(request):
     if request.method == 'POST':

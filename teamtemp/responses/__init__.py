@@ -1,4 +1,4 @@
-import utils
+from teamtemp import utils
 
 def get_or_create_userid(request):
     if 'userid' not in request.session:
