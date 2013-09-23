@@ -7,7 +7,6 @@ class User(models.Model):
 class TeamTemperature(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
     creation_date = models.DateField()
-    duration = models.IntegerField()
     creator = models.ForeignKey(User)
     password = models.CharField(max_length=256)
 

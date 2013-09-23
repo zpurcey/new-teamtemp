@@ -3,7 +3,6 @@ from responses.models import TemperatureResponse
 import re
 
 class CreateSurveyForm(forms.Form):
-    duration = forms.IntegerField(required=False)
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
 
 class SurveyResponseForm(forms.ModelForm):

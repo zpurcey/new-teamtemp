@@ -6,12 +6,8 @@
 <h1>Create a Team Temperature Survey</h1>
 <form method="post">
   {% csrf_token %}
-  <div class="field">{{ form.duration.errors }}
-    <label for="id_duration">Duration:</label>
-    {{ form.duration }}
-  </div>
   <div class="field">{{ form.password.errors }}
-    <label for="id_password">Password:</label>
+    <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
     {{ form.password }}
   </div>
   <input type="submit" value="Create"/>
