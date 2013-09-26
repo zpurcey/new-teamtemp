@@ -28,9 +28,9 @@ class SurveyResponseForm(forms.ModelForm):
     def clean_score(self):
         score = self.cleaned_data['score']
         if int(score) < 1:
-            raise forms.ValidationError('score is too low')
+            raise forms.ValidationError('temperature %d is too low' % score)
         if int(score) > 10:
-            raise forms.ValidationError('score is too high')
+            raise forms.ValidationError('temperature %d is too high' % score)
         return score
 
     def clean_word(self):
