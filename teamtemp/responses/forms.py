@@ -38,7 +38,7 @@ class SurveyResponseForm(forms.ModelForm):
         matches = re.findall(r'[^A-Za-z0-9\'-]', word)
         if matches:
             error = '"{word}" contains invalid characters '\
-                    '{matches}'.format(word=escape(word), matches=map(str, matches))
+                    '{matches}'.format(word=escape(word), matches=list({str(x) for x in matches}))
             raise forms.ValidationError(error)
         return word
 
