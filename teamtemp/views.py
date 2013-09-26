@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
-from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm
+from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox
 from responses.models import User, TeamTemperature, TemperatureResponse
 from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
@@ -8,7 +8,7 @@ from teamtemp import utils, responses
 
 def home(request):
     if request.method == 'POST':
-        form = CreateSurveyForm(request.POST)
+        form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             csf = form.cleaned_data
             form_id = utils.random_string(8)
@@ -31,7 +31,7 @@ def submit(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     thanks = ""
     if request.method == 'POST':
-        form = SurveyResponseForm(request.POST)
+        form = SurveyResponseForm(request.POST, error_class=ErrorBox)
         response_id = request.POST.get('id', None)
         if form.is_valid():
             srf = form.cleaned_data
@@ -55,7 +55,6 @@ def submit(request, survey_id):
             previous = None
             response_id = None
 
-         
         form = SurveyResponseForm(instance=previous)
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
                                          'response_id': response_id})
@@ -66,7 +65,7 @@ def admin(request, survey_id):
     password = None
     user = None
     if request.method == 'POST':
-        form = ResultsPasswordForm(request.POST)
+        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             rpf = form.cleaned_data
             password = rpf['password'].encode('utf-8')
