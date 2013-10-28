@@ -6,7 +6,7 @@
 <div class="info box">Let your team know about this survey - send them 
   <a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
 
-<h1>Results</h1>
+<h1>Summary</h1>
 <ul>
   <li>Submissions: {{ stats.count }}</li>
   <li>Average temperature: {{ stats.average.score__avg }}</li>
@@ -16,4 +16,12 @@
   {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
     {% endfor %}</li>
 </ul>
+
+<h1>Individual Responses</h1>
+<table>
+  <tr><th>Score</th><th>Word</th></tr>
+{% for result in results %}
+  <tr><td>{{result.score}}</td><td>{{result.word}}</td>
+{% endfor %}
+</table>
 {% endblock %}

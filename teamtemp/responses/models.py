@@ -19,8 +19,8 @@ class TeamTemperature(models.Model):
         return result 
 
     def __unicode__(self):
-        return u"{}: {} {} {}".format(self.id, self.creator.id,
-                                      self.creation_date, self.duration)
+        return u"{}: {} {}".format(self.id, self.creator.id,
+                                   self.creation_date)
 
 
 class TemperatureResponse(models.Model):

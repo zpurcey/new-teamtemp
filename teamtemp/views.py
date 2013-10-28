@@ -77,8 +77,12 @@ def admin(request, survey_id):
             return render(request, 'password.html', {'form': ResultsPasswordForm()})
     if user and survey.creator.id == user.id or check_password(password, survey.password):
         request.session['userid'] = survey.creator.id
+        teamtemp = TeamTemperature.objects.get(pk=survey_id)
+        results = teamtemp.temperatureresponse_set.all()
+
         return render(request, 'results.html', 
-                { 'id': survey_id, 'stats': survey.stats()})
+                { 'id': survey_id, 'stats': survey.stats(), 
+                  'results': results})
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
 
