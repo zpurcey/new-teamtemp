@@ -6,7 +6,7 @@ from django.conf import settings
 from teamtemp.views import home, admin, submit, register, result
 
 urlpatterns = patterns('',
-    url(r'^$', home),
+    url(r'^$', home, name='home'),
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^admin/([0-9a-zA-Z]{8})$', login_required(result), name='result'),
