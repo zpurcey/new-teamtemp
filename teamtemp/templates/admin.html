@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{{ form.errors }}
+
+{% block title %}Team Temperature{% endblock %}
+
+{% block body %}
+<h1>Create a Team Temperature Survey</h1>
+<form method="post">
+  {% csrf_token %}
+  <input type="submit" value="Create"/>
+</form>
+{% endblock %}

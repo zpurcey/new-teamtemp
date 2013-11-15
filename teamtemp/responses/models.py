@@ -1,3 +1,4 @@
+import django
 from django.db import models
 
 class User(models.Model):
@@ -7,8 +8,7 @@ class User(models.Model):
 class TeamTemperature(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
     creation_date = models.DateField()
-    creator = models.ForeignKey(User)
-    password = models.CharField(max_length=256)
+    creator = models.ForeignKey(django.contrib.auth.models.User)
 
     def stats(self):
         result = dict()
@@ -16,7 +16,7 @@ class TeamTemperature(models.Model):
         result['count'] = responses.count()
         result['average'] = responses.aggregate(models.Avg('score'))
         result['words'] = responses.values('word').annotate(models.Count("id")).order_by()
-        return result 
+        return result
 
     def __unicode__(self):
         return u"{}: {} {}".format(self.id, self.creator.id,
@@ -30,6 +30,6 @@ class TemperatureResponse(models.Model):
     word = models.CharField(max_length=32)
 
     def __unicode__(self):
-        return u"{}: {} {} {} {}".format(self.id, self.request.id, 
+        return u"{}: {} {} {} {}".format(self.id, self.request.id,
                                          self.responder.id,
                                          self.score, self.word)
