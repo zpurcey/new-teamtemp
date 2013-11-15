@@ -3,14 +3,6 @@
 {% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-<h1>Create a Team Temperature Survey</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.password.errors }}
-  <div class="field">
-    <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
-    {{ form.password }}
-  </div>
-  <input type="submit" value="Create"/>
-</form>
+<div><a href="{% url "register" %}">Register</a></div>
+<h1>Welcome to Team Temperature</h1>
 {% endblock %}
