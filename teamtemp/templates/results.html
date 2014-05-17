@@ -68,13 +68,14 @@
 
 			<td>
 				<div id='guage_chart'></div>
-				<form action="http://www.wordle.net/advanced" method="POST" target="_blank">
+				<form id="word_cloud_form" action="http://www.wordle.net/advanced" method="POST" target="_blank">
 					<textarea name="text" style="display:none">
 						{% for word in stats.words %}
 						{{ word.word }}
 						{% endfor %}
 					</textarea>
-					<input type="Submit" value="Generate Word Cloud (IE Required)">
+					<div class="info box">
+						<a href="javascript:{}" onclick="document.getElementById('word_cloud_form').submit(); return false;">Wordle Word Cloud</a> (Requires Internet Explorer)</div>
 				</form>
 			</td>
 		</td>
