@@ -3,25 +3,81 @@
 {% block title %}Results{% endblock %}
 
 {% block body %}
-<div class="info box">Let your team know about this survey - send them 
-  <a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
 
-<h1>Summary</h1>
-<ul>
-  <li>Submissions: {{ stats.count }}</li>
-  <li>Average temperature: {{ stats.average.score__avg }}</li>
-  <li>Words: 
-  {% for word in stats.words %}
-  {{ word.word }}
-  {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
-    {% endfor %}</li>
-</ul>
 
-<h1>Individual Responses</h1>
+<script type='text/javascript' src='http://www.google.com/jsapi'></script>
+<script type='text/javascript'>
+//Team Temp Guage - displays with <div id='guage_chart'></div>
+
+	google.load('visualization', '1', {packages:['gauge','annotationchart']});
+	google.setOnLoadCallback(drawGuageChart);
+	function drawGuageChart() {
+
+		if ({{stats.count}} < 1){
+			avg = 0
+		}
+		else {
+			var avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) )
+		}	
+		var data2 = google.visualization.arrayToDataTable([
+		['Label', 'Value'],
+		['Team Temp', avg ],
+		]);
+
+		var options2 = {
+			width: 800, height: 240,
+			redFrom: 0, redTo: 3,
+			yellowFrom:3, yellowTo: 6,
+			greenFrom:6, greenTo:10,
+			max:10,
+			minorTicks: 1
+		};
+
+		var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
+		guageChart.draw(data2, options2);
+
+	}
+
+</script>
+
 <table>
-  <tr><th>Score</th><th>Word</th></tr>
-{% for result in results %}
-  <tr><td>{{result.score}}</td><td>{{result.word}}</td>
-{% endfor %}
+	<tr>
+		<td>
+			<div class="info box">Let your team know about this survey - send them 
+			<a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
+
+			<h1>Summary</h1>
+			<ul>
+				<li>Submissions: {{ stats.count }}</li>
+				<li>Average temperature: {{ stats.average.score__avg }}</li>
+				<li>Words: 
+					{% for word in stats.words %}
+					{{ word.word }}
+					{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+				{% endfor %}</li>
+			</ul>
+
+			<h1>Individual Responses</h1>
+			<table>
+				<tr><th>Score</th><th>Word</th></tr>
+				{% for result in results %}
+				<tr><td>{{result.score}}</td><td>{{result.word}}</td>
+					{% endfor %}
+				</table>
+			</td>
+
+			<td>
+				<div id='guage_chart'></div>
+				<form action="http://www.wordle.net/advanced" method="POST" target="_blank">
+					<textarea name="text" style="display:none">
+						{% for word in stats.words %}
+						{{ word.word }}
+						{% endfor %}
+					</textarea>
+					<input type="Submit" value="Generate Word Cloud (IE Required)">
+				</form>
+			</td>
+		</td>
+	</tr>
 </table>
 {% endblock %}
