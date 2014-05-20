@@ -4,41 +4,8 @@
 
 {% block body %}
 
+{% load staticfiles %}
 
-<script type='text/javascript' src='http://www.google.com/jsapi'></script>
-<script type='text/javascript'>
-//Team Temp Guage - displays with <div id='guage_chart'></div>
-
-	google.load('visualization', '1', {packages:['gauge','annotationchart']});
-	google.setOnLoadCallback(drawGuageChart);
-	function drawGuageChart() {
-
-		if ({{stats.count}} < 1){
-			avg = 0
-		}
-		else {
-			var avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) )
-		}	
-		var data2 = google.visualization.arrayToDataTable([
-		['Label', 'Value'],
-		['Team Temp', avg ],
-		]);
-
-		var options2 = {
-			width: 800, height: 240,
-			redFrom: 0, redTo: 3,
-			yellowFrom:3, yellowTo: 6,
-			greenFrom:6, greenTo:10,
-			max:10,
-			minorTicks: 1
-		};
-
-		var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
-		guageChart.draw(data2, options2);
-
-	}
-
-</script>
 
 <table>
 	<tr>
@@ -65,24 +32,98 @@
 					{% endfor %}
 				</table>
 			</td>
-
-			<td>
-				<div id='guage_chart'></div>
-				<form id="word_cloud_form" action="http://www.wordle.net/advanced" method="POST" target="_blank">
-					<textarea name="text" style="display:none">
-						{% for word in stats.words %}
-						{{ word.word }}
-						{% endfor %}
-					</textarea>
-					<div class="info box">
-						<a href="javascript:{}" onclick="document.getElementById('word_cloud_form').submit(); return false;">Wordle Word Cloud</a> (Requires Internet Explorer)</div>
-				</form>
-			</td>
 		</td>
 	</tr>
 </table>
+
 <p><p>
 <div class="info box"><font size="1">Want to reuse your Survey Link?<br>
 <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to delete all collected results for this survey.</font></div>
+
+
+<!-- Team Temp Guage -->
+
+<script type='text/javascript' src='http://www.google.com/jsapi'></script>
+<script type='text/javascript'>
+
+	google.load('visualization', '1', {packages:['gauge','annotationchart']});
+	google.setOnLoadCallback(drawGuageChart);
+	function drawGuageChart() {
+
+		if ({{stats.count}} < 1){
+			avg = 0
+		}
+		else {
+			var avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) )
+		}	
+		var data2 = google.visualization.arrayToDataTable([
+		['Label', 'Value'],
+		['Team Temp', avg ],
+		]);
+
+		var options2 = {
+			width: 800, height: 240,
+			redFrom: 0, redTo: 2.5,
+			yellowFrom:2.5, yellowTo: 5,
+			greenFrom:7.5, greenTo:10,
+			max:10,
+			minorTicks: 1
+		};
+
+		var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
+		guageChart.draw(data2, options2);
+
+	}
+
+</script>
+<p style="page-break-before: always"></p>
+<div class="centre" id='guage_chart'></div>
+
+<!-- Team Temp Guage -->
+
+
+<!-- WORD CLOUD USING JS -->
+
+<!-- TODO: Ask Henry what to do with these IE tags (keep/expand across all scripts or delete): -->
+
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"><![endif]-->
+<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="{% static 'jquery.awesomeCloud-0.2.min.js' %}"></script>
+
+<script>
+	$(document).ready(function(){
+		$("#wordcloud2").awesomeCloud({
+			"size" : {
+				"grid" : 50,
+				"factor" : 50,
+				"normalize" : true
+			},
+			"options" : {
+				"color" : "random-dark",
+				"rotationRatio" : 0.35,
+				"printMultiplier" : 3,
+				"sort" : "highest"
+			},
+			"font" : "'Times New Roman', Times, serif",
+			"shape" : "star"
+		});
+	});
+</script>
+<div id="wordcloud2" class="wordcloud">
+	{% for result in results %}
+	<span data-weight="{{result.score}}">{{result.word}}</span>
+	{% endfor %}
+</div>
+<!--[if lt IE 7 ]>
+<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+<![endif]-->
+
+<!-- WORD CLOUD USING JS -->
+
+
 
 {% endblock %}
