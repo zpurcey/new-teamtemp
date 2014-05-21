@@ -72,13 +72,17 @@
 	google.load('visualization', '1', {packages:['gauge','annotationchart']});
 	google.setOnLoadCallback(drawGuageChart);
 	function drawGuageChart() {
-
-		if ({{stats.count}} < 1){
-			avg = 0
+		var avg = 0;
+		var team_name_len = "{{team_name}}".length;
+		var stats_team_count = {{stats.team_count}};
+		
+		if( ("{{team_name}}".length) > 0 && {{stats.team_count}} > 0) {
+				avg = parseFloat( {{ stats.team_average.score__avg }}.toFixed(2) );
 		}
-		else {
-			var avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) )
-		}	
+		else if( ("{{team_name}}".length) == 0 && {{stats.count}} > 0) {
+				avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) );
+		}
+		
 		var data2 = google.visualization.arrayToDataTable([
 		['Label', 'Value'],
 		['Team Temp', avg ],
