@@ -10,12 +10,12 @@
 <table>
 	<tr>
 		<td>
+		{% if team_name != '' %}
 			<div class="info box">Let your team know about this survey - send them 
-			<a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
-			<h1>{{ pretty_team_name }}</h1>
+			<a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team_name %}">this link</a>.</div>
+			<h1>{{ pretty_team_name }} Survey Results</h1>
 			<h1>Summary</h1>
 			<ul>
-				{% if team_name != '' %}
 					<li>Submissions: {{ stats.team_count }}</li>
 					<li>Average temperature: {{ stats.team_average.score__avg }}</li>
 					<li>Words: 
@@ -23,7 +23,12 @@
 						{{ word.word }}
 						{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
 					{% endfor %}</li>
-				{% else %}
+		{% else %}
+			<div class="info box">Let your team know about this survey - send them 
+			<a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
+			<h1>Survey Results</h1>
+			<h1>Summary</h1>
+			<ul>
 					<li>Submissions: {{ stats.count }}</li>
 					<li>Average temperature: {{ stats.average.score__avg }}</li>
 					<li>Words: 
@@ -31,7 +36,7 @@
 						{{ word.word }}
 						{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
 					{% endfor %}</li>			
-				{% endif %}
+		{% endif %}
 			</ul>
 
 			<h1>Individual Responses</h1>
