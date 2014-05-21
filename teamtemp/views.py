@@ -25,7 +25,7 @@ def home(request):
         form = CreateSurveyForm()
     return render(request, 'index.html', {'form': form})
 
-def submit(request, survey_id):
+def submit(request, survey_id, team_name=''):
     userid = responses.get_or_create_userid(request)
     user, created = User.objects.get_or_create(id=userid)
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
@@ -40,7 +40,8 @@ def submit(request, survey_id):
                                            request = survey,
                                            score = srf['score'],
                                            word = srf['word'],
-                                           responder = user)
+                                           responder = user,
+                                           team_name = team_name)
             response.save()
             response_id = response.id
             form = SurveyResponseForm(instance=response)
@@ -49,7 +50,8 @@ def submit(request, survey_id):
     else:
         try: 
             previous = TemperatureResponse.objects.get(request = survey_id, 
-                                                       responder = user) 
+                                                       responder = user,
+                                                       team_name = team_name) 
             response_id = previous.id
         except TemperatureResponse.DoesNotExist:
             previous = None
@@ -59,7 +61,7 @@ def submit(request, survey_id):
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
                                          'response_id': response_id})
 
-def admin(request, survey_id):
+def admin(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     # if valid session token or valid password render results page
     password = None
@@ -78,40 +80,45 @@ def admin(request, survey_id):
     if user and survey.creator.id == user.id or check_password(password, survey.password):
         request.session['userid'] = survey.creator.id
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
-        results = teamtemp.temperatureresponse_set.all()
-
+        if team_name != '':
+            results = teamtemp.temperatureresponse_set.filter(team_name = team_name)
+        else:
+            results = teamtemp.temperatureresponse_set.all()
         return render(request, 'results.html', 
-                { 'id': survey_id, 'stats': survey.stats(), 
-                  'results': results})
+                { 'id': survey_id, 'stats': survey.stats(team_name), 
+                  'results': results, 'team_name':team_name, 'pretty_team_name':team_name.replace("_", " ")})
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
 
-def reset(request, survey_id):
-		survey = get_object_or_404(TeamTemperature, pk=survey_id)
-		# if valid session token or valid password render results page
-		password = None
-		user = None
-		if request.method == 'POST':
-				form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
-				if form.is_valid():
-						rpf = form.cleaned_data
-						password = rpf['password'].encode('utf-8')
-		else: 
-				try: 
-						userid = request.session.get('userid', '__nothing__')
-						user = User.objects.get(id=userid)
-				except User.DoesNotExist:
-						return render(request, 'password.html', {'form': ResultsPasswordForm()})
+def reset(request, survey_id, team_name=''):
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    # if valid session token or valid password render results page
+    password = None
+    user = None
+    if request.method == 'POST':
+        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
+        if form.is_valid():
+            rpf = form.cleaned_data
+            password = rpf['password'].encode('utf-8')
+    else: 
+        try: 
+            userid = request.session.get('userid', '__nothing__')
+            user = User.objects.get(id=userid)
+        except User.DoesNotExist:
+            return render(request, 'password.html', {'form': ResultsPasswordForm()})
 
-		if user and survey.creator.id == user.id or check_password(password, survey.password):
-			request.session['userid'] = survey.creator.id
+    if user and survey.creator.id == user.id or check_password(password, survey.password):
+      request.session['userid'] = survey.creator.id
 
-			try: 
-				TemperatureResponse.objects.filter(request = survey_id).delete()
-			except TemperatureResponse.DoesNotExist:
-				previous = None
-				response_id = None
-		
-			return HttpResponseRedirect('/admin/%s' % survey_id)
-		else:
-				return render(request, 'password.html', {'form': ResultsPasswordForm()})	
+      try: 
+        TemperatureResponse.objects.filter(request = survey_id, team_name = team_name).delete()
+      except TemperatureResponse.DoesNotExist:
+        previous = None
+        response_id = None
+
+      if team_name == '':
+        return HttpResponseRedirect('/admin/%s' % survey_id)
+      else:
+        return HttpResponseRedirect('/admin/%s/%s' % (survey_id, team_name))
+    else:
+        return render(request, 'password.html', {'form': ResultsPasswordForm()})  

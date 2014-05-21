@@ -10,12 +10,16 @@ class TeamTemperature(models.Model):
     creator = models.ForeignKey(User)
     password = models.CharField(max_length=256)
 
-    def stats(self):
+    def stats(self, team_name=''):
         result = dict()
-        responses = self.temperatureresponse_set.all()
-        result['count'] = responses.count()
-        result['average'] = responses.aggregate(models.Avg('score'))
-        result['words'] = responses.values('word').annotate(models.Count("id")).order_by()
+        allresponses = self.temperatureresponse_set.all()
+        teamresponses = self.temperatureresponse_set.filter(team_name = team_name)
+        result['count'] = allresponses.count()
+        result['average'] = allresponses.aggregate(models.Avg('score'))
+        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
+        result['team_count'] = teamresponses.count()
+        result['team_average'] = teamresponses.aggregate(models.Avg('score'))
+        result['team_words'] = teamresponses.values('word').annotate(models.Count("id")).order_by()
         return result 
 
     def __unicode__(self):
@@ -28,8 +32,9 @@ class TemperatureResponse(models.Model):
     responder = models.ForeignKey(User)
     score = models.IntegerField()
     word = models.CharField(max_length=32)
+    team_name = models.CharField(max_length=32, null=True)
 
     def __unicode__(self):
         return u"{}: {} {} {} {}".format(self.id, self.request.id, 
                                          self.responder.id,
-                                         self.score, self.word)
+                                         self.score, self.word, self.team_name)

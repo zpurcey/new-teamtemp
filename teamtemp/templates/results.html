@@ -12,24 +12,37 @@
 		<td>
 			<div class="info box">Let your team know about this survey - send them 
 			<a href="{% url 'teamtemp.views.submit' id %}">this link</a>.</div>
-
+			<h1>{{ pretty_team_name }}</h1>
 			<h1>Summary</h1>
 			<ul>
-				<li>Submissions: {{ stats.count }}</li>
-				<li>Average temperature: {{ stats.average.score__avg }}</li>
-				<li>Words: 
-					{% for word in stats.words %}
-					{{ word.word }}
-					{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
-				{% endfor %}</li>
+				{% if team_name != '' %}
+					<li>Submissions: {{ stats.team_count }}</li>
+					<li>Average temperature: {{ stats.team_average.score__avg }}</li>
+					<li>Words: 
+						{% for word in stats.team_words %}
+						{{ word.word }}
+						{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+					{% endfor %}</li>
+				{% else %}
+					<li>Submissions: {{ stats.count }}</li>
+					<li>Average temperature: {{ stats.average.score__avg }}</li>
+					<li>Words: 
+						{% for word in stats.words %}
+						{{ word.word }}
+						{% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+					{% endfor %}</li>			
+				{% endif %}
 			</ul>
 
 			<h1>Individual Responses</h1>
 			<table>
 				<tr><th>Score</th><th>Word</th></tr>
 				{% for result in results %}
-				<tr><td>{{result.score}}</td><td>{{result.word}}</td>
-					{% endfor %}
+					<tr><td>{{result.score}}</td><td>{{result.word}}</td><td>
+						{% if result.team_name != '' %}
+							<a href="{% url 'teamtemp.views.admin' survey_id=id team_name=result.team_name %}">{{result.team_name}}</a>
+						{% endif %}</td>
+				{% endfor %}
 				</table>
 			</td>
 		</td>
@@ -38,7 +51,12 @@
 
 <p><p>
 <div class="info box"><font size="1">Want to reuse your Survey Link?<br>
-<a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to delete all collected results for this survey.</font></div>
+{% if team_name == '' %}
+	<a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to delete all collected results for this survey.</font></div>
+{% else %}
+	<a href="{% url 'teamtemp.views.reset' survey_id=id team_name=team_name %}">Click here</a> to delete all collected {{ pretty_team_name }} results for this survey.</font></div>
+{% endif %}
+
 
 
 <!-- Team Temp Guage -->
