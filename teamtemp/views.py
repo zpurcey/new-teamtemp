@@ -104,9 +104,10 @@ def admin(request, survey_id, team_name=''):
                 TeamDetails.save()
             results = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = False)
         else:
-            survey_teams = teamtemp.teams_set.all()
             results = teamtemp.temperatureresponse_set.filter(archived = False)
-            
+
+        survey_teams = teamtemp.teams_set.all()
+
         if team_name != '':
             stats = survey.team_stats(team_name=team_name)
         else:
@@ -130,6 +131,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
     json_history_chart_table = None
     historical_options = {}
     stats_date = ''
+    survey_teams=[]
     if request.method == 'POST':
         form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -176,6 +178,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
             history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
             history_chart_columns = ('archive_date',)
             team_index = 0
+            average_index = None
             for team in teams:
                 history_chart_schema.update({team['team_name'] :  ("number",team['team_name'].replace("_", " "))})
                 history_chart_columns = history_chart_columns + (team['team_name'],)
@@ -213,11 +216,14 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                 'vAxis': {'title': "Team Temperature"},
                 'hAxis': {'title': "Month"},
                 'seriesType': "bars",
-                'series': {average_index: {'type': "line"}},
                 'vAxis': { 'ticks': [1,2,3,4,5,6,7,8,9,10] },
                 'max': 12,
                 'min': 0
             }
+            if average_index != None:
+                historical_options.update({'series': {average_index: {'type': "line"}}})
+
+
 
         if team_name != '' and stats_date == '':
             stats = survey.team_stats(team_name=team_name)
@@ -228,13 +234,16 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
         else:
             stats = survey.stats()
 
+        survey_teams = teamtemp.teams_set.all()
+
         return render(request, 'bvc.html', 
                 { 'id': survey_id, 'stats': stats, 
                   'results': results, 'team_name':team_name, 'archive_date':stats_date,
                   'pretty_team_name':team_name.replace("_", " "),
                   'team_history' : team_history ,
                   'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
-                  'historical_options' : historical_options, 'archived_dates': archived_dates
+                  'historical_options' : historical_options, 'archived_dates': archived_dates,
+                  'survey_teams': survey_teams
                 } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
