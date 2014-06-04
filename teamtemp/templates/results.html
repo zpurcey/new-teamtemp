@@ -13,7 +13,7 @@
         {% if team_name != '' %}
             <div class="info box">Let your team know about this survey - send them 
             <a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team_name %}">this link</a>.</div>
-            <h1>{{ team_name.split|join:"_" }} Survey Results</h1>
+            <h1>{{ pretty_team_name }} Survey Results</h1>
         {% else %}
             <div class="info box">Let your teams know about this survey - send them their individual team link:<BR>
                 {% for team in survey_teams %}
@@ -52,7 +52,7 @@
 <p><p>
 {% if team_name == '' %}
     <div class="info box"><font size="1">Want to reuse your Survey Link? Would you like a BVC trending your results over time?<br>
-    <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
+    <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
 {% endif %}
 
 <!-- WORD CLOUD USING JS -->
