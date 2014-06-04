@@ -4,7 +4,7 @@ dj-database-url==0.2.2
 dj-static==0.0.5
 django-toolbelt==0.0.1
 gunicorn==18.0
-gviz-api.py==1.8.2
+https://code.google.com/p/google-visualization-python/downloads/detail?name=gviz_api_py-1.8.2.tar.gz
 psycopg2==2.5.1
 py-bcrypt==0.4
 pytz==2014.3
