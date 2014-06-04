@@ -11,9 +11,11 @@
     <tr>
         <td>
         {% if team_name != '' %}
-            <div class="info box"> 
+            <div class="info box">
+<!--[if !IE]> -->
             <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">BVC</a> 
             </div><BR><BR>
+<!-- <![endif]-->
             <div class="info box">
                 <a href="{% url 'teamtemp.views.admin' survey_id=id  %}">ALL TEAMS</a><BR>
             </div>
@@ -22,9 +24,11 @@
             <a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team_name %}">this link</a>.</div>
             <h1>{{ pretty_team_name }} Survey Results</h1>
         {% else %}
+<!--[if !IE]> -->
             <div class="info box"> 
             <a href="{% url 'teamtemp.views.bvc' survey_id=id%}">BVC</a> 
             </div><BR><BR>
+<!-- <![endif]-->
             {% for team in survey_teams %}
                 <div class="info box">
                     <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
@@ -79,6 +83,7 @@
 <!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
 <!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="{% static 'jquery.awesomeCloud-0.2.min.js' %}"></script>
 
@@ -143,15 +148,19 @@
     }
 </script>
 
+<!--[if !IE]> -->
 <p style="page-break-before: always"></p>
 <div class="centre" id='guage_chart'></div>
+<!-- <![endif]-->
 
 <!-- Team Temp Guage -->
 
+<!--[if !IE]> -->
 <div id="wordcloud2" class="wordcloud">
 	{% for result in results %}
 	<span data-weight="{{result.score}}">{{result.word}}</span>
 	{% endfor %}
 </div>
+<!-- <![endif]-->
 
 {% endblock %}
