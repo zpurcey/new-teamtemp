@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Results{% endblock %}
+
+{% block body %}
+
+{% load staticfiles %}
+
+
+<script type='text/javascript' src='http://www.google.com/jsapi'></script>
+<script type='text/javascript'>
+
+    google.load('visualization', '1', {packages:['gauge','annotationchart','corechart']});
+    google.setOnLoadCallback(drawGuageChart);
+    function drawGuageChart() {
+        
+    <!-- Team Temp Guage -->
+        var avg = 0;
+        if( {{stats.count}} > 0){
+            avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) );
+        }
+
+        var guage_data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['Team Temp', avg ],
+        ]);
+
+        var guage_options = {
+            width: 800, height: 240,
+            redFrom: 0, redTo: 2.5,
+            yellowFrom:2.5, yellowTo: 5,
+            greenFrom:7.5, greenTo:10,
+            max:10,
+            minorTicks: 1
+        };
+
+        var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
+        guageChart.draw(guage_data, guage_options);
+
+    <!-- Historical Charts -->
+        <!-- Historical Chart Data -->
+        {% if json_historical_data != None %}
+            var historical_data = new google.visualization.DataTable({{ json_historical_data|safe }}, 0.5);
+            
+            <!-- Historical Combo Chart (Bar and Average Line) -->
+            var combo_table = new google.visualization.ComboChart(document.getElementById('table_div_jscode'));
+            combo_table.draw(historical_data,{{ historical_options|safe }});
+            
+            <!-- Historical Annotated Chart -->
+            var annotation_table = new google.visualization.AnnotationChart(document.getElementById('table_div_json'));
+            annotation_table.draw(historical_data,{{ historical_options|safe }});
+        {% endif %}
+    }
+</script>
+
+
+{% if archived_dates.count > 0 %}
+    <select class='no-print' id="ArchivedBVCSelector">
+        <option value="">Select an archived BVC from the list:</option>
+            {% if team_name == '' %}
+                <option value="{% url 'teamtemp.views.bvc' survey_id=id %}">Current Results</option>
+            {% else %}
+                <option value="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">Current Results</option>
+            {% endif %}
+        {% for date in archived_dates %}
+            {% if team_name == '' %}
+                <option value="{% url 'teamtemp.views.bvc' survey_id=id archive_id=date.id %}">{{ date.archive_date }}</option>
+            {% else %}
+                <option value="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name archive_id=date.id %}">{{ date.archive_date }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    
+    <script>
+        document.getElementById("ArchivedBVCSelector").onchange = function() {
+            if (this.selectedIndex!==0) {
+                window.location.href = this.value;
+            }        
+        };
+    </script>
+{% endif %}
+
+<h1 align="center">{{ pretty_team_name }} Team Temperature</h1>
+
+{% if results.0.archived %}
+<h2 align="center">{{ results.0.archive_date.date }}</h2>
+{% else %}
+<h2 align="center">{% now () %}</h2>
+{% endif %}
+
+<!-- Display Team Temp Guage -->
+<div class="centre" id='guage_chart'></div>
+
+
+<!-- WORD CLOUD USING JS -->
+
+<!-- TODO: Ask Henry what to do with these IE tags (keep/expand across all scripts or delete): -->
+
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"><![endif]-->
+<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="{% static 'jquery.awesomeCloud-0.2.min.js' %}"></script>
+
+<script>
+    $(document).ready(function(){
+        $("#wordcloud2").awesomeCloud({
+            "size" : {
+                "grid" : 50,
+                "factor" : 50,
+                "normalize" : true
+            },
+            "options" : {
+                "color" : "random-dark",
+                "rotationRatio" : 0.35,
+                "printMultiplier" : 3,
+                "sort" : "highest"
+            },
+            "font" : "'Times New Roman', Times, serif",
+            "shape" : "star"
+        });
+    });
+</script>
+
+<div id="wordcloud2" class="wordcloud">
+	{% for result in results %}
+	<span data-weight="{{result.score}}">{{result.word}}</span>
+	{% endfor %}
+</div>
+
+<!--[if lt IE 7 ]>
+<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+<![endif]-->
+
+<!-- WORD CLOUD USING JS -->
+
+
+<!-- History Trend Graphs -->
+<h1 align="center">{{ pretty_team_name }}</h1><P>
+<h1 align="center">Historical Team Temperature</h1>
+<h2 align="center">{% now () %}</h2>
+<p>
+<div class="centre" id="table_div_jscode" style='width: 8in; height: 4in;'></div>
+<BR><BR><BR><BR><BR><BR><BR>
+<div class="centre" id="table_div_json" style='width: 8in; height: 4in;'></div>
+
+{% endblock %}

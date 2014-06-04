@@ -19,6 +19,30 @@ class ErrorBox(ErrorList):
 class CreateSurveyForm(forms.Form):
     error_css_class='error box'
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
+    team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64)
+    
+    def clean_team_name(self):
+        team_name = self.cleaned_data['team_name']
+        matches = re.findall(r'[^A-Za-z0-9 \'-]', team_name)
+        if matches:
+            error = '"{team_name}" contains invalid characters '\
+                    '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
+            raise forms.ValidationError(error)
+        return team_name
+
+class AddTeamForm(forms.Form):
+    error_css_class='error box'
+    team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64)
+    
+    def clean_team_name(self):
+        team_name = self.cleaned_data['team_name']
+        matches = re.findall(r'[^A-Za-z0-9 \'-]', team_name)
+        if matches:
+            error = '"{team_name}" contains invalid characters '\
+                    '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
+            raise forms.ValidationError(error)
+        return team_name
+
 
 class SurveyResponseForm(forms.ModelForm):
     class Meta:

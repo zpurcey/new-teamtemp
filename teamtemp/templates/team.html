@@ -3,19 +3,14 @@
 {% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-<h1>Create a Team Temperature Survey</h1>
+<h1>Enter the new team name</h1>
 <form method="post">
   {% csrf_token %}
-  {{ form.password.errors }}
-  <div class="field">
-    <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
-    {{ form.password }}
-  </div>
   {{ form.team_name.errors }}
   <div class="field">
     <label for="team_name">Team Name</label><br/>
     {{ form.team_name }}
   </div>
-  <input type="submit" value="Create"/>
+  <input type="submit" value="Add"/>
 </form>
 {% endblock %}
