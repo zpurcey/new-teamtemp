@@ -53,35 +53,33 @@
     }
 </script>
 
+{% if team_name != '' %}
+    <div class="no-print"> 
+        <div class="info box"> 
+            <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=team_name %}">ADMIN</a> 
+        </div>
+        <BR><BR>
+        <div class="info box">
+            <a href="{% url 'teamtemp.views.bvc' survey_id=id %}">ALL TEAMS</a><BR>
+        </div>
+        <BR><BR><BR>
+    </div>
 
-{% if archived_dates.count > 0 %}
-    {% if team_name != '' %}
-        <div class="no-print"> 
-            <div class="info box"> 
-                <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=team_name %}">ADMIN</a> 
-            </div>
-            <BR><BR>
+{% else %}
+    <div class="no-print"> 
+        <div class="info box"> 
+            <a href="{% url 'teamtemp.views.admin' survey_id=id %}">ADMIN</a> 
+        </div>
+        <BR><BR>
+        {% for team in survey_teams %}
             <div class="info box">
-                <a href="{% url 'teamtemp.views.bvc' survey_id=id %}">ALL TEAMS</a><BR>
+                <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
             </div>
-            <BR><BR><BR>
-        </div>
-
-    {% else %}
-        <div class="no-print"> 
-            <div class="info box"> 
-                <a href="{% url 'teamtemp.views.admin' survey_id=id %}">ADMIN</a> 
-            </div>
-            <BR><BR>
-            {% for team in survey_teams %}
-                <div class="info box">
-                    <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
-                </div>
-            {% endfor %}
-            <BR><BR><BR>
-        </div>
-    {% endif %}
-
+        {% endfor %}
+        <BR><BR><BR>
+    </div>
+{% endif %}
+{% if archived_dates.count > 0 %}
     <select class='no-print' id="ArchivedBVCSelector">
         <option value="">Select an archived BVC from the list:</option>
             {% if team_name == '' %}
