@@ -120,8 +120,7 @@ def admin(request, survey_id, team_name=''):
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
                   'results': results, 'team_name':team_name,
-                  'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams,
-                  'word_cloudurl':word_cloudurl
+                  'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams
                     } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
