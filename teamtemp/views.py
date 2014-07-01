@@ -13,6 +13,8 @@ from django.utils import simplejson as json
 from django.core.serializers.json import DjangoJSONEncoder
 import gviz_api
 from django.http import HttpResponse
+import unirest as Unirest
+
 
 
 def home(request):
@@ -113,13 +115,33 @@ def admin(request, survey_id, team_name=''):
         else:
             stats = survey.stats()
 
-        return render(request, 'results.html', 
+        #generate word cloud
+        words = ""
+        for word in stats['words']:
+            words = words + word['word'] + " "
+
+        word_cloudurl = generate_wordcloud(words)
+#raise Exception (word_cloudurl)
+
+        return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
                   'results': results, 'team_name':team_name,
-                  'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams
+                  'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams,
+                  'word_cloudurl':word_cloudurl
                     } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
+
+
+def generate_wordcloud(word_list):
+
+    response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
+                        headers={"X-Mashape-Key": "C9WYBtNMiSmsh2lTDyPFziFw7xxpp1PXKwcjsnMPdIBq9yJEUh"},
+                        params={"config": "n/a", "height": 600, "textblock": word_list, "width": 800}
+                        )
+    if response.code == 200:
+        return response.body['url']
+    return ''
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
     timezone.activate(pytz.timezone('Australia/Queensland'))
@@ -236,14 +258,21 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
 
         survey_teams = teamtemp.teams_set.all()
 
-        return render(request, 'bvc.html', 
+        #generate word cloud
+        words = ""
+        for word in stats['words']:
+            words = words + word['word'] + " "
+
+        word_cloudurl = generate_wordcloud(words)
+
+        return render(request, 'bvc.html',
                 { 'id': survey_id, 'stats': stats, 
                   'results': results, 'team_name':team_name, 'archive_date':stats_date,
                   'pretty_team_name':team_name.replace("_", " "),
                   'team_history' : team_history ,
                   'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
                   'historical_options' : historical_options, 'archived_dates': archived_dates,
-                  'survey_teams': survey_teams
+                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl
                 } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})

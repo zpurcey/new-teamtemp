@@ -75,45 +75,6 @@
     <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
 {% endif %}
 
-<!-- WORD CLOUD USING JS -->
-
-<!-- TODO: Ask Henry what to do with these IE tags (keep/expand across all scripts or delete): -->
-
-<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"><![endif]-->
-<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
-<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-<script src="{% static 'jquery.awesomeCloud-0.2.min.js' %}"></script>
-
-<script>
-	$(document).ready(function(){
-		$("#wordcloud2").awesomeCloud({
-			"size" : {
-				"grid" : 50,
-				"factor" : 50,
-				"normalize" : true
-			},
-			"options" : {
-				"color" : "random-dark",
-				"rotationRatio" : 0.35,
-				"printMultiplier" : 3,
-				"sort" : "highest"
-			},
-			"font" : "'Times New Roman', Times, serif",
-			"shape" : "star"
-		});
-	});
-</script>
-
-<!--[if lt IE 7 ]>
-<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
-<script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
-<![endif]-->
-
-<!-- WORD CLOUD USING JS -->
-
 <!-- Team Temp Guage -->
 
 <script type='text/javascript' src='http://www.google.com/jsapi'></script>
@@ -150,17 +111,17 @@
 
 <!--[if !IE]> -->
 <p style="page-break-before: always"></p>
-<div class="centre" id='guage_chart'></div>
+<div class="centreguage" id='guage_chart'></div>
 <!-- <![endif]-->
 
 <!-- Team Temp Guage -->
 
 <!--[if !IE]> -->
-<div id="wordcloud2" class="wordcloud">
-	{% for result in results %}
-	<span data-weight="{{result.score}}">{{result.word}}</span>
-	{% endfor %}
+<br><br><br><br>
+<div class="centrewordcloud" id='new_word_cloud'>
+    <img src={{ word_cloudurl }} alt="word cloud">
 </div>
+
 <!-- <![endif]-->
 
 {% endblock %}

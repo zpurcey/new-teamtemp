@@ -35,12 +35,21 @@ body {
 	page-break-inside: avoid;
 	width: 8in;
 }
-.centre
+.centreguage
 {
   width: 200px;
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+.centrewordcloud
+{
+  width: 800px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  page-break-after: always;
+  page-break-inside: avoid;
 }
 @media print
 {
@@ -49,4 +58,3 @@ body {
         display: none !important;
     }
 }
-

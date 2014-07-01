@@ -114,44 +114,14 @@
 {% endif %}
 
 <!-- Display Team Temp Guage -->
-<div class="centre" id='guage_chart'></div>
+<div class="centreguage" id='guage_chart'></div>
 
+<BR><BR><BR><BR>
 
-<!-- WORD CLOUD USING JS -->
+<div class="centrewordcloud">
 
-<!-- TODO: Ask Henry what to do with these IE tags (keep/expand across all scripts or delete): -->
+    <img src={{ word_cloudurl }} alt="word cloud">
 
-<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"><![endif]-->
-<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
-<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-<script src="{% static 'jquery.awesomeCloud-0.2.min.js' %}"></script>
-
-<script>
-    $(document).ready(function(){
-        $("#wordcloud2").awesomeCloud({
-            "size" : {
-                "grid" : 50,
-                "factor" : 50,
-                "normalize" : true
-            },
-            "options" : {
-                "color" : "random-dark",
-                "rotationRatio" : 0.35,
-                "printMultiplier" : 3,
-                "sort" : "highest"
-            },
-            "font" : "'Times New Roman', Times, serif",
-            "shape" : "star"
-        });
-    });
-</script>
-
-<div id="wordcloud2" class="wordcloud">
-	{% for result in results %}
-	<span data-weight="{{result.score}}">{{result.word}}</span>
-	{% endfor %}
 </div>
 
 <!--[if lt IE 7 ]>
@@ -167,8 +137,8 @@
 <h1 align="center">Historical Team Temperature</h1>
 <h2 align="center">{% now () %}</h2>
 <p>
-<div class="centre" id="table_div_jscode" style='width: 8in; height: 4in;'></div>
+<div class="centreguage" id="table_div_jscode" style='width: 8in; height: 4in;'></div>
 <BR><BR><BR><BR><BR><BR><BR>
-<div class="centre" id="table_div_json" style='width: 8in; height: 4in;'></div>
+<div class="centreguage" id="table_div_json" style='width: 8in; height: 4in;'></div>
 
 {% endblock %}
