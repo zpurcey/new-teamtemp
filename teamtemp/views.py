@@ -14,6 +14,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 import gviz_api
 from django.http import HttpResponse
 import unirest as Unirest
+import os
+
 
 
 
@@ -135,12 +137,15 @@ def admin(request, survey_id, team_name=''):
 
 def generate_wordcloud(word_list):
 
-    response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
-                        headers={"X-Mashape-Key": "C9WYBtNMiSmsh2lTDyPFziFw7xxpp1PXKwcjsnMPdIBq9yJEUh"},
-                        params={"config": "n/a", "height": 600, "textblock": word_list, "width": 800}
-                        )
-    if response.code == 200:
-        return response.body['url']
+    # using get will return `None` if a key is not present rather than raise a `KeyError`
+    mashape_key = os.environ.get('XMASHAPEKEY')
+    if mashape_key != None:
+        response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
+                                headers={"X-Mashape-Key": mashape_key},
+                                params={"config": "n/a", "height": 600, "textblock": word_list, "width": 800}
+                                )
+        if response.code == 200:
+            return response.body['url']
     return ''
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
