@@ -117,14 +117,6 @@ def admin(request, survey_id, team_name=''):
         else:
             stats = survey.stats()
 
-        #generate word cloud
-        words = ""
-        for word in stats['words']:
-            words = words + word['word'] + " "
-
-        word_cloudurl = generate_wordcloud(words)
-#raise Exception (word_cloudurl)
-
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
                   'results': results, 'team_name':team_name,
@@ -137,7 +129,6 @@ def admin(request, survey_id, team_name=''):
 
 def generate_wordcloud(word_list):
 
-    # using get will return `None` if a key is not present rather than raise a `KeyError`
     mashape_key = os.environ.get('XMASHAPEKEY')
     if mashape_key != None:
         response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
