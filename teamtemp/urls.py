@@ -19,3 +19,8 @@ urlpatterns = patterns('',
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team),
     url(r'^static/(.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
 )
+
+if settings.DEBUG:
+    # static files (images, css, javascript, etc.)
+    urlpatterns += patterns('',(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}))
+

@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm
-from responses.models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams
+from responses.models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams, WordCloudImage
 from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
 from pytz import timezone
@@ -15,7 +15,9 @@ import gviz_api
 from django.http import HttpResponse
 import unirest as Unirest
 import os
-
+from urlparse import urlparse
+import errno
+import urllib
 
 
 
@@ -135,8 +137,31 @@ def generate_wordcloud(word_list):
                                 params={"config": "n/a", "height": 600, "textblock": word_list, "width": 800}
                                 )
         if response.code == 200:
-            return response.body['url']
-    return ''
+            return save_url(response.body['url'], 'media/wordcloud_images')
+    return None
+
+
+def require_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError, exc:
+        if exc.errno != errno.EEXIST:
+            raise
+
+def save_url(url, directory):
+
+    image_name = urlparse(url).path.split('/')[-1]
+    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
+    require_dir(directory)
+    filename = os.path.join(directory, image_name)
+
+    if not os.path.exists(filename):
+        urllib.urlretrieve(url, filename)
+        #TODO if error return None
+
+    return os.path.relpath(filename,os.path.dirname(os.path.abspath(__file__)))
+
+
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
     timezone.activate(pytz.timezone('Australia/Queensland'))
@@ -255,10 +280,22 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
 
         #generate word cloud
         words = ""
+        word_cloudurl = ""
         for word in stats['words']:
             words = words + word['word'] + " "
 
-        word_cloudurl = generate_wordcloud(words)
+        #TODO Write a better lookup and model to replace this hack
+        word_cloud_index = WordCloudImage.objects.filter(word_list = words)
+
+        if word_cloud_index:
+            word_cloudurl =  word_cloud_index[0].image_url
+
+        if word_cloudurl == "" and words != "":
+            word_cloudurl = generate_wordcloud(words)
+            if word_cloudurl:
+                word_cloud = WordCloudImage(creation_date = timezone.now(),
+                                            word_list = words, image_url = word_cloudurl)
+                word_cloud.save()
 
         return render(request, 'bvc.html',
                 { 'id': survey_id, 'stats': stats, 

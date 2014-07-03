@@ -1,5 +1,10 @@
 from django.db import models
 
+class WordCloudImage(models.Model):
+    creation_date = models.DateField()
+    word_list = models.CharField(max_length=511)
+    image_url = models.CharField(max_length=255)
+
 class User(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
 
