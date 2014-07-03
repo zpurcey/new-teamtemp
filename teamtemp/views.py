@@ -154,6 +154,7 @@ def save_url(url, directory):
     directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
     require_dir(directory)
     filename = os.path.join(directory, image_name)
+    raise Exception(directory,filename)
 
     if not os.path.exists(filename):
         urllib.urlretrieve(url, filename)
