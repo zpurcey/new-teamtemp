@@ -1,3 +1,4 @@
 venv
 staticfiles
+media
 *.pyc

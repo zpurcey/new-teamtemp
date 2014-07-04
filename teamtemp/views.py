@@ -288,7 +288,11 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
         word_cloud_index = WordCloudImage.objects.filter(word_list = words)
 
         if word_cloud_index:
-            word_cloudurl =  word_cloud_index[0].image_url
+            if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloudurl)):
+                word_cloudurl =  word_cloud_index[0].image_url
+            else:
+                #Files have been deleted remove from db and then regenerate
+                WordCloudImage.objects.filter(word_list = words).delete()
 
         if word_cloudurl == "" and words != "":
             word_cloudurl = generate_wordcloud(words)
