@@ -288,7 +288,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
         word_cloud_index = WordCloudImage.objects.filter(word_list = words)
 
         if word_cloud_index:
-            if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloudurl)):
+            if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)):
                 word_cloudurl =  word_cloud_index[0].image_url
             else:
                 #Files have been deleted remove from db and then regenerate
