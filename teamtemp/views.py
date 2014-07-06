@@ -259,8 +259,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                 'max': 12,
                 'min': 0,
                 'focusTarget': 'category',
-                'tooltip': { 'isHtml': 'true' },
-                'aggregationTarget': 'none'
+                'tooltip': { 'trigger': 'selection', 'isHtml': 'true' },
             }
             if average_index != None:
                 historical_options.update({'series': {average_index: {'type': "line"}}})
