@@ -22,7 +22,7 @@
 
         var guage_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['Team Temp', avg ],
+            ['Team Temp', 0 ],
         ]);
 
         var guage_options = {
@@ -36,6 +36,14 @@
 
         var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
         guageChart.draw(guage_data, guage_options);
+
+        setTimeout(function(){
+            var guage_data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['Team Temp',avg],
+            ]);
+            guageChart.draw(guage_data, guage_options);
+            }, 200);
 
     <!-- Historical Charts -->
         <!-- Historical Chart Data -->
