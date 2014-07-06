@@ -238,7 +238,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                     history_chart_data.append(row)
                     row = {}
                     row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-                row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Respondents)")
+                row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
     
             history_chart_data.append(row)
     
@@ -257,7 +257,10 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                 'seriesType': "bars",
                 'vAxis': { 'ticks': [1,2,3,4,5,6,7,8,9,10] },
                 'max': 12,
-                'min': 0
+                'min': 0,
+                'focusTarget': 'category',
+                'tooltip': { 'isHtml': 'true' },
+                'aggregationTarget': 'none'
             }
             if average_index != None:
                 historical_options.update({'series': {average_index: {'type': "line"}}})

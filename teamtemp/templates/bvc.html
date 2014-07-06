@@ -26,7 +26,7 @@
         ]);
 
         var guage_options = {
-            width: 800, height: 240,
+            width: 800, height: 440,
             redFrom: 0, redTo: 2.5,
             yellowFrom:2.5, yellowTo: 5,
             greenFrom:7.5, greenTo:10,
@@ -114,9 +114,10 @@
 {% endif %}
 
 <!-- Display Team Temp Guage -->
-<div class="centreguage" id='guage_chart'></div>
-
+<div class="centreguage" id='guage_chart'>
+</div>
 <BR><BR><BR><BR>
+<h3 align="center">{{ stats.count }} Responses:</h3>
 
 <div class="centrewordcloud">
 
