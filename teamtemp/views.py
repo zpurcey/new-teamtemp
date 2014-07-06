@@ -134,7 +134,7 @@ def generate_wordcloud(word_list):
     if mashape_key != None:
         response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
                                 headers={"X-Mashape-Key": mashape_key},
-                                params={"config": "n/a", "height": 600, "textblock": word_list, "width": 800}
+                                params={"config": "n/a", "height": 500, "textblock": word_list, "width": 800}
                                 )
         if response.code == 200:
             return save_url(response.body['url'], 'media/wordcloud_images')
