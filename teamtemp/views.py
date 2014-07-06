@@ -234,14 +234,11 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                 if row == None:
                     row = {}
                     row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-                    row[survey_summary.team_name] = float(survey_summary.average_score)
                 elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
                     history_chart_data.append(row)
                     row = {}
                     row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-                    row[survey_summary.team_name] = float(survey_summary.average_score)
-                else:
-                    row[survey_summary.team_name] = float(survey_summary.average_score)
+                row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Respondents)")
     
             history_chart_data.append(row)
     
@@ -251,7 +248,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
             
             # Creating a JSon string
             json_history_chart_table = history_chart_table.ToJSon(columns_order=(history_chart_columns))
-            #TODO - set series to be line where team name = average
+
             historical_options = {
                 'legendPosition': 'newRow',
                 'title' : 'Team Temperature by Team',
