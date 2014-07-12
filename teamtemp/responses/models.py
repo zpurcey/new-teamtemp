@@ -47,6 +47,22 @@ class TeamTemperature(models.Model):
         result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
         return result 
 
+    def accumulated_stats(self, start_date, end_date):
+        result = dict()
+        allresponses = self.temperatureresponse_set.filter(response_date__gte=end_date, response_date__lte=start_date)
+        result['count'] = allresponses.count()
+        result['average'] = allresponses.aggregate(models.Avg('score'))
+        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
+        return result
+
+    def accumulated_team_stats(self, team_name, start_date, end_date):
+        result = dict()
+        allresponses = self.temperatureresponse_set.filter(team_name = team_name, response_date__gte=end_date, response_date__lte=start_date)
+        result['count'] = allresponses.count()
+        result['average'] = allresponses.aggregate(models.Avg('score'))
+        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
+        return result
+
     def __unicode__(self):
         return u"{}: {} {}".format(self.id, self.creator.id,
                                    self.creation_date)

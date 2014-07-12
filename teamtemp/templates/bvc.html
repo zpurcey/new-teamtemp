@@ -116,9 +116,25 @@
 <h1 align="center">{{ pretty_team_name }} Team Temperature</h1>
 
 {% if results.0.archived %}
-<h2 align="center">{{ results.0.archive_date.date }}</h2>
+    <h2 align="center">{{ results.0.archive_date.date }}</h2>
 {% else %}
-<h2 align="center">{% now () %}</h2>
+    <h2 align="center">{% now () %}</h2>
+
+    <div class="no-print">
+        {% if num_iterations != '0' %}
+            {% if team_name == '' %}
+                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+            {% else %}
+                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+            {% endif %}
+        {% else %}
+            {% if team_name == '' %}
+                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id num_iterations='2' %}">Current Results</a></h6>
+            {% else %}
+                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name num_iterations='2' %}">Current Results</a></h6>
+            {% endif %}
+        {% endif %}
+    </div>
 {% endif %}
 
 <!-- Display Team Temp Guage -->

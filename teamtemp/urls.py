@@ -12,6 +12,8 @@ urlpatterns = patterns('',
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', admin),
     url(r'^(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', submit),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})$', bvc),
+    url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/i(?P<num_iterations>[0-9]{1,3})$', bvc),
+    url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})/i(?P<num_iterations>[0-9]{1,3})$', bvc),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<archive_id>[0-9]{1,20})$', bvc),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', bvc),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})/(?P<archive_id>[0-9]{1,20})$', bvc),
@@ -23,4 +25,3 @@ urlpatterns = patterns('',
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += patterns('',(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}))
-

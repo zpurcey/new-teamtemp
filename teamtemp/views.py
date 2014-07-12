@@ -161,9 +161,31 @@ def save_url(url, directory):
 
     return os.path.relpath(filename,os.path.dirname(os.path.abspath(__file__)))
 
+def calc_multi_iteration_average(team_name, survey, num_iterations=2):
+    iteration_index = 0
+    if num_iterations > 0:
+        iteration_index = num_iterations - 1
+    else:
+        return None
 
+    archive_dates = survey.temperatureresponse_set.filter(archive_date__isnull=False).values('archive_date').distinct().order_by('-archive_date')
 
-def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
+    if archive_dates.count() < num_iterations and archive_dates.count() > 0:
+        iteration_index = archive_dates.count() - 1 #oldest archive date if less than target iteration count
+
+    if archive_dates.count() > iteration_index:
+        response_dates = survey.temperatureresponse_set.filter(archive_date = archive_dates[iteration_index]['archive_date']).values('response_date').order_by('response_date')
+
+        if team_name != '':
+            accumulated_stats = survey.accumulated_team_stats(team_name,timezone.now(),response_dates[0]['response_date'])
+        else:
+            accumulated_stats = survey.accumulated_stats(timezone.now(),response_dates[0]['response_date'])
+
+        return accumulated_stats
+
+    return None
+
+def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     # if valid session token or valid password render results page
@@ -277,6 +299,11 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
 
         survey_teams = teamtemp.teams_set.all()
 
+        if int(float(num_iterations)) > 0:
+            multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)))
+            if multi_stats:
+                stats = multi_stats
+
         #generate word cloud
         words = ""
         word_cloudurl = ""
@@ -300,6 +327,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                                             word_list = words, image_url = word_cloudurl)
                 word_cloud.save()
 
+
         return render(request, 'bvc.html',
                 { 'id': survey_id, 'stats': stats, 
                   'results': results, 'team_name':team_name, 'archive_date':stats_date,
@@ -307,7 +335,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12'):
                   'team_history' : team_history ,
                   'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
                   'historical_options' : historical_options, 'archived_dates': archived_dates,
-                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl
+                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl, 'num_iterations':num_iterations
                 } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
@@ -377,8 +405,9 @@ def reset(request, survey_id):
                 responder_count = average_responder_total,
                 team_name = 'Average',
                 archive_date = arch_date)
-        Summary.save()
 
+        if Summary:
+            Summary.save()
 
         return HttpResponseRedirect('/admin/%s' % survey_id)
     else:
