@@ -18,8 +18,7 @@ import os
 from urlparse import urlparse
 import errno
 import urllib
-
-
+from django.conf import settings
 
 def home(request):
     if request.method == 'POST':
@@ -188,7 +187,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2):
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    # if valid session token or valid password render results page
+
     password = None
     user = None
     num_rows = 0
@@ -196,21 +195,31 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
     historical_options = {}
     stats_date = ''
     survey_teams=[]
+    ignore_bvc_auth = False
+    if settings.IGNORE_BVC_AUTH:
+        ignore_bvc_auth = settings.IGNORE_BVC_AUTH
 
-    if not IGNORE_BVC_AUTH:
-        if request.method == 'POST':
-            form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
-            if form.is_valid():
-                rpf = form.cleaned_data
-                password = rpf['password'].encode('utf-8')
-        else:
-            try:
-                userid = request.session.get('userid', '__nothing__')
-                user = User.objects.get(id=userid)
-            except User.DoesNotExist:
-                return render(request, 'password.html', {'form': ResultsPasswordForm()})
-    if IGNORE_BVC_AUTH or (user and survey.creator.id == user.id or check_password(password, survey.password)):
-        request.session['userid'] = survey.creator.id
+    #Process POST return results from Password Form Submit:
+    if request.method == 'POST':
+        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
+        if form.is_valid():
+            rpf = form.cleaned_data
+            password = rpf['password'].encode('utf-8')
+            if check_password(password, survey.password):
+                request.session['userid'] = survey.creator.id
+
+    #Retrieve User Token - if user does not exist present password entry form
+    try:
+        userid = request.session.get('userid', '__nothing__')
+        user = User.objects.get(id=userid)
+    except User.DoesNotExist:
+        if not ignore_bvc_auth:
+            return render(request, 'password.html', {'form': ResultsPasswordForm()})
+
+    #If authenticated via user token or ignoring auth for bvc rendering
+    if ignore_bvc_auth or (user and survey.creator.id == user.id):
+        if not ignore_bvc_auth:
+            request.session['userid'] = survey.creator.id
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
         if team_name != '':
             if archive_id == '':
