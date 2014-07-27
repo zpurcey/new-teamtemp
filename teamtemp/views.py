@@ -196,18 +196,20 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
     historical_options = {}
     stats_date = ''
     survey_teams=[]
-    if request.method == 'POST':
-        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
-        if form.is_valid():
-            rpf = form.cleaned_data
-            password = rpf['password'].encode('utf-8')
-    else: 
-        try: 
-            userid = request.session.get('userid', '__nothing__')
-            user = User.objects.get(id=userid)
-        except User.DoesNotExist:
-            return render(request, 'password.html', {'form': ResultsPasswordForm()})
-    if user and survey.creator.id == user.id or check_password(password, survey.password):
+
+    if not IGNORE_BVC_AUTH:
+        if request.method == 'POST':
+            form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
+            if form.is_valid():
+                rpf = form.cleaned_data
+                password = rpf['password'].encode('utf-8')
+        else:
+            try:
+                userid = request.session.get('userid', '__nothing__')
+                user = User.objects.get(id=userid)
+            except User.DoesNotExist:
+                return render(request, 'password.html', {'form': ResultsPasswordForm()})
+    if IGNORE_BVC_AUTH or (user and survey.creator.id == user.id or check_password(password, survey.password)):
         request.session['userid'] = survey.creator.id
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
         if team_name != '':

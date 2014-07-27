@@ -157,3 +157,6 @@ LOGGING = {
         },
     }
 }
+
+#Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
+IGNORE_BVC_AUTH = True
