@@ -79,7 +79,8 @@ def submit(request, survey_id, team_name=''):
 
         form = SurveyResponseForm(instance=previous)
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
-                                         'response_id': response_id})
+                                         'response_id': response_id,
+                                         'team_name': team_name.replace("_", " ")})
 
 def admin(request, survey_id, team_name=''):
     timezone.activate(pytz.timezone('Australia/Queensland'))
