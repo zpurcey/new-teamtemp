@@ -347,7 +347,8 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
                   'team_history' : team_history ,
                   'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
                   'historical_options' : historical_options, 'archived_dates': archived_dates,
-                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl, 'num_iterations':num_iterations
+                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl, 'num_iterations':num_iterations,
+                  'team_count' : team_index
                 } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
