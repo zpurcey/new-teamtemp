@@ -250,10 +250,10 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
         max_date = timezone.now() + buffer_max
         min_date = max_date - trend_period - buffer_max
 
+        team_index = 0
         if num_rows > 0:
             history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
             history_chart_columns = ('archive_date',)
-            team_index = 0
             average_index = None
             for team in teams:
                 history_chart_schema.update({team['team_name'] :  ("number",team['team_name'].replace("_", " "))})
