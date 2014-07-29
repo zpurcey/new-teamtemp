@@ -2,7 +2,7 @@ from django.db import models
 
 class WordCloudImage(models.Model):
     creation_date = models.DateField()
-    word_list = models.CharField(max_length=511)
+    word_list = models.CharField(max_length=5000)
     image_url = models.CharField(max_length=255)
 
 class User(models.Model):
@@ -88,7 +88,7 @@ class TemperatureResponse(models.Model):
 class TeamResponseHistory(models.Model):
     request = models.ForeignKey(TeamTemperature)
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
-    word_list = models.CharField(max_length=511)
+    word_list = models.CharField(max_length=5000)
     responder_count = models.IntegerField()
     team_name = models.CharField(max_length=64, null=True)
     archive_date = models.DateTimeField()
