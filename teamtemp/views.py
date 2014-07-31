@@ -20,6 +20,7 @@ import errno
 import urllib
 from django.conf import settings
 
+
 def home(request):
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
@@ -132,6 +133,7 @@ def generate_wordcloud(word_list):
 
     mashape_key = os.environ.get('XMASHAPEKEY')
     if mashape_key != None:
+        Unirest.timeout(20)
         response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
                                 headers={"X-Mashape-Key": mashape_key},
                                 params={"config": "n/a", "height": 500, "textblock": word_list, "width": 800}
