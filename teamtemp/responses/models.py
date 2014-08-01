@@ -14,6 +14,8 @@ class TeamTemperature(models.Model):
     creation_date = models.DateField()
     creator = models.ForeignKey(User)
     password = models.CharField(max_length=256)
+    archive_schedule = models.IntegerField(default=0)
+    archive_date = models.DateTimeField(null=True)
 
     def stats(self):
         result = dict()

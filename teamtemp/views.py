@@ -13,13 +13,14 @@ from django.utils import simplejson as json
 from django.core.serializers.json import DjangoJSONEncoder
 import gviz_api
 from django.http import HttpResponse
+from django.http import Http404
 import unirest as Unirest
 import os
 from urlparse import urlparse
 import errno
 import urllib
 from django.conf import settings
-
+import sys
 
 def home(request):
     if request.method == 'POST':
@@ -428,6 +429,77 @@ def reset(request, survey_id):
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
 
+def cron(request, pin):
+
+    if pin == '1234':
+        teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
+        nowstamp = timezone.now()
+        data = {'archive_date': nowstamp}
+
+        for teamtemp in teamtemps:
+            if teamtemp.archive_date is None or (timezone.now() - teamtemp.archive_date) > timedelta(days=teamtemp.archive_schedule):
+                scheduled_archive(request, teamtemp.id)
+                TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
+                print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+        return HttpResponse()
+    else:
+        raise Http404
+
+
+def scheduled_archive(request, survey_id):
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    
+    teamtemp = TeamTemperature.objects.get(pk=survey_id)
+    
+    #Save Survey Summary for all survey teams
+    arch_date = timezone.now()
+    data = {'archived': True, 'archive_date': timezone.now()}
+    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    average_total = 0
+    average_count = 0
+    average_responder_total = 0
+    
+    for team in teams:
+        Summary = None
+        team_stats = None
+        summary_word_list = ""
+        team_stats = teamtemp.team_stats(team['team_name'])
+        for word in team_stats['words'] :
+            summary_word_list = summary_word_list + word['word'] + " "
+        Summary = TeamResponseHistory(request = survey,
+                                      average_score = team_stats['average']['score__avg'],
+                                      word_list = summary_word_list,
+                                      responder_count = team_stats['count'],
+                                      team_name = team['team_name'],
+                                      archive_date = arch_date)
+        Summary.save()
+        average_total = average_total + team_stats['average']['score__avg']
+        average_count = average_count + 1
+        average_responder_total = average_responder_total + team_stats['count']
+    
+    #disable archiving till it works
+    #TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
+
+    #Save Survey Summary as AGREGATE AVERAGE for all teams
+    data = {'archived': True, 'archive_date': timezone.now()}
+    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    Summary = None
+    team_stats = None
+    summary_word_list = ""
+    team_stats = teamtemp.stats()
+
+    if average_count > 0:
+        Summary = TeamResponseHistory(request = survey,
+                                  average_score = average_total/float(average_count),
+                                  word_list = summary_word_list,
+                                  responder_count = average_responder_total,
+                                  team_name = 'Average',
+                                  archive_date = arch_date)
+
+    if Summary:
+        Summary.save()
+
+    return
 
 def team(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
