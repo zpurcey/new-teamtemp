@@ -160,3 +160,5 @@ LOGGING = {
 
 #Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
 IGNORE_BVC_AUTH = True
+
+CRON_PIN = os.environ.get('TEAM_TEMP_CRON_PIN', '0000')

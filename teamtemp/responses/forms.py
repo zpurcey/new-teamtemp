@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.util import ErrorList
-from teamtemp.responses.models import TemperatureResponse
+from teamtemp.responses.models import TemperatureResponse, TeamTemperature
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 import re
@@ -69,3 +69,18 @@ class SurveyResponseForm(forms.ModelForm):
 class ResultsPasswordForm(forms.Form):
     error_css_class='error box'
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
+
+class SurveySettingsForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(), max_length=256, required=False)
+    new_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
+    current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
+    class Meta:
+        model = TeamTemperature
+        fields = ['archive_schedule']
+    
+    def clean_archive_schedule(self):
+        archive_schedule = self.cleaned_data['archive_schedule']
+        if int(archive_schedule) > 28:
+            raise forms.ValidationError('Archive Schedule Max 28 Days' % archive_schedule)
+        return archive_schedule
+    

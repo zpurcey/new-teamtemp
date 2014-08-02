@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Team Temperature{% endblock %}
+
+{% block body %}
+{% if thanks %}
+<div class="info box">{{ thanks }}</div>
+{% endif %}
+<h1>Team Temperature</h1>
+<h2>Survey Settings</h2>
+<form method="post">
+    {% csrf_token %}
+    {% if response_id %}
+    <input type="hidden" name="id" value="{{ response_id }}"/>
+    {% endif %}
+    {{ form.archive_schedule.errors }}
+    <div class="field">
+        <label for="id_archive_schedule">Archive Interval:</label><br/>
+        {{ form.archive_schedule }} (Number of days. 0 to disabled automated archive.)
+    </div>
+    {{ form.password.errors }}
+    <div class="field">
+        <label for="id_password">Change Survey Password:</label><br/>
+        {{ form.password }} (Leave blank to retain existing password)
+    </div>
+    <h3>Team Name Change</h3>
+    {% for team in survey_teams %}
+        {{ team.pretty_team_name }} <BR>
+    {% endfor %}
+    <BR>
+    {{ form.current_team_name.errors }}
+    <div class="field">
+        <label for="id_password">Current team name:</label><br/>
+        {{ form.current_team_name }} (Check for trailing spaces if name change fails)
+    </div>
+    {{ form.new_team_name.errors }}
+    <div class="field">
+        <label for="id_password">New team name:</label><br/>
+        {{ form.new_team_name }} (Blank will delete all team records)
+    </div>
+    <input type="submit" value="Submit"/>
+</form>
+{% endblock %}

@@ -2,13 +2,14 @@ from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView
 from django.conf import settings
 
-from teamtemp.views import home, admin, submit, reset, bvc, team, cron
+from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set
 
 urlpatterns = patterns('',
     url(r'^$', home),
     url(r'^about$', TemplateView.as_view(template_name='about.html'), 
         name='about'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin),
+    url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', set),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', admin),
     url(r'^(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', submit),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})$', bvc),

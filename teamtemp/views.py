@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
-from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm
+from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm, SurveySettingsForm
 from responses.models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams, WordCloudImage
 from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
@@ -44,6 +44,94 @@ def home(request):
     else:
         form = CreateSurveyForm()
     return render(request, 'index.html', {'form': form})
+
+def authenticated_user(request, survey_id):
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    
+    #Retrieve User Token - if user does not exist return false
+    try:
+        userid = request.session.get('userid', '__nothing__')
+        user = User.objects.get(id=userid)
+    except User.DoesNotExist:
+        return False
+    return True
+
+def set(request, survey_id):
+    thanks = ""
+    rows_changed = 0
+    survey_teams=[]
+
+    if not authenticated_user(request, survey_id):
+        return HttpResponseRedirect('/admin/%s' % survey_id)
+
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    survey_teams = survey.teams_set.all()
+
+    if request.method == 'POST':
+        form = SurveySettingsForm(request.POST, error_class=ErrorBox)
+        survey_settings_id = request.POST.get('id', None)
+        if form.is_valid():
+            srf = form.cleaned_data
+            pw = survey.password
+            if srf['password'] != '':
+                pw = make_password(srf['password'])
+                thanks = "Password Updated. "
+            if srf['archive_schedule'] != survey.archive_schedule:
+                thanks = thanks + "Schedule Updated. "
+            if srf['current_team_name'] != '':
+                rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"), srf['new_team_name'].replace(" ", "_"), survey.id)
+                print >>sys.stderr,"Team Name Updated: " + " " + str(rows_changed) + " From: " + srf['current_team_name'] + " To: " +srf['new_team_name']
+
+            survey_settings = TeamTemperature(id = survey.id,
+                                              creation_date = survey.creation_date,
+                                              creator = survey.creator,
+                                              password = pw,
+                                              archive_date = survey.archive_date,
+                                              archive_schedule = srf['archive_schedule'])
+            survey_settings.save()
+            survey_settings_id = survey_settings.id
+            form = SurveySettingsForm(instance=survey_settings)
+            if srf['current_team_name'] != ''and srf['new_team_name'] != '':
+                thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
+            if srf['current_team_name'] != '' and srf['new_team_name'] == '':
+                thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
+
+    else:
+        try:
+            previous = TeamTemperature.objects.get(id = survey_id)
+            survey_settings_id = previous.id
+        except TeamTemperature.DoesNotExist:
+            previous = None
+            survey_settings_id = None
+        
+        form = SurveySettingsForm(instance=previous)
+    return render(request, 'set.html', {'form': form, 'thanks': thanks,
+                  'survey_settings_id': survey_settings_id,
+                  'survey_teams' : survey_teams})
+
+def change_team_name(team_name, new_team_name, survey_id):
+    data = {'team_name': new_team_name}
+    num_rows = 0
+    if new_team_name != '':
+        num_rows = TemperatureResponse.objects.filter(request = survey_id, team_name = team_name).count()
+        TemperatureResponse.objects.filter(request = survey_id, team_name = team_name).update(**data)
+    
+        num_rows = num_rows + TeamResponseHistory.objects.filter(request = survey_id, team_name = team_name).count()
+        TeamResponseHistory.objects.filter(request = survey_id, team_name = team_name).update(**data)
+
+        num_rows = num_rows + Teams.objects.filter(request = survey_id, team_name = team_name).count()
+        Teams.objects.filter(request = survey_id, team_name = team_name).update(**data)
+    else:
+        num_rows = TemperatureResponse.objects.filter(request = survey_id, team_name = team_name).count()
+        TemperatureResponse.objects.filter(request = survey_id, team_name = team_name).delete()
+        
+        num_rows = num_rows + TeamResponseHistory.objects.filter(request = survey_id, team_name = team_name).count()
+        TeamResponseHistory.objects.filter(request = survey_id, team_name = team_name).delete()
+        
+        num_rows = num_rows + Teams.objects.filter(request = survey_id, team_name = team_name).count()
+        Teams.objects.filter(request = survey_id, team_name = team_name).delete()
+
+    return num_rows
 
 def submit(request, survey_id, team_name=''):
     userid = responses.get_or_create_userid(request)
@@ -135,10 +223,12 @@ def generate_wordcloud(word_list):
     mashape_key = os.environ.get('XMASHAPEKEY')
     if mashape_key != None:
         Unirest.timeout(20)
+        print >>sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
         response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
                                 headers={"X-Mashape-Key": mashape_key},
                                 params={"config": "n/a", "height": 500, "textblock": word_list, "width": 800}
                                 )
+        print >>sys.stderr, str(timezone.now()) + " Finish Word Cloud Generation: " + word_list
         if response.code == 200:
             return save_url(response.body['url'], 'media/wordcloud_images')
     return None
@@ -322,8 +412,13 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
         #generate word cloud
         words = ""
         word_cloudurl = ""
+        word_count = 0
         for word in stats['words']:
-            words = words + word['word'] + " "
+            for i in range(0,word['id__count']):
+                words = words + word['word'] + " "
+                word_count += 1
+
+        print >>sys.stderr, str(timezone.now()) + " Word Cloud: " + str(word_count) + " words - " + words
 
         #TODO Write a better lookup and model to replace this hack
         word_cloud_index = WordCloudImage.objects.filter(word_list = words)
@@ -360,78 +455,71 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
 def reset(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     # if valid session token or valid password render results page
-    password = None
-    user = None
 
-    if request.method == 'POST':
-        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
-        if form.is_valid():
-            rpf = form.cleaned_data
-            password = rpf['password'].encode('utf-8')
-    else: 
-        try: 
-            userid = request.session.get('userid', '__nothing__')
-            user = User.objects.get(id=userid)
-        except User.DoesNotExist:
-            return render(request, 'password.html', {'form': ResultsPasswordForm()})
+    if not authenticated_user(request, survey_id):
+        return HttpResponseRedirect('/admin/%s' % survey_id)
 
-    if user and survey.creator.id == user.id or check_password(password, survey.password):
-        teamtemp = TeamTemperature.objects.get(pk=survey_id)
-        request.session['userid'] = survey.creator.id
+    teamtemp = TeamTemperature.objects.get(pk=survey_id)
 
-        #Save Survey Summary for all survey teams
-        arch_date = timezone.now()
-        data = {'archived': True, 'archive_date': timezone.now()}
-        teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
-        average_total = 0
-        average_count = 0
-        average_responder_total = 0
-        for team in teams:
-            Summary = None
-            team_stats = None
-            summary_word_list = ""
-            team_stats = teamtemp.team_stats(team['team_name'])
-            for word in team_stats['words'] :
-                summary_word_list = summary_word_list + word['word'] + " "
-            Summary = TeamResponseHistory(request = survey,
-                average_score = team_stats['average']['score__avg'],
-                word_list = summary_word_list,
-                responder_count = team_stats['count'],
-                team_name = team['team_name'],
-                archive_date = arch_date)
-            Summary.save()
-            average_total = average_total + team_stats['average']['score__avg']
-            average_count = average_count + 1
-            average_responder_total = average_responder_total + team_stats['count']
-
-            TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
-
-        #Save Survey Summary as AGREGATE AVERAGE for all teams
-        data = {'archived': True, 'archive_date': timezone.now()}
-        teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    #Save Survey Summary for all survey teams
+    arch_date = timezone.now()
+    data = {'archived': True, 'archive_date': timezone.now()}
+    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    average_total = 0
+    average_count = 0
+    average_responder_total = 0
+    for team in teams:
         Summary = None
         team_stats = None
         summary_word_list = ""
-        team_stats = teamtemp.stats()
-            
-        if average_count > 0:
-            Summary = TeamResponseHistory(request = survey,
-                average_score = average_total/float(average_count),
-                word_list = summary_word_list,
-                responder_count = average_responder_total,
-                team_name = 'Average',
-                archive_date = arch_date)
+        team_stats = teamtemp.team_stats(team['team_name'])
+        for word in team_stats['words'] :
+            summary_word_list = summary_word_list + word['word'] + " "
+        Summary = TeamResponseHistory(request = survey,
+            average_score = team_stats['average']['score__avg'],
+            word_list = summary_word_list,
+            responder_count = team_stats['count'],
+            team_name = team['team_name'],
+            archive_date = arch_date)
+        Summary.save()
+        average_total = average_total + team_stats['average']['score__avg']
+        average_count = average_count + 1
+        average_responder_total = average_responder_total + team_stats['count']
 
-        if Summary:
-            Summary.save()
+        TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
 
-        return HttpResponseRedirect('/admin/%s' % survey_id)
-    else:
-        return render(request, 'password.html', {'form': ResultsPasswordForm()})
+    #Save Survey Summary as AGREGATE AVERAGE for all teams
+    data = {'archived': True, 'archive_date': timezone.now()}
+    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    Summary = None
+    team_stats = None
+    summary_word_list = ""
+    team_stats = teamtemp.stats()
+        
+    if average_count > 0:
+        Summary = TeamResponseHistory(request = survey,
+            average_score = average_total/float(average_count),
+            word_list = summary_word_list,
+            responder_count = average_responder_total,
+            team_name = 'Average',
+            archive_date = arch_date)
+
+    if Summary:
+        Summary.save()
+        nowstamp = timezone.now()
+        data = {'archive_date': nowstamp}
+        TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
+        print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+
+    return HttpResponseRedirect('/admin/%s' % survey_id)
 
 def cron(request, pin):
 
-    if pin == '1234':
+    cron_pin = '0000'
+    if settings.CRON_PIN:
+        cron_pin = settings.CRON_PIN
+
+    if pin == cron_pin:
         teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
         nowstamp = timezone.now()
         data = {'archive_date': nowstamp}
@@ -477,8 +565,7 @@ def scheduled_archive(request, survey_id):
         average_count = average_count + 1
         average_responder_total = average_responder_total + team_stats['count']
     
-    #disable archiving till it works
-    #TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
+    TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
 
     #Save Survey Summary as AGREGATE AVERAGE for all teams
     data = {'archived': True, 'archive_date': timezone.now()}
