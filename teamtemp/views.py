@@ -565,7 +565,7 @@ def scheduled_archive(request, survey_id):
         average_count = average_count + 1
         average_responder_total = average_responder_total + team_stats['count']
     
-    TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
+        TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
 
     #Save Survey Summary as AGREGATE AVERAGE for all teams
     data = {'archived': True, 'archive_date': timezone.now()}
