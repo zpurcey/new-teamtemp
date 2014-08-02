@@ -54,7 +54,11 @@ def authenticated_user(request, survey_id):
         user = User.objects.get(id=userid)
     except User.DoesNotExist:
         return False
-    return True
+
+    if survey.creator.id == user.id:
+        return True
+
+    return False
 
 def set(request, survey_id):
     thanks = ""
@@ -417,8 +421,6 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
             for i in range(0,word['id__count']):
                 words = words + word['word'] + " "
                 word_count += 1
-
-        print >>sys.stderr, str(timezone.now()) + " Word Cloud: " + str(word_count) + " words - " + words
 
         #TODO Write a better lookup and model to replace this hack
         word_cloud_index = WordCloudImage.objects.filter(word_list = words)
