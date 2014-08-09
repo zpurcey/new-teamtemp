@@ -75,45 +75,4 @@
     <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
 {% endif %}
 
-<!-- Team Temp Guage -->
-
-<script type='text/javascript' src='http://www.google.com/jsapi'></script>
-<script type='text/javascript'>
-
-    google.load('visualization', '1', {packages:['gauge']});
-    google.setOnLoadCallback(drawGuageChart);
-    function drawGuageChart() {
-        var avg = 0;
-        if( {{stats.count}} > 0){
-            avg = parseFloat( {{ stats.average.score__avg }}.toFixed(2) );
-        }
-
-        var data2 = google.visualization.arrayToDataTable([
-        ['Label', 'Value'],
-        ['Team Temp', avg ],
-        ]);
-
-        var options2 = {
-            width: 800, height: 240,
-            redFrom: 0, redTo: 2.5,
-            yellowFrom:2.5, yellowTo: 5,
-            greenFrom:7.5, greenTo:10,
-            max:10,
-            minorTicks: 1
-        };
-
-        var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
-        guageChart.draw(data2, options2);
-
-
-    }
-</script>
-
-<!--[if !IE]> -->
-<p style="page-break-before: always"></p>
-<div class="centreguage" id='guage_chart'></div>
-<!-- <![endif]-->
-
-<!-- Team Temp Guage -->
-
 {% endblock %}
