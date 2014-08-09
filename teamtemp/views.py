@@ -229,7 +229,7 @@ def admin(request, survey_id, team_name=''):
         else:
             stats = survey.stats()
 
-        next_archive_date = survey.archive_date + timedelta(days=survey.archive_schedule)
+        next_archive_date = survey.archive_date + timedelta(days=(survey.archive_schedule+1))
 
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
