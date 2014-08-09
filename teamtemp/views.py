@@ -116,7 +116,7 @@ def set(request, survey_id):
         form = SurveySettingsForm(instance=previous)
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
                   'survey_settings_id': survey_settings_id,
-                  'survey_teams' : survey_teams})
+                  'survey_teams' : survey_teams, 'survey_id' : survey_id})
 
 def change_team_name(team_name, new_team_name, survey_id):
     data = {'team_name': new_team_name}
@@ -229,10 +229,13 @@ def admin(request, survey_id, team_name=''):
         else:
             stats = survey.stats()
 
+        next_archive_date = survey.archive_date + timedelta(days=survey.archive_schedule)
+
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
                   'results': results, 'team_name':team_name,
-                  'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams
+                      'pretty_team_name':team_name.replace("_", " "),'survey_teams':survey_teams,
+                      'archive_schedule' : survey.archive_schedule, 'next_archive_date' : next_archive_date.strftime("%A %d %B %Y")
                     } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})

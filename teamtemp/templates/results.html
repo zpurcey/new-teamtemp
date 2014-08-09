@@ -70,9 +70,14 @@
 </table>
 
 <p><p>
-{% if team_name == '' %}
+{% if team_name == '' and archive_schedule == 0 %}
     <div class="info box"><font size="1">Want to reuse your Survey Link? Would you like a BVC trending your results over time?<br>
     <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
+{% endif %}
+{% if team_name == '' and archive_schedule > 0 %}
+    <div class="info box"><font size="2">This survey is configured to auto archive every {{ archive_schedule }} days and generate a summary from all collected results for the current iteration for all teams using this survey.<br>
+    <b>Next scheduled archive will execute on {{ next_archive_date }}.</b><br>
+    <a href="{% url 'teamtemp.views.set' id %}">Click here</a> to change the archive schedule or update the survey password.</font></div>
 {% endif %}
 
 {% endblock %}
