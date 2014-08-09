@@ -24,13 +24,13 @@
     {{ form.survey_type.errors }}
     <div class="field">
         <label for="id_survey_type">Survey Type:</label><br/>
-        {{ form.survey_type }} (TEAMTEMP = Team Temperature Survey, CUSTOMERFEEDBACK = Customer Feedback Survey)
+        {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey)
     </div>
 
     {{ form.archive_schedule.errors }}
     <div class="field">
         <label for="id_archive_schedule">Archive Interval:</label><br/>
-        {{ form.archive_schedule }} (Number of days. 0 to disabled automated archive.)
+        {{ form.archive_schedule }} (Number of days. 0 to disable automated archive.)
     </div>
     {{ form.password.errors }}
     <div class="field">

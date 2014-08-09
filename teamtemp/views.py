@@ -116,7 +116,7 @@ def set(request, survey_id):
         form = SurveySettingsForm(instance=previous)
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
                   'survey_settings_id': survey_settings_id,
-                  'survey_teams' : survey_teams, 'survey_id' : survey_id})
+                  'survey_teams' : survey_teams})
 
 def change_team_name(team_name, new_team_name, survey_id):
     data = {'team_name': new_team_name}
