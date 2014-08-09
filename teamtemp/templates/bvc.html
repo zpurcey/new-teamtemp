@@ -115,7 +115,7 @@
     </script>
 {% endif %}
 
-<h1 align="center">{{ pretty_team_name }} Team Temperature</h1>
+<h1 align="center">{{ pretty_team_name }} {{ survey_type_title }}</h1>
 
 {% if results.0.archived %}
     <h2 align="center">{{ results.0.archive_date.date }}</h2>
@@ -163,7 +163,7 @@
 
 <!-- History Trend Graphs -->
 <h1 align="center">{{ pretty_team_name }}</h1><P>
-<h1 align="center">Historical Team Temperature</h1>
+<h1 align="center">Historical {{ survey_type_title }}</h1>
 <h2 align="center">{% now () %}</h2>
 <p>
 <div class="centreguage" id="table_div_jscode" style='width: 8in; height: 4in;'></div>

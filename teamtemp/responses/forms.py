@@ -76,11 +76,16 @@ class SurveySettingsForm(forms.ModelForm):
     current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     class Meta:
         model = TeamTemperature
-        fields = ['archive_schedule']
+        fields = ['archive_schedule', 'survey_type']
     
     def clean_archive_schedule(self):
         archive_schedule = self.cleaned_data['archive_schedule']
         if int(archive_schedule) > 28:
-            raise forms.ValidationError('Archive Schedule Max 28 Days' % archive_schedule)
+            raise forms.ValidationError('Archive Schedule Max 28 Days')
         return archive_schedule
     
+    def clean_survey_type(self):
+        survey_type = self.cleaned_data['survey_type']
+        if survey_type not in ['TEAMTEMP', 'CUSTOMERFEEDBACK']:
+            raise forms.ValidationError('Supported Survey Types: TEAMTEMP and CUSTOMERFEEDBACK only')
+        return survey_type

@@ -22,7 +22,7 @@ import urllib
 from django.conf import settings
 import sys
 
-def home(request):
+def home(request, survey_type = 'TEAMTEMP'):
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -35,6 +35,8 @@ def home(request):
             survey = TeamTemperature(creation_date = timezone.now(),
                                      password = make_password(csf['password']),
                                      creator = user,
+                                     survey_type = survey_type,
+                                     archive_date = timezone.now(),
                                      id = form_id)
             survey.save()
             team_details = Teams(request = survey,
@@ -82,6 +84,8 @@ def set(request, survey_id):
                 thanks = "Password Updated. "
             if srf['archive_schedule'] != survey.archive_schedule:
                 thanks = thanks + "Schedule Updated. "
+            if srf['survey_type'] != survey.survey_type:
+                thanks = thanks + "Survey Type Updated. "
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"), srf['new_team_name'].replace(" ", "_"), survey.id)
                 print >>sys.stderr,"Team Name Updated: " + " " + str(rows_changed) + " From: " + srf['current_team_name'] + " To: " +srf['new_team_name']
@@ -91,7 +95,8 @@ def set(request, survey_id):
                                               creator = survey.creator,
                                               password = pw,
                                               archive_date = survey.archive_date,
-                                              archive_schedule = srf['archive_schedule'])
+                                              archive_schedule = srf['archive_schedule'],
+                                              survey_type = srf['survey_type'])
             survey_settings.save()
             survey_settings_id = survey_settings.id
             form = SurveySettingsForm(instance=survey_settings)
@@ -172,8 +177,19 @@ def submit(request, survey_id, team_name=''):
             response_id = None
 
         form = SurveyResponseForm(instance=previous)
+
+    survey_type_title = 'Team Temperature'
+    temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
+    word_question_title = 'One word to describe how you are feeling:'
+    if survey.survey_type == 'CUSTOMERFEEDBACK':
+        survey_type_title = 'Customer Feedback'
+        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
+        word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
+
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
-                                         'response_id': response_id,
+                                         'response_id': response_id, 'survey_type_title' : survey_type_title,
+                                         'temp_question_title' : temp_question_title,
+                                         'word_question_title' : word_question_title,
                                          'team_name': team_name.replace("_", " ")})
 
 def admin(request, survey_id, team_name=''):
@@ -316,6 +332,10 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
 
     #If authenticated via user token or ignoring auth for bvc rendering
     if ignore_bvc_auth or (user and survey.creator.id == user.id):
+        survey_type_title = 'Team Temperature'
+        if survey.survey_type == 'CUSTOMERFEEDBACK':
+            survey_type_title = 'Customer Feedback'
+
         if not ignore_bvc_auth:
             request.session['userid'] = survey.creator.id
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
@@ -382,8 +402,8 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
 
             historical_options = {
                 'legendPosition': 'newRow',
-                'title' : 'Team Temperature by Team',
-                'vAxis': {'title': "Team Temperature"},
+                'title' : survey_type_title + ' by Team',
+                'vAxis': {'title': survey_type_title},
                 'hAxis': {'title': "Month"},
                 'seriesType': "bars",
                 'vAxis': { 'ticks': [1,2,3,4,5,6,7,8,9,10] },
@@ -439,7 +459,6 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
                                             word_list = words, image_url = word_cloudurl)
                 word_cloud.save()
 
-
         return render(request, 'bvc.html',
                 { 'id': survey_id, 'stats': stats, 
                   'results': results, 'team_name':team_name, 'archive_date':stats_date,
@@ -448,7 +467,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
                   'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
                   'historical_options' : historical_options, 'archived_dates': archived_dates,
                   'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl, 'num_iterations':num_iterations,
-                  'team_count' : team_index
+                  'team_count' : team_index, 'survey_type_title' : survey_type_title
                 } )
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})

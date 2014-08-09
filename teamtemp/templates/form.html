@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ team_name }} - Team Temperature{% endblock %}
+{% block title %}{{ team_name }} - {{ survey_type_title }}{% endblock %}
 
 {% block body %}
 {% if thanks %}
 <div class="info box">{{ thanks }}</div>
 {% endif %}
-<h1>{{ team_name }} - Team Temperature</h1>
-<h2>Submit your temperature</h2>
+<h1>{{ team_name }} - {{ survey_type_title }}</h1>
+<h2>Submit your {{ survey_type_title }}</h2>
 <form method="post">
   {% csrf_token %}
   {% if response_id %}
@@ -15,12 +15,12 @@
   {% endif %}
   {{ form.score.errors }}
   <div class="field">
-    <label for="id_score">Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):</label><br/>
+      <label for="id_score">{{ temp_question_title }}</label><br/>
     {{ form.score }}
   </div>
   {{ form.word.errors }}
   <div class="field">
-    <label for="id_word">One word to describe how you're feeling:</label><br/>
+      <label for="id_word">{{ word_question_title }}</label><br/>
     {{ form.word }}
   </div>
   <input type="submit" value="Submit"/>

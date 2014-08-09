@@ -6,7 +6,8 @@ from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set
 
 urlpatterns = patterns('',
     url(r'^$', home),
-    url(r'^about$', TemplateView.as_view(template_name='about.html'), 
+    url(r'^cs$', home, {'survey_type' : 'CUSTOMERFEEDBACK'}),
+    url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin),
     url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', set),
