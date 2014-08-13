@@ -2,7 +2,7 @@ from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView
 from django.conf import settings
 
-from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set
+from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, _bvc
 
 urlpatterns = patterns('',
     url(r'^$', home),
@@ -13,6 +13,14 @@ urlpatterns = patterns('',
     url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', set),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', admin),
     url(r'^(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})$', submit),
+    url(r'^_bvc/(?P<survey_id>[0-9a-zA-Z]{8})$', _bvc),
+    url(r'^_bvc/(?P<survey_id>[0-9a-zA-Z]{8})/', include([
+                                                          url(r'(?P<archive_id>[0-9]{1,20})$', _bvc),
+                                                          url(r'(?P<team_name>\w{1,64})/i(?P<num_iterations>[0-9]{1,3})$', _bvc),
+                                                          url(r'(?P<team_name>\w{1,64})$', _bvc),
+                                                          url(r'(?P<team_name>\w{1,64})/(?P<archive_id>[0-9]{1,20})$', _bvc),
+                                                          url(r'i(?P<num_iterations>[0-9]{1,3})$', _bvc),
+                                                          ])),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})$', bvc),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/i(?P<num_iterations>[0-9]{1,3})$', bvc),
     url(r'^bvc/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>\w{1,64})/i(?P<num_iterations>[0-9]{1,3})$', bvc),
