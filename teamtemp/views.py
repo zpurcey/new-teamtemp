@@ -230,6 +230,8 @@ def admin(request, survey_id, team_name=''):
             stats = survey.stats()
 
         next_archive_date = survey.archive_date + timedelta(days=(survey.archive_schedule+1))
+        if next_archive_date < timezone.now():
+            next_archive_date = timezone.now()
 
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
@@ -684,7 +686,8 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     bvc_data['stats_date'] = ''
     bvc_data['survey_teams']=[]
     bvc_data['archived'] = False
-    bvc_data['archive_date'] = ''
+    bvc_data['archive_date'] = None
+    bvc_data['word_cloudurl'] = ''
     
     survey_filter = { 'request__in' : survey_id_list }
     
@@ -711,9 +714,10 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
         filter = dict({ 'archived' : False }, **team_filter)
     else:
         archive_set = TemperatureResponse.objects.filter(request__in=survey_id_list, id=archive_id).values('archive_date')
+        filter = dict({ 'archived' : True }, **team_filter)
         if archive_set:
             bvc_data['stats_date'] = archive_set[0]['archive_date']
-        filter = dict({ 'archived' : True, 'archive_date' : bvc_data['stats_date'] }, **team_filter)
+            filter = dict({ 'archive_date' : bvc_data['stats_date'] }, **filter)
     
     results = TemperatureResponse.objects.filter(**filter)
 
@@ -765,7 +769,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     survey_count = 0
     agg_stats = {}
     agg_stats['count'] = 0
-    agg_stats['average'] = 0
+    agg_stats['average'] = 0.00
     agg_stats['words'] = []
 
     survey_filter = { 'id__in' : survey_id_list }
@@ -780,7 +784,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
             stats = survey.archive_team_stats(team_name=team_name,archive_date=archive_date)
         else:
             stats = survey.stats()
-        
+
         #Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
         if int(float(num_iterations)) > 0:
             multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)))
@@ -789,6 +793,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
 
         survey_count += 1
         agg_stats['count'] = agg_stats['count'] + stats['count']
+        
         if stats['average']['score__avg']:
             agg_stats['average'] = (agg_stats['average'] + stats['average']['score__avg']) / survey_count
         agg_stats['words'] = agg_stats['words'] + list(stats['words'])
@@ -842,9 +847,11 @@ def _bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', a
     #If there is history to chart generate all data required for historical charts
     if bvc_data['num_rows'] > 0:
         historical_options, json_history_chart_table, team_index = populate_chart_data_structures(bvc_data['survey_type_title'], bvc_data['teams'], bvc_data['team_history'])
-    
+    #raise Exception(historical_options,json_history_chart_table,team_index)
+
     #Cached word cloud
-    bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
+    if bvc_data['stats']['words']:
+        bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
 
     return render(request, '_bvc.html',
                   {
