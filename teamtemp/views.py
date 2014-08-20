@@ -201,6 +201,8 @@ def admin(request, survey_id, team_name=''):
     password = None
     user = None
     survey_teams=[]
+    next_archive_date = timezone.now()
+    
     if request.method == 'POST':
         form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
