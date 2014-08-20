@@ -83,6 +83,8 @@ def set(request, survey_id):
                 pw = make_password(srf['password'])
                 thanks = "Password Updated. "
             if srf['archive_schedule'] != survey.archive_schedule:
+                if survey.archive_date = '':
+                    survey.archive_date = timezone.now()
                 thanks = thanks + "Schedule Updated. "
             if srf['survey_type'] != survey.survey_type:
                 thanks = thanks + "Survey Type Updated. "
@@ -229,9 +231,10 @@ def admin(request, survey_id, team_name=''):
         else:
             stats = survey.stats()
 
-        next_archive_date = survey.archive_date + timedelta(days=(survey.archive_schedule+1))
-        if next_archive_date < timezone.now():
-            next_archive_date = timezone.now()
+        if survey.archive_schedule > 0:
+            next_archive_date = survey.archive_date + timedelta(days=(survey.archive_schedule+1))
+            if next_archive_date < timezone.now():
+                next_archive_date = timezone.now()
 
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
@@ -696,9 +699,13 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     bvc_data['pretty_team_name'] = team_name.replace("_", " ")
     
     #if any survey's are customer feedback surveys display customer BVC
+    num_teamtemp_surveys = TeamTemperature.objects.filter(pk__in = survey_id_list, survey_type = 'TEAMTEMP').count
     num_cust_surveys = TeamTemperature.objects.filter(pk__in = survey_id_list, survey_type = 'CUSTOMERFEEDBACK').count
+    #Bug here
+    #what does count return for an empty set?
+    #is None greater than 0?
     bvc_data['survey_type_title'] = 'Team Temperature'
-    if num_cust_surveys > 0:
+    if num_teamtemp_surveys == 0 and num_cust_surveys > 0:
         bvc_data['survey_type_title'] = 'Customer Feedback'
 
     if team_name != '':
