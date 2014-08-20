@@ -83,7 +83,7 @@ def set(request, survey_id):
                 pw = make_password(srf['password'])
                 thanks = "Password Updated. "
             if srf['archive_schedule'] != survey.archive_schedule:
-                if survey.archive_date == '':
+                if survey.archive_date == None:
                     survey.archive_date = timezone.now()
                 thanks = thanks + "Schedule Updated. "
             if srf['survey_type'] != survey.survey_type:
