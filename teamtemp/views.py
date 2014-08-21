@@ -544,7 +544,7 @@ def auto_archive_surveys():
     data = {'archive_date': nowstamp}
 
     for teamtemp in teamtemps:
-        if teamtemp.archive_date is None or (timezone.now().date - teamtemp.archive_date.date()) > timedelta(days=teamtemp.archive_schedule):
+        if teamtemp.archive_date is None or (timezone.now().date() - teamtemp.archive_date.date()) > timedelta(days=teamtemp.archive_schedule):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
             print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
