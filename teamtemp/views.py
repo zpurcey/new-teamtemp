@@ -286,7 +286,7 @@ def save_url(url, directory):
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     #Check if *any* scheduled archive surveys are overdue for archiving
-    auto_archive_surveys()
+    auto_archive_surveys(request)
 
     timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
