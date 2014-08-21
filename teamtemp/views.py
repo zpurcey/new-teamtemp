@@ -285,6 +285,9 @@ def save_url(url, directory):
     return os.path.relpath(filename,os.path.dirname(os.path.abspath(__file__)))
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
+    #Check if *any* scheduled archive surveys are overdue for archiving
+    auto_archive_surveys()
+
     timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
@@ -296,6 +299,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
     stats_date = ''
     survey_teams=[]
     ignore_bvc_auth = False
+    
     if settings.IGNORE_BVC_AUTH:
         ignore_bvc_auth = settings.IGNORE_BVC_AUTH
 
@@ -527,18 +531,25 @@ def cron(request, pin):
         cron_pin = settings.CRON_PIN
 
     if pin == cron_pin:
-        teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
-        nowstamp = timezone.now()
-        data = {'archive_date': nowstamp}
-
-        for teamtemp in teamtemps:
-            if teamtemp.archive_date is None or (timezone.now() - teamtemp.archive_date) > timedelta(days=teamtemp.archive_schedule):
-                scheduled_archive(request, teamtemp.id)
-                TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-                print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+        auto_archive_surveys()
         return HttpResponse()
     else:
         raise Http404
+
+def auto_archive_surveys():
+    print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.now())
+
+    teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
+    nowstamp = timezone.now()
+    data = {'archive_date': nowstamp}
+
+    for teamtemp in teamtemps:
+        if teamtemp.archive_date is None or (timezone.now().date - teamtemp.archive_date.date()) > timedelta(days=teamtemp.archive_schedule):
+            scheduled_archive(request, teamtemp.id)
+            TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
+            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+
+    print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.now())
 
 
 def scheduled_archive(request, survey_id):
