@@ -531,12 +531,12 @@ def cron(request, pin):
         cron_pin = settings.CRON_PIN
 
     if pin == cron_pin:
-        auto_archive_surveys()
+        auto_archive_surveys(request)
         return HttpResponse()
     else:
         raise Http404
 
-def auto_archive_surveys():
+def auto_archive_surveys(request):
     print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.now())
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
