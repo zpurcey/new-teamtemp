@@ -23,6 +23,7 @@ from django.conf import settings
 import sys
 
 def home(request, survey_type = 'TEAMTEMP'):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -234,9 +235,9 @@ def admin(request, survey_id, team_name=''):
             stats = survey.stats()
 
         if survey.archive_schedule > 0:
-            next_archive_date = survey.archive_date + timedelta(days=(survey.archive_schedule+1))
+            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule+1))
             if next_archive_date < timezone.now():
-                next_archive_date = timezone.now()
+                next_archive_date = timezone.now() + timedelta(days=1)
 
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
@@ -464,6 +465,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
 
 
 def reset(request, survey_id):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     # if valid session token or valid password render results page
 
@@ -537,6 +539,7 @@ def cron(request, pin):
         raise Http404
 
 def auto_archive_surveys(request):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.now())
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
@@ -544,7 +547,7 @@ def auto_archive_surveys(request):
     data = {'archive_date': nowstamp}
 
     for teamtemp in teamtemps:
-        if teamtemp.archive_date is None or (timezone.now().date() - teamtemp.archive_date.date()) > timedelta(days=teamtemp.archive_schedule):
+        if teamtemp.archive_date is None or (timezone.now().date() - timezone.localtime(teamtemp.archive_date).date()) > timedelta(days=teamtemp.archive_schedule):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
             print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
@@ -553,6 +556,7 @@ def auto_archive_surveys(request):
 
 
 def scheduled_archive(request, survey_id):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     
     teamtemp = TeamTemperature.objects.get(pk=survey_id)
@@ -634,6 +638,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history):
     #    historical_options
     #    json_history_chart_table
     #
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     num_rows = 0
     team_index = 0
     history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
@@ -754,6 +759,7 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     return bvc_data
 
 def cached_word_cloud(word_list):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     words = ""
     word_cloudurl = ""
     word_count = 0
@@ -821,6 +827,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     return agg_stats
 
 def calc_multi_iteration_average(team_name, survey, num_iterations=2):
+    timezone.activate(pytz.timezone('Australia/Queensland'))
     iteration_index = 0
     if num_iterations > 0:
         iteration_index = num_iterations - 1
