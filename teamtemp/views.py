@@ -235,7 +235,7 @@ def admin(request, survey_id, team_name=''):
             stats = survey.stats()
 
         if survey.archive_schedule > 0:
-            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule+1))
+            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule))
             if next_archive_date < timezone.now():
                 next_archive_date = timezone.now() + timedelta(days=1)
 
