@@ -248,7 +248,6 @@ def admin(request, survey_id, team_name=''):
     else:
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
 
-
 def generate_wordcloud(word_list):
 
     mashape_key = os.environ.get('XMASHAPEKEY')
@@ -547,7 +546,9 @@ def auto_archive_surveys(request):
     data = {'archive_date': nowstamp}
 
     for teamtemp in teamtemps:
-        if teamtemp.archive_date is None or (timezone.now().date() - timezone.localtime(teamtemp.archive_date).date()) > timedelta(days=teamtemp.archive_schedule):
+        next_archive_date = timezone.localtime(teamtemp.archive_date) + timedelta(days=(teamtemp.archive_schedule))
+
+        if teamtemp.archive_date is None or (timezone.now().date() >= (timezone.localtime(teamtemp.archive_date) + timedelta(days=(teamtemp.archive_schedule))):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
             print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
