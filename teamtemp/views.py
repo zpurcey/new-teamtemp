@@ -539,29 +539,24 @@ def cron(request, pin):
 
 def auto_archive_surveys(request):
     timezone.activate(pytz.timezone('Australia/Queensland'))
-    print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.now())
+    print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " EST"
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
     nowstamp = timezone.now()
-    #localnowstamp = datetime.datetime.now(pytz.timezone('Australia/Queensland'))
     data = {'archive_date': nowstamp}
 
     for teamtemp in teamtemps:
         print >>sys.stderr,"auto_archive_surveys: Survey " + teamtemp.id
-        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.now().date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
-        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.now()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
-        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str( timezone.now().date() >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
+        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now()).date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
+        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now())) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
+        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str(timezone.localtime(timezone.now())) >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
 
-        #datetime.datetime.now(pytz.timezone('Australia/Queensland'))
-        print >>sys.stderr,"auto_archive_surveys: LOCALring " + str(timezone.localtime(timezone.now()).date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
-        print >>sys.stderr,"auto_archive_surveys: LOCALring " + str(timezone.localtime(timezone.now())) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
-
-        if teamtemp.archive_date is None or (timezone.now().date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
+        if teamtemp.archive_date is None or (timezone.localtime( timezone.now() ).date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp) + " UTC " + str(timezone.localtime(timezone.now())) + " EST"
 
-    print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.now())
+    print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " EST"
 
 
 def scheduled_archive(request, survey_id):
