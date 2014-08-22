@@ -543,7 +543,7 @@ def auto_archive_surveys(request):
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
     nowstamp = timezone.now()
-    localnowstamp = datetime.datetime.now(pytz.timezone('Australia/Queensland'))
+    #localnowstamp = datetime.datetime.now(pytz.timezone('Australia/Queensland'))
     data = {'archive_date': nowstamp}
 
     for teamtemp in teamtemps:
