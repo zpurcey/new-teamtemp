@@ -549,7 +549,7 @@ def auto_archive_surveys(request):
         print >>sys.stderr,"auto_archive_surveys: Survey " + teamtemp.id
         print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now()).date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
         print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now())) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
-        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str(timezone.localtime(timezone.now())) >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
+        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str( timezone.localtime(timezone.now()).date() >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
 
         if teamtemp.archive_date is None or (timezone.localtime( timezone.now() ).date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
             scheduled_archive(request, teamtemp.id)
