@@ -236,8 +236,8 @@ def admin(request, survey_id, team_name=''):
 
         if survey.archive_schedule > 0:
             next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule))
-            if next_archive_date < timezone.now():
-                next_archive_date = timezone.now() + timedelta(days=1)
+            if next_archive_date < timezone.localtime(timezone.now()):
+                next_archive_date = timezone.localtime(timezone.now() + timedelta(days=1))
 
         return render(request, 'results.html',
                 { 'id': survey_id, 'stats': stats,
@@ -286,7 +286,7 @@ def save_url(url, directory):
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     #Check if *any* scheduled archive surveys are overdue for archiving
-    auto_archive_surveys(request)
+    #auto_archive_surveys(request)
 
     timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
