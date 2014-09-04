@@ -17,54 +17,42 @@ class TeamTemperature(models.Model):
     archive_schedule = models.IntegerField(default=0)
     archive_date = models.DateTimeField(null=True)
     survey_type = models.CharField(default='TEAMTEMP',max_length=20)
+    
+    def _stats_for(self, query_set):
+        result['count'] = query_set.count()
+        result['average'] = query_set.aggregate(models.Avg('score'))
+        result['words'] = query_set.values('word').annotate(models.Count("id")).order_by()
+        return result 
 
     def stats(self):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(archived = False)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result 
+        return self._stats_for(allresponses) 
 
     def team_stats(self, team_name):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(team_name = team_name, archived = False)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result 
+        return self._stats_for(allresponses) 
 
     def archive_stats(self, archive_date):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(archived = True,archive_date = archive_date)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result 
+        return self._stats_for(allresponses) 
 
     def archive_team_stats(self, team_name, archive_date):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(team_name = team_name, archive_date = archive_date, archived = True)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result 
+        return self._stats_for(allresponses)  
 
     def accumulated_stats(self, start_date, end_date):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(response_date__gte=end_date, response_date__lte=start_date)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result
+        return self._stats_for(allresponses) 
 
     def accumulated_team_stats(self, team_name, start_date, end_date):
         result = dict()
         allresponses = self.temperatureresponse_set.filter(team_name = team_name, response_date__gte=end_date, response_date__lte=start_date)
-        result['count'] = allresponses.count()
-        result['average'] = allresponses.aggregate(models.Avg('score'))
-        result['words'] = allresponses.values('word').annotate(models.Count("id")).order_by()
-        return result
+        return self._stats_for(allresponses) 
 
     def __unicode__(self):
         return u"{}: {} {}".format(self.id, self.creator.id,
