@@ -2,3 +2,4 @@ venv
 staticfiles
 media
 *.pyc
+.DS_Store
