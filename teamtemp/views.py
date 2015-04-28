@@ -250,13 +250,13 @@ def admin(request, survey_id, team_name=''):
 
 def generate_wordcloud(word_list):
 
-    mashape_key = os.environ.get('XMASHAPEKEY')
-    if mashape_key != None:
+    word_cloud_key = os.environ.get('XMASHAPEKEY')
+    if word_cloud_key != None:
         Unirest.timeout(20)
         print >>sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
-        response = Unirest.post("https://gatheringpoint-word-cloud-maker.p.mashape.com/index.php",
-                                headers={"X-Mashape-Key": mashape_key},
-                                params={"config": "n/a", "height": 500, "textblock": word_list, "width": 800}
+        response = Unirest.post("https://teamtempapp.com:8443/wordcloud/api/v1.0/generate_wc",
+                                headers={"Content-Type" : "application/json", "Word_Cloud_Key" : word_cloud_key},
+                                params=json.dumps({"textblock" : word_list, "height" : 500, "width" : 800})
                                 )
         print >>sys.stderr, str(timezone.now()) + " Finish Word Cloud Generation: " + word_list
         if response.code == 200:
