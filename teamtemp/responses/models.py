@@ -19,6 +19,7 @@ class TeamTemperature(models.Model):
     survey_type = models.CharField(default='TEAMTEMP',max_length=20)
     
     def _stats_for(self, query_set):
+        result = dict()
         result['count'] = query_set.count()
         result['average'] = query_set.aggregate(models.Avg('score'))
         result['words'] = query_set.values('word').annotate(models.Count("id")).order_by()
