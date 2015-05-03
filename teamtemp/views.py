@@ -92,6 +92,10 @@ def set(request, survey_id):
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"), srf['new_team_name'].replace(" ", "_"), survey.id)
                 print >>sys.stderr,"Team Name Updated: " + " " + str(rows_changed) + " From: " + srf['current_team_name'] + " To: " +srf['new_team_name']
+            if srf['censored_word'] != '':
+                rows_changed = censor_word(srf['censored_word'], survey.id)
+                print >>sys.stderr,"Word removed: " + " " + str(rows_changed) + " word removed: " + srf['censored_word']
+                thanks = thanks + "Word removed: " + str(rows_changed) + " responses updated. "
 
             survey_settings = TeamTemperature(id = survey.id,
                                               creation_date = survey.creation_date,
@@ -120,6 +124,17 @@ def set(request, survey_id):
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
                   'survey_settings_id': survey_settings_id,
                   'survey_teams' : survey_teams})
+
+
+def censor_word(censored_word, survey_id):
+    data = {'word': ''}
+    num_rows = 0
+
+    num_rows = TemperatureResponse.objects.filter(request = survey_id, word = censored_word).count()
+    TemperatureResponse.objects.filter(request = survey_id, word = censored_word).update(**data)
+
+    return num_rows
+
 
 def change_team_name(team_name, new_team_name, survey_id):
     data = {'team_name': new_team_name}

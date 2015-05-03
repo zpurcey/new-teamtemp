@@ -44,14 +44,20 @@
     <BR>
     {{ form.current_team_name.errors }}
     <div class="field">
-        <label for="id_password">Current team name:</label><br/>
+        <label for="current_team_name">Current team name:</label><br/>
         {{ form.current_team_name }} (Check for trailing spaces if name change fails)
     </div>
     {{ form.new_team_name.errors }}
     <div class="field">
-        <label for="id_password">New team name:</label><br/>
+        <label for="new_team_name">New team name:</label><br/>
         {{ form.new_team_name }} (Blank will delete all team records)
     </div>
+    {{ form.censored_word.errors }}
+    <div class="field">
+        <label for="censored_word">Censor Word:</label><br/>
+        {{ form.censored_word }} (ALL occurences will be removed from this survey, ensure correct caps)
+    </div>
+
     <input type="submit" value="Submit"/>
 </form>
 {% endblock %}

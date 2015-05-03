@@ -74,6 +74,7 @@ class SurveySettingsForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256, required=False)
     new_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
+    censored_word = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     class Meta:
         model = TeamTemperature
         fields = ['archive_schedule', 'survey_type']
