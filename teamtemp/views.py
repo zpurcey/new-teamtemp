@@ -267,7 +267,11 @@ def generate_wordcloud(word_list):
 
     word_cloud_key = os.environ.get('XMASHAPEKEY')
     if word_cloud_key != None:
-        Unirest.timeout(20)
+        timeout = 20
+        len_words = len(word_list)
+        if len_words > 200:
+            timeout = len(word_list)/10
+        Unirest.timeout(timeout)
         print >>sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
         response = Unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type" : "application/json", "Word-Cloud-Key" : word_cloud_key},
