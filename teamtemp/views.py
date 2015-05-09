@@ -269,6 +269,7 @@ def generate_wordcloud(word_list):
     if word_cloud_key != None:
         timeout = 25
         Unirest.timeout(timeout)
+	word_list = word_list.lower()
         print >>sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
         response = Unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type" : "application/json", "Word-Cloud-Key" : word_cloud_key},
