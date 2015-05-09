@@ -276,7 +276,7 @@ def generate_wordcloud(word_list):
                                 )
         print >>sys.stderr, str(timezone.now()) + " Finish Word Cloud Generation: " + word_list
         if response.code == 200:
-            return save_url(response.body['url'], 'media/wordcloud_images')
+            return save_url(response.body['url'], 'wordcloud_images')
     return None
 
 
@@ -290,7 +290,11 @@ def require_dir(path):
 def save_url(url, directory):
 
     image_name = urlparse(url).path.split('/')[-1]
-    directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
+    return_url = os.path.relpath(os.path.join(settings.MEDIA_URL,os.path.join(directory,image_name)))
+    if settings.MEDIA_ROOT:
+        directory = os.path.join(settings.MEDIA_ROOT, directory) 
+    else:
+        directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
     require_dir(directory)
     filename = os.path.join(directory, image_name)
 
@@ -298,7 +302,7 @@ def save_url(url, directory):
         urllib.urlretrieve(url, filename)
        #TODO if error return None
 
-    return os.path.relpath(filename,os.path.dirname(os.path.abspath(__file__)))
+    return return_url
 
 def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     #Check if *any* scheduled archive surveys are overdue for archiving
