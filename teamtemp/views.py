@@ -777,7 +777,7 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
 
 
     archived_filter = dict({'archived' : True }, **team_filter)
-    bvc_data['archived_dates'] = TemperatureResponse.objects.filter(**archived_filter).values('archive_date','id').distinct('archive_date')
+    bvc_data['archived_dates'] = TemperatureResponse.objects.filter(**archived_filter).values('archive_date','id').distinct('archive_date').order_by('-archive_date')
 
     bvc_data['stats'] = generate_bvc_stats(survey_id_list, team_name, bvc_data['stats_date'], num_iterations)
 
