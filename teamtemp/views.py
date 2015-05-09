@@ -305,7 +305,7 @@ def save_url(url, directory):
 
     return return_url
 
-def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
+def _bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
     #Check if *any* scheduled archive surveys are overdue for archiving
     #auto_archive_surveys(request)
 
@@ -470,7 +470,7 @@ def bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', n
                                             word_list = words, image_url = word_cloudurl)
                 word_cloud.save()
 
-        return render(request, 'bvc.html',
+        return render(request, '_bvc.html',
                 { 'id': survey_id, 'stats': stats, 
                   'results': results, 'team_name':team_name, 'archive_date':stats_date,
                   'pretty_team_name':team_name.replace("_", " "),
@@ -876,7 +876,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2):
     
     return None
 
-def _bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', add_survey_ids=None):
+def bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', add_survey_ids=None):
     survey_ids = request.REQUEST.get('add_survey_ids',add_survey_ids)
 
     survey_id_list = [survey_id]
@@ -905,7 +905,7 @@ def _bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', a
     if bvc_data['stats']['words']:
         bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
 
-    return render(request, '_bvc.html',
+    return render(request, 'bvc.html',
                   {
                   'bvc_data' : bvc_data,
                   'json_historical_data' : json_history_chart_table,
