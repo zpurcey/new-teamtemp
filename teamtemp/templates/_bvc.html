@@ -71,7 +71,7 @@
         </div>
         <BR><BR>
         <div class="info box">
-            <a href="{% url 'teamtemp.views.bvc' survey_id=id %}">ALL TEAMS</a><BR>
+            <a href="{% url 'teamtemp.views._bvc' survey_id=id %}">ALL TEAMS</a><BR>
         </div>
         <BR><BR><BR>
     </div>
@@ -84,7 +84,7 @@
         <BR><BR>
         {% for team in survey_teams %}
             <div class="info box">
-                <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
+                <a href="{% url 'teamtemp.views._bvc' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
             </div>
         {% endfor %}
         <BR><BR><BR>
@@ -94,15 +94,15 @@
     <select class='no-print' id="ArchivedBVCSelector">
         <option value="">Select an archived BVC from the list:</option>
             {% if team_name == '' %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=id %}">Current Results</option>
+                <option value="{% url 'teamtemp.views._bvc' survey_id=id %}">Current Results</option>
             {% else %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">Current Results</option>
+                <option value="{% url 'teamtemp.views._bvc' survey_id=id team_name=team_name %}">Current Results</option>
             {% endif %}
         {% for date in archived_dates %}
             {% if team_name == '' %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=id archive_id=date.id %}">{{ date.archive_date }}</option>
+                <option value="{% url 'teamtemp.views._bvc' survey_id=id archive_id=date.id %}">{{ date.archive_date }}</option>
             {% else %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name archive_id=date.id %}">{{ date.archive_date }}</option>
+                <option value="{% url 'teamtemp.views._bvc' survey_id=id team_name=team_name archive_id=date.id %}">{{ date.archive_date }}</option>
             {% endif %}
         {% endfor %}
     </select>
@@ -126,15 +126,15 @@
     <div class="no-print">
         {% if num_iterations != '0' %}
             {% if team_name == '' %}
-                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+                <h6 align="center"><a href="{% url 'teamtemp.views._bvc' survey_id=id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
             {% else %}
-                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+                <h6 align="center"><a href="{% url 'teamtemp.views._bvc' survey_id=id team_name=team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
             {% endif %}
         {% else %}
             {% if team_name == '' %}
-                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id num_iterations='2' %}">Current Results</a></h6>
+                <h6 align="center"><a href="{% url 'teamtemp.views._bvc' survey_id=id num_iterations='2' %}">Current Results</a></h6>
             {% else %}
-                <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name num_iterations='2' %}">Current Results</a></h6>
+                <h6 align="center"><a href="{% url 'teamtemp.views._bvc' survey_id=id team_name=team_name num_iterations='2' %}">Current Results</a></h6>
             {% endif %}
         {% endif %}
     </div>
