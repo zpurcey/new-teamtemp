@@ -11,11 +11,35 @@
     <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
     {{ form.password }}
   </div>
-  {{ form.team_name.errors }}
+  
+  {% if survey_type != 'DEPT-REGION-SITE' %}
+    <div style="display: none;">
+  {% endif %}
+
+
+  {{ form.dept_names.errors }}
   <div class="field">
-    <label for="team_name">Team Name</label><br/>
-    {{ form.team_name }}
+    <label for="dept_names">Department Names</label><br/>
+    {{ form.dept_names }}
   </div>
+
+  {{ form.region_names.errors }}
+  <div class="field">
+      <label for="region_names">Region Names</label><br/>
+      {{ form.region_names }}
+  </div>
+
+  {{ form.site_names.errors }}
+  <div class="field">
+      <label for="site_names">Site Names</label><br/>
+      {{ form.site_names }}
+  </div>
+  
+  {% if survey_type != 'DEPT-REGION-SITE' %}
+    </div>
+  {% endif %}
+  
+  
   <input type="submit" value="Create"/>
 </form>
 {% endblock %}

@@ -11,6 +11,34 @@
     <label for="team_name">Team Name</label><br/>
     {{ form.team_name }}
   </div>
+
+
+    {% if survey_type != 'DEPT-REGION-SITE' %}
+        <div style="display: none;">
+    {% endif %}
+    <!-- If survey configured to collect department region and site details -->
+
+    {{ form.dept_name.errors }}
+    <div class="field">
+      <label for="team_name">Dept Name</label><br/>
+      {{ form.dept_name }}
+    </div>
+    
+    {{ form.site_name.errors }}
+    <div class="field">
+      <label for="team_name">Site Name</label><br/>
+      {{ form.site_name }}
+    </div>
+      
+    {{ form.region_name.errors }}
+    <div class="field">
+      <label for="region_name">Region Name</label><br/>
+      {{ form.region_name }}
+    </div>
+    {% if survey_type != 'DEPT-REGION-SITE'%}
+        </div>
+    {% endif %}
+
   <input type="submit" value="Add"/>
 </form>
 {% endblock %}

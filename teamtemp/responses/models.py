@@ -17,6 +17,10 @@ class TeamTemperature(models.Model):
     archive_schedule = models.IntegerField(default=0)
     archive_date = models.DateTimeField(null=True)
     survey_type = models.CharField(default='TEAMTEMP',max_length=20)
+    dept_names = models.CharField(default='DEPT,DEPT2',max_length=64)
+    region_names = models.CharField(default='REGION,REGION2',max_length=64)
+    site_names = models.CharField(default='SITE,SITE2',max_length=64)
+    default_tz = models.CharField(default='Australia/Queensland',max_length=64)
     
     def _stats_for(self, query_set):
         result = dict()
@@ -32,7 +36,7 @@ class TeamTemperature(models.Model):
 
     def team_stats(self, team_name):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name = team_name, archived = False)
+        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, archived = False)
         return self._stats_for(allresponses) 
 
     def archive_stats(self, archive_date):
@@ -42,7 +46,7 @@ class TeamTemperature(models.Model):
 
     def archive_team_stats(self, team_name, archive_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name = team_name, archive_date = archive_date, archived = True)
+        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, archive_date = archive_date, archived = True)
         return self._stats_for(allresponses)  
 
     def accumulated_stats(self, start_date, end_date):
@@ -52,12 +56,14 @@ class TeamTemperature(models.Model):
 
     def accumulated_team_stats(self, team_name, start_date, end_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name = team_name, response_date__gte=end_date, response_date__lte=start_date)
+        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, response_date__gte=end_date, response_date__lte=start_date)
         return self._stats_for(allresponses) 
 
     def __unicode__(self):
-        return u"{}: {} {}".format(self.id, self.creator.id,
-                                   self.creation_date, self.archive_schedule, self.archive_date)
+        return u"{}: {} {} {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
+                                   self.creation_date, self.archive_schedule, self.archive_date,
+                                   self.survey_type, self.region_names, self.region_names,
+                                   self.site_names, self.default_tz)
 
 
 class TemperatureResponse(models.Model):
@@ -94,10 +100,13 @@ class TeamResponseHistory(models.Model):
 class Teams(models.Model):
     request = models.ForeignKey(TeamTemperature)
     team_name = models.CharField(max_length=64, null=True)
+    dept_name = models.CharField(max_length=64, null=True)
+    site_name = models.CharField(max_length=64, null=True)
+    region_name = models.CharField(max_length=64, null=True)
 
     def pretty_team_name(self):
         return self.team_name.replace('_', ' ')
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id, 
-                                         self.team_name)
+                                         self.team_name, self.dept_name, self.site_name, self.region_name)

@@ -21,10 +21,29 @@
     {% if response_id %}
     <input type="hidden" name="id" value="{{ response_id }}"/>
     {% endif %}
+    
     {{ form.survey_type.errors }}
     <div class="field">
         <label for="id_survey_type">Survey Type:</label><br/>
-        {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey)
+        {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey or DEPT-REGION-SITE - aggregate results across Departments, Regions and Sites or office locations)
+    </div>
+    
+    {{ form.dept_names.errors }}
+    <div class="field">
+        <label for="id_dept_names">Department Names:</label><br/>
+        {{ form.dept_names }} (Comma separated list of department names for new teams when Survey Type is DEPT-REGION-SITE)
+    </div>
+
+    {{ form.region_names.errors }}
+    <div class="field">
+        <label for="id_region_names">Region Names:</label><br/>
+        {{ form.region_names }} (Comma separated list of region names for new teams when Survey Type is DEPT-REGION-SITE)
+    </div>
+
+    {{ form.site_names.errors }}
+    <div class="field">
+        <label for="id_site_names">Site Names:</label><br/>
+        {{ form.site_names }} (Comma separated list of Site names for new teams when Survey Type is DEPT-REGION-SITE)
     </div>
 
     {{ form.archive_schedule.errors }}
@@ -32,11 +51,13 @@
         <label for="id_archive_schedule">Archive Interval:</label><br/>
         {{ form.archive_schedule }} (Number of days. 0 to disable automated archive.)
     </div>
+    
     {{ form.password.errors }}
     <div class="field">
         <label for="id_password">Change Survey Password:</label><br/>
         {{ form.password }} (Leave blank to retain existing password)
     </div>
+    
     <h3>Team Name Change</h3>
     {% for team in survey_teams %}
         {{ team.pretty_team_name }} <BR>
@@ -57,6 +78,14 @@
         <label for="censored_word">Censor Word:</label><br/>
         {{ form.censored_word }} (ALL occurences will be removed from this survey, ensure correct caps)
     </div>
+    
+    {{ form.default_tz.errors }}
+    <div class="field">
+        <label for="id_default_tz">Default Timezone:</label><br/>
+        {{ form.default_tz }} (pytz.all_timezones)
+    </div>
+
+
 
     <input type="submit" value="Submit"/>
 </form>

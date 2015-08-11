@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
 from django.core.urlresolvers import reverse
-from responses.forms import CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm, SurveySettingsForm
+from responses.forms import FilteredBvcForm, CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm, SurveySettingsForm
 from responses.models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams, WordCloudImage
 from django.contrib.auth.hashers import check_password, make_password
 from datetime import datetime
@@ -23,7 +23,7 @@ from django.conf import settings
 import sys
 
 def home(request, survey_type = 'TEAMTEMP'):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
+    timezone.activate(pytz.timezone('UTC'))
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -32,21 +32,25 @@ def home(request, survey_type = 'TEAMTEMP'):
             userid = responses.get_or_create_userid(request)
             user, created = User.objects.get_or_create(id=userid)
             # TODO check that id is unique!
-            team_name = csf['team_name'].replace(" ", "_")
+            dept_names = csf['dept_names']
+            region_names = csf['region_names']
+            site_names = csf['site_names']
             survey = TeamTemperature(creation_date = timezone.now(),
                                      password = make_password(csf['password']),
                                      creator = user,
                                      survey_type = survey_type,
                                      archive_date = timezone.now(),
-                                     id = form_id)
+                                     id = form_id,
+                                     dept_names = dept_names,
+                                     region_names = region_names,
+                                     site_names = site_names,
+                                     default_tz = 'UTC'
+                                     )
             survey.save()
-            team_details = Teams(request = survey,
-                                team_name = team_name)
-            team_details.save()
-            return HttpResponseRedirect('/admin/%s/%s' % (form_id, team_name))
+            return HttpResponseRedirect('/team/%s' % (form_id))
     else:
         form = CreateSurveyForm()
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'index.html', {'form': form, 'survey_type': survey_type})
 
 def authenticated_user(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
@@ -73,10 +77,10 @@ def set(request, survey_id):
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     survey_teams = survey.teams_set.all()
+    survey_settings_id = survey_id
 
     if request.method == 'POST':
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
-        survey_settings_id = request.POST.get('id', None)
         if form.is_valid():
             srf = form.cleaned_data
             pw = survey.password
@@ -89,6 +93,15 @@ def set(request, survey_id):
                 thanks = thanks + "Schedule Updated. "
             if srf['survey_type'] != survey.survey_type:
                 thanks = thanks + "Survey Type Updated. "
+            if srf['dept_names'] != survey.dept_names:
+                thanks = thanks + "Dept Names Updated. "
+            if srf['region_names'] != survey.region_names:
+                thanks = thanks + "Region Names Updated. "
+            if srf['site_names'] != survey.site_names:
+                thanks = thanks + "Site Names Updated. "
+            if srf['default_tz'] != survey.default_tz:
+                thanks = thanks + "Default Timezone Updated. "
+
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"), srf['new_team_name'].replace(" ", "_"), survey.id)
                 print >>sys.stderr,"Team Name Updated: " + " " + str(rows_changed) + " From: " + srf['current_team_name'] + " To: " +srf['new_team_name']
@@ -103,7 +116,11 @@ def set(request, survey_id):
                                               password = pw,
                                               archive_date = survey.archive_date,
                                               archive_schedule = srf['archive_schedule'],
-                                              survey_type = srf['survey_type'])
+                                              survey_type = srf['survey_type'],
+                                              dept_names = srf['dept_names'],
+                                              region_names = srf['region_names'],
+                                              site_names = srf['site_names'],
+                                              default_tz = srf['default_tz'])
             survey_settings.save()
             survey_settings_id = survey_settings.id
             form = SurveySettingsForm(instance=survey_settings)
@@ -211,8 +228,8 @@ def submit(request, survey_id, team_name=''):
                                          'team_name': team_name.replace("_", " ")})
 
 def admin(request, survey_id, team_name=''):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
     # if valid session token or valid password render results page
     password = None
     user = None
@@ -233,9 +250,10 @@ def admin(request, survey_id, team_name=''):
     if user and survey.creator.id == user.id or check_password(password, survey.password):
         request.session['userid'] = survey.creator.id
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
+        survey_type = teamtemp.survey_type
         if team_name != '':
             team_found = teamtemp.teams_set.filter(team_name = team_name).count()
-            if team_found == 0:
+            if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
                 TeamDetails = Teams(request = survey,team_name = team_name)
                 TeamDetails.save()
             results = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = False)
@@ -305,188 +323,9 @@ def save_url(url, directory):
 
     return return_url
 
-def _bvc(request, survey_id, team_name='', archive_id= '', weeks_to_trend='12', num_iterations='0'):
-    #Check if *any* scheduled archive surveys are overdue for archiving
-    #auto_archive_surveys(request)
-
-    timezone.activate(pytz.timezone('Australia/Queensland'))
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
-
-    password = None
-    user = None
-    num_rows = 0
-    json_history_chart_table = None
-    historical_options = {}
-    stats_date = ''
-    survey_teams=[]
-    ignore_bvc_auth = False
-    
-    if settings.IGNORE_BVC_AUTH:
-        ignore_bvc_auth = settings.IGNORE_BVC_AUTH
-
-    #Process POST return results from Password Form Submit:
-    if request.method == 'POST':
-        form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
-        if form.is_valid():
-            rpf = form.cleaned_data
-            password = rpf['password'].encode('utf-8')
-            if check_password(password, survey.password):
-                request.session['userid'] = survey.creator.id
-
-    #Retrieve User Token - if user does not exist present password entry form
-    try:
-        userid = request.session.get('userid', '__nothing__')
-        user = User.objects.get(id=userid)
-    except User.DoesNotExist:
-        if not ignore_bvc_auth:
-            return render(request, 'password.html', {'form': ResultsPasswordForm()})
-
-    #If authenticated via user token or ignoring auth for bvc rendering
-    if ignore_bvc_auth or (user and survey.creator.id == user.id):
-        survey_type_title = 'Team Temperature'
-        if survey.survey_type == 'CUSTOMERFEEDBACK':
-            survey_type_title = 'Customer Feedback'
-
-        if not ignore_bvc_auth:
-            request.session['userid'] = survey.creator.id
-        teamtemp = TeamTemperature.objects.get(pk=survey_id)
-        if team_name != '':
-            if archive_id == '':
-                results = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = False)
-            else:
-                past_date = teamtemp.temperatureresponse_set.filter(id=archive_id).values('archive_date')[0]
-                results = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = True,archive_date=past_date['archive_date'])
-                stats_date = past_date['archive_date']
-            team_history = teamtemp.teamresponsehistory_set.filter(team_name = team_name).order_by('archive_date')
-            num_rows = teamtemp.teamresponsehistory_set.filter(team_name = team_name).count()
-            teams = teamtemp.teamresponsehistory_set.filter(team_name = team_name).values('team_name').distinct()
-            archived_dates = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = True).values('archive_date','id').distinct('archive_date')
-        else:
-            if archive_id == '':
-                results = teamtemp.temperatureresponse_set.filter(archived = False)
-            else:
-                past_date = teamtemp.temperatureresponse_set.filter(id=archive_id).values('archive_date')[0]
-                results = teamtemp.temperatureresponse_set.filter( archive_date=past_date['archive_date'] )
-                stats_date = past_date['archive_date']
-            team_history = teamtemp.teamresponsehistory_set.all().order_by('archive_date')
-            num_rows = teamtemp.teamresponsehistory_set.all().count()
-            teams = teamtemp.teamresponsehistory_set.all().values('team_name').distinct()
-            archived_dates = teamtemp.temperatureresponse_set.filter(archived = True).values('archive_date','id').distinct('archive_date')
-
-        trend_period = timedelta(weeks=int(float(weeks_to_trend)))
-        buffer_max = timedelta(days=3)
-        max_date = timezone.now() + buffer_max
-        min_date = max_date - trend_period - buffer_max
-
-        team_index = 0
-        if num_rows > 0:
-            history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
-            history_chart_columns = ('archive_date',)
-            average_index = None
-            for team in teams:
-                history_chart_schema.update({team['team_name'] :  ("number",team['team_name'].replace("_", " "))})
-                history_chart_columns = history_chart_columns + (team['team_name'],)
-                if team['team_name'] == 'Average':
-                    average_index = team_index
-                team_index += 1
-            
-            history_chart_data = []
-            row = None
-            for survey_summary in team_history:
-                if row == None:
-                    row = {}
-                    row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-                elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
-                    history_chart_data.append(row)
-                    row = {}
-                    row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-                row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
-    
-            history_chart_data.append(row)
-    
-            # Loading it into gviz_api.DataTable
-            history_chart_table = gviz_api.DataTable(history_chart_schema)
-            history_chart_table.LoadData(history_chart_data)
-            
-            # Creating a JSon string
-            json_history_chart_table = history_chart_table.ToJSon(columns_order=(history_chart_columns))
-
-            historical_options = {
-                'legendPosition': 'newRow',
-                'title' : survey_type_title + ' by Team',
-                'vAxis': {'title': survey_type_title},
-                'hAxis': {'title': "Month"},
-                'seriesType': "bars",
-                'vAxis': { 'ticks': [1,2,3,4,5,6,7,8,9,10] },
-                'max': 12,
-                'min': 0,
-                'focusTarget': 'category',
-                'tooltip': { 'trigger': 'selection', 'isHtml': 'true' },
-            }
-            if average_index != None:
-                historical_options.update({'series': {average_index: {'type': "line"}}})
-
-
-
-        if team_name != '' and stats_date == '':
-            stats = survey.team_stats(team_name=team_name)
-        elif team_name == '' and stats_date != '':
-            stats = survey.archive_stats(archive_date=stats_date)
-        elif team_name != '' and stats_date != '':
-            stats = survey.archive_team_stats(team_name=team_name,archive_date=stats_date)
-        else:
-            stats = survey.stats()
-
-        survey_teams = teamtemp.teams_set.all()
-
-        if int(float(num_iterations)) > 0:
-            multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)))
-            if multi_stats:
-                stats = multi_stats
-
-        #generate word cloud
-        words = ""
-        word_cloudurl = ""
-        word_count = 0
-        for word in stats['words']:
-            for i in range(0,word['id__count']):
-                words = words + word['word'] + " "
-                word_count += 1
-
-        #TODO Write a better lookup and model to replace this hack
-        word_cloud_index = WordCloudImage.objects.filter(word_list = words)
-
-        if word_cloud_index:
-            if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)):
-                word_cloudurl =  word_cloud_index[0].image_url
-            else:
-                #Files have been deleted remove from db and then regenerate
-                WordCloudImage.objects.filter(word_list = words).delete()
-
-        if word_cloudurl == "" and words != "":
-            word_cloudurl = generate_wordcloud(words)
-            if word_cloudurl:
-                word_cloud = WordCloudImage(creation_date = timezone.now(),
-                                            word_list = words, image_url = word_cloudurl)
-                word_cloud.save()
-
-        return render(request, '_bvc.html',
-                { 'id': survey_id, 'stats': stats, 
-                  'results': results, 'team_name':team_name, 'archive_date':stats_date,
-                  'pretty_team_name':team_name.replace("_", " "),
-                  'team_history' : team_history ,
-                  'json_historical_data' : json_history_chart_table, 'min_date' : min_date, 'max_date' : max_date,
-                  'historical_options' : historical_options, 'archived_dates': archived_dates,
-                  'survey_teams': survey_teams, 'word_cloudurl':word_cloudurl, 'num_iterations':num_iterations,
-                  'team_count' : team_index, 'survey_type_title' : survey_type_title
-                } )
-    else:
-        return render(request, 'password.html', {'form': ResultsPasswordForm()})
-
-
 def reset(request, survey_id):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
     # if valid session token or valid password render results page
 
     if not authenticated_user(request, survey_id):
@@ -505,7 +344,7 @@ def reset(request, survey_id):
         Summary = None
         team_stats = None
         summary_word_list = ""
-        team_stats = teamtemp.team_stats(team['team_name'])
+        team_stats = teamtemp.team_stats([team['team_name']])
         for word in team_stats['words'] :
             summary_word_list = summary_word_list + word['word'] + " "
         Summary = TeamResponseHistory(request = survey,
@@ -559,8 +398,8 @@ def cron(request, pin):
         raise Http404
 
 def auto_archive_surveys(request):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
-    print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " EST"
+    timezone.activate(pytz.timezone('UTC'))
+    print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
     nowstamp = timezone.now()
@@ -575,14 +414,14 @@ def auto_archive_surveys(request):
         if teamtemp.archive_date is None or (timezone.localtime( timezone.now() ).date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp) + " UTC " + str(timezone.localtime(timezone.now())) + " EST"
+            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp) + " UTC " + str(timezone.localtime(timezone.now())) + " UTC"
 
-    print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " EST"
+    print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
 
 
 def scheduled_archive(request, survey_id):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
     
     teamtemp = TeamTemperature.objects.get(pk=survey_id)
     
@@ -598,7 +437,7 @@ def scheduled_archive(request, survey_id):
         Summary = None
         team_stats = None
         summary_word_list = ""
-        team_stats = teamtemp.team_stats(team['team_name'])
+        team_stats = teamtemp.team_stats([team['team_name']])
         for word in team_stats['words'] :
             summary_word_list = summary_word_list + word['word'] + " "
         Summary = TeamResponseHistory(request = survey,
@@ -635,26 +474,76 @@ def scheduled_archive(request, survey_id):
 
     return
 
-def team(request, survey_id):
+def filter(request,survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    # if valid session token or valid password render results page
-
+    
+    survey_type = survey.survey_type
+    dept_names = survey.dept_names
+    region_names = survey.region_names
+    site_names = survey.site_names
+    dept_names_list = dept_names.split(',')
+    region_names_list = region_names.split(',')
+    site_names_list = site_names.split(',')
+    
+    
     if request.method == 'POST':
-        form = AddTeamForm(request.POST, error_class=ErrorBox)
+        form = FilteredBvcForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list )
         if form.is_valid():
             csf = form.cleaned_data
             team_name = csf['team_name'].replace(" ", "_")
+            dept_name = csf['dept_name']
+            region_name = csf['region_name']
+            site_name = csf['site_name']
             team_found = survey.teams_set.filter(team_name = team_name).count()
             if team_found == 0:
                 team_details = Teams(request = survey,
-                                team_name = team_name)
+                                     team_name = team_name,
+                                     dept_name = dept_name,
+                                     region_name = region_name,
+                                     site_name = site_name)
                 team_details.save()
             return HttpResponseRedirect('/admin/%s' % survey_id)
+        else:
+            raise Exception('Form Is Not Valid:',form)
     else:
-        return render(request, 'team.html', {'form': AddTeamForm()})
+        return render(request, 'filter.html', {'form': FilteredBvcForm(dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list)})
 
+def team(request, survey_id):
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    # if valid session token or valid password render results page
+    
+    survey_type = survey.survey_type
+    dept_names = survey.dept_names
+    region_names = survey.region_names
+    site_names = survey.site_names
+    dept_names_list = dept_names.split(',')
+    region_names_list = region_names.split(',')
+    site_names_list = site_names.split(',')
+    #raise Exception(site_names_list,region_names_list,dept_names_list)
+    
+    if request.method == 'POST':
+        form = AddTeamForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list )
+        if form.is_valid():
+            csf = form.cleaned_data
+            team_name = csf['team_name'].replace(" ", "_")
+            dept_name = csf['dept_name']
+            region_name = csf['region_name']
+            site_name = csf['site_name']
+            team_found = survey.teams_set.filter(team_name = team_name).count()
+            if team_found == 0:
+                team_details = Teams(request = survey,
+                                     team_name = team_name,
+                                     dept_name = dept_name,
+                                     region_name = region_name,
+                                     site_name = site_name)
+                team_details.save()
+            return HttpResponseRedirect('/admin/%s' % survey_id)
+        else:
+            raise Exception('Form Is Not Valid:',form)
+    else:
+        return render(request, 'team.html', {'form': AddTeamForm(dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list), 'survey_type': survey_type})
 
-def populate_chart_data_structures(survey_type_title, teams, team_history):
+def populate_chart_data_structures(survey_type_title, teams, team_history, tz='UTC'):
     #Populate GVIS History Chart Data Structures
     #In:
     #    teams: team list
@@ -663,7 +552,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history):
     #    historical_options
     #    json_history_chart_table
     #
-    timezone.activate(pytz.timezone('Australia/Queensland'))
+    timezone.activate(pytz.timezone(tz))
     num_rows = 0
     team_index = 0
     history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
@@ -676,18 +565,44 @@ def populate_chart_data_structures(survey_type_title, teams, team_history):
             average_index = team_index
         team_index += 1
     
+    #Add average heading if not already added for adhoc filtering
+    if average_index == None:
+        average_index = team_index
+        history_chart_schema.update({'Average' :  ("number",'Average')})
+        history_chart_columns = history_chart_columns + ('Average',)
+
     history_chart_data = []
     row = None
+    num_scores = 0
+    score_sum = 0
+    responder_sum = 0
     for survey_summary in team_history:
         if row == None:
             row = {}
             row['archive_date'] = timezone.localtime(survey_summary.archive_date)
         elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
+            #TODO can it recalculate the average here for adhoc filtering
+            if num_scores > 0:
+                average_score = score_sum / num_scores
+                row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+                score_sum = 0
+                num_scores = 0
+                responder_sum = 0
             history_chart_data.append(row)
             row = {}
             row['archive_date'] = timezone.localtime(survey_summary.archive_date)
+
+        #Accumulate for average calc
+        score_sum = score_sum + survey_summary.average_score
+        num_scores = num_scores + 1
+        responder_sum = responder_sum + survey_summary.responder_count
+
         row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
     
+    if num_scores > 0:
+        average_score = score_sum / num_scores
+        row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+
     history_chart_data.append(row)
     
     # Loading it into gviz_api.DataTable
@@ -714,7 +629,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history):
 
     return historical_options, json_history_chart_table, team_index
 
-def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
+def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dept_name = '', region_name = '', site_name = '', survey_type='TEAMTEMP'):
     #in: survey_id, team_name and archive_id
     #out:
     #    populate bvc_data['archived_dates']       For Drop Down List
@@ -733,16 +648,25 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     bvc_data['survey_teams']=[]
     bvc_data['archived'] = False
     bvc_data['archive_date'] = None
+    bvc_data['archive_id'] = archive_id
     bvc_data['word_cloudurl'] = ''
     
     survey_filter = { 'request__in' : survey_id_list }
     
     bvc_data['survey_teams'] = Teams.objects.filter(**survey_filter)
+    bvc_data['team_filter'] = bvc_data['survey_teams']
     bvc_data['team_name'] = team_name
     bvc_data['pretty_team_name'] = team_name.replace("_", " ")
+    bvc_data['dept_names'] = dept_name
+    bvc_data['region_names'] = region_name
+    bvc_data['site_names'] = site_name
+    bvc_data['survey_type'] = survey_type
+    #print >>sys.stderr,"dept_names",bvc_data['dept_names'],"end"
+    
+    bvc_teams_list = [team_name]
     
     #if any survey's are customer feedback surveys display customer BVC
-    num_teamtemp_surveys = TeamTemperature.objects.filter(pk__in = survey_id_list, survey_type = 'TEAMTEMP').count
+    num_teamtemp_surveys = TeamTemperature.objects.filter(pk__in = survey_id_list, survey_type__in = ['TEAMTEMP','DEPT-REGION-SITE']).count
     num_cust_surveys = TeamTemperature.objects.filter(pk__in = survey_id_list, survey_type = 'CUSTOMERFEEDBACK').count
     #Bug here
     #what does count return for an empty set?
@@ -754,11 +678,43 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     if team_name != '':
         team_filter = dict({ 'team_name' : team_name }, **survey_filter)
     else:
-        team_filter = survey_filter
-    
+        if region_name != '':
+            region_name_list = region_name.split(',')
+            region_filter = dict({ 'region_name__in' : region_name_list }, **survey_filter)
+        else:
+            region_filter = survey_filter
+
+        #print >>sys.stderr,"region_filter:",region_filter
+
+        if site_name != '':
+            site_name_list = site_name.split(',')
+            site_filter = dict({ 'site_name__in' : site_name_list }, **region_filter)
+        else:
+            site_filter = region_filter
+        #print >>sys.stderr,"site_filter:",site_filter
+
+        if dept_name != '':
+            dept_name_list = dept_name.split(',')
+            dept_filter = dict({ 'dept_name__in' : dept_name_list }, **site_filter)
+        else:
+            dept_filter = site_filter
+        #print >>sys.stderr,"dept_filter:",dept_filter
+
+        if dept_filter != survey_filter:
+            filtered_teams = Teams.objects.filter(**dept_filter).values('team_name')
+            #print >>sys.stderr,'filtered_teams:',filtered_teams,Teams.objects.filter(**dept_filter).values('team_name')
+            filtered_team_list = []
+            for team in filtered_teams:
+                filtered_team_list.append(team['team_name'])
+            team_filter = dict({ 'team_name__in' : filtered_team_list }, **survey_filter)
+            bvc_teams_list = filtered_team_list
+        else:
+            team_filter = survey_filter
+        #print >>sys.stderr,"team_filter:",team_filter,dept_name, region_name, site_name
     bvc_data['team_history'] = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
     bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct()
     bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
+    bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
 
     if archive_id == '':
         filter = dict({ 'archived' : False }, **team_filter)
@@ -779,12 +735,11 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations):
     archived_filter = dict({'archived' : True }, **team_filter)
     bvc_data['archived_dates'] = TemperatureResponse.objects.filter(**archived_filter).values('archive_date','id').distinct('archive_date').order_by('-archive_date')
 
-    bvc_data['stats'] = generate_bvc_stats(survey_id_list, team_name, bvc_data['stats_date'], num_iterations)
+    bvc_data['stats'] = generate_bvc_stats(survey_id_list, bvc_teams_list, bvc_data['stats_date'], num_iterations)
 
     return bvc_data
 
 def cached_word_cloud(word_list):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
     words = ""
     word_cloudurl = ""
     word_count = 0
@@ -813,8 +768,7 @@ def cached_word_cloud(word_list):
     return word_cloudurl
 
 def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
-    #Generate Stats for Team Temp Average for guage and wordcloud - look here for BT BANK Guage and Word Cloud
-    #we can't do history as archive isn't syncronised...
+    #Generate Stats for Team Temp Average for guage and wordcloud - look here for Guage and Word Cloud
     #BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
     
     survey_count = 0
@@ -825,20 +779,20 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
 
     survey_filter = { 'id__in' : survey_id_list }
     survey_set = TeamTemperature.objects.filter(**survey_filter)
-
+    #print >>sys.stderr,'team_name stats:',team_name
     for survey in survey_set:
-        if team_name != '' and archive_date == '':
+        if team_name != [''] and archive_date == '':
             stats = survey.team_stats(team_name=team_name)
-        elif team_name == '' and archive_date != '':
+        elif team_name == [''] and archive_date != '':
             stats = survey.archive_stats(archive_date=archive_date)
-        elif team_name != '' and archive_date != '':
+        elif team_name != [''] and archive_date != '':
             stats = survey.archive_team_stats(team_name=team_name,archive_date=archive_date)
         else:
             stats = survey.stats()
 
         #Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
         if int(float(num_iterations)) > 0:
-            multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)))
+            multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)),survey.default_tz)
             if multi_stats:
                 stats = multi_stats
 
@@ -851,8 +805,8 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
 
     return agg_stats
 
-def calc_multi_iteration_average(team_name, survey, num_iterations=2):
-    timezone.activate(pytz.timezone('Australia/Queensland'))
+def calc_multi_iteration_average(team_name, survey, num_iterations=2,tz='UTC'):
+    timezone.activate(pytz.timezone(tz))
     iteration_index = 0
     if num_iterations > 0:
         iteration_index = num_iterations - 1
@@ -876,16 +830,18 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2):
     
     return None
 
-def bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', add_survey_ids=None):
+def bvc(request, survey_id, team_name='', archive_id='', num_iterations='0', add_survey_ids=None,
+        region_names='', site_names='', dept_names=''):
+
     survey_ids = request.REQUEST.get('add_survey_ids',add_survey_ids)
 
     survey_id_list = [survey_id]
     if survey_ids:
         survey_id_list = survey_id_list + survey_ids.split(',')
-
-    timezone.activate(pytz.timezone('Australia/Queensland'))
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
     
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
+
     json_history_chart_table = None
     historical_options = {}
     bvc_data={}
@@ -893,24 +849,87 @@ def bvc(request, survey_id, team_name='', archive_id= '', num_iterations='0', ad
     
     #Populate data for BVC including previously archived BVC
     #bvc_data['archived_dates'] & ['archive_date'] & ['archived'] & ['stats_date'] & ['team_history'] & ['survey_teams']
-    bvc_data = populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations)
+    bvc_data = populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dept_names, region_names, site_names, survey.survey_type)
     bvc_data['survey_id'] = survey_id
 
     #If there is history to chart generate all data required for historical charts
     if bvc_data['num_rows'] > 0:
-        historical_options, json_history_chart_table, team_index = populate_chart_data_structures(bvc_data['survey_type_title'], bvc_data['teams'], bvc_data['team_history'])
+        historical_options, json_history_chart_table, team_index = populate_chart_data_structures(bvc_data['survey_type_title'], bvc_data['teams'], bvc_data['team_history'],survey.default_tz)
     #raise Exception(historical_options,json_history_chart_table,team_index)
 
     #Cached word cloud
     if bvc_data['stats']['words']:
         bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
 
-    return render(request, 'bvc.html',
+    all_dept_names = []
+    all_region_names = []
+    all_site_names = []
+    filter_dept_names = ''
+    filter_region_names = ''
+    filter_site_names = ''
+    for survey_team in bvc_data['survey_teams']:
+        team_details =  survey.teams_set.filter(team_name = survey_team.team_name).values('dept_name','region_name','site_name')
+        for team in team_details:
+            if not team['dept_name'] in all_dept_names:
+                all_dept_names.append(team['dept_name'])
+            if not team['region_name'] in all_region_names:
+                all_region_names.append(team['region_name'])
+            if not team['site_name'] in all_site_names:
+                all_site_names.append(team['site_name'])
+            #print >>sys.stderr,dept_names,region_names,site_names
+
+    if len(all_dept_names) < 2:
+        all_dept_names = []
+    if len(all_region_names) < 2:
+        all_region_names = []
+    if len(all_site_names) < 2:
+        all_site_names = []
+
+    if dept_names == '':
+        dept_names_list_on = all_dept_names
+    else:
+        dept_names_list_on = dept_names.split(',')
+    if region_names == '':
+        region_names_list_on = all_region_names
+    else:
+        region_names_list_on = region_names.split(',')
+    if site_names == '':
+        site_names_list_on = all_site_names
+    else:
+        site_names_list_on = site_names.split(',')
+
+    filter_this_bvc = False
+    if request.method == 'POST':
+        form = FilteredBvcForm(request.POST, error_class=ErrorBox, dept_names_list=all_dept_names,dept_names_list_on=dept_names, region_names_list=all_region_names,
+                                region_names_list_on=region_names, site_names_list=all_site_names,site_names_list_on=site_names)
+        if form.is_valid():
+            #raise Exception('Form Is Valid:',form)
+            csf = form.cleaned_data
+            if len(all_dept_names) > len(csf['filter_dept_names']) or len(all_region_names) > len(csf['filter_region_names']) or len(all_site_names) > len(csf['filter_site_names']):
+                filter_this_bvc = True
+            print >>sys.stderr,"len(all_dept_names)",len(all_dept_names),"len(csf['filter_dept_names']",len(csf['filter_dept_names'])
+            for filter_dept_name in csf['filter_dept_names']:
+                filter_dept_names = filter_dept_names + filter_dept_name + ','
+
+            for filter_region_name in csf['filter_region_names']:
+                filter_region_names = filter_region_names + filter_region_name + ','
+
+            for filter_site_name in csf['filter_site_names']:
+                filter_site_names = filter_site_names + filter_site_name + ','
+            print >>sys.stderr,"Filter this bvc:",filter_this_bvc
+            return HttpResponseRedirect('/bvc/%s/dept=%s/region=%s/site=%s' % (survey_id, filter_dept_names.rstrip(","), filter_region_names.rstrip(","), filter_site_names.rstrip(",")) )
+        else:
+            raise Exception('Form Is Not Valid:',form)
+    else:
+        return render(request, 'bvc.html',
                   {
                   'bvc_data' : bvc_data,
                   'json_historical_data' : json_history_chart_table,
                   'historical_options' : historical_options,
                   'team_count' : team_index,
-                  'num_iterations':num_iterations
+                  'num_iterations':num_iterations,
+                  'dept_names':dept_names,'region_names':region_names,'site_names':site_names,
+                  'form': FilteredBvcForm(dept_names_list=all_dept_names,dept_names_list_on=dept_names_list_on, region_names_list=all_region_names,
+                                        region_names_list_on=region_names_list_on, site_names_list=all_site_names,site_names_list_on=site_names_list_on)
                   } )
 

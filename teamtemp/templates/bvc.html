@@ -6,7 +6,6 @@
 
 {% load staticfiles %}
 
-
 <script type='text/javascript' src='http://www.google.com/jsapi'></script>
 <script type='text/javascript'>
 
@@ -64,62 +63,136 @@
     }
 </script>
 
-{% if bvc_data.team_name != '' %}
-    <div class="no-print"> 
-        <div class="info box"> 
-            <a href="{% url 'teamtemp.views.admin' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">ADMIN</a>
-        </div>
-        <BR><BR>
+<div class="no-print">
+    <div class="info box"> 
+        <a href="{% url 'teamtemp.views.admin' survey_id=bvc_data.survey_id %}">ADMIN</a>
+    </div>
+    <BR><BR>
+    {% if bvc_data.team_name != '' or bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
         <div class="info box">
             <a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">ALL TEAMS</a><BR>
         </div>
-        <BR><BR><BR>
-    </div>
-
-{% else %}
-    <div class="no-print"> 
-        <div class="info box"> 
-            <a href="{% url 'teamtemp.views.admin' survey_id=bvc_data.survey_id %}">ADMIN</a>
-        </div>
-        <BR><BR>
-        {% for team in bvc_data.survey_teams %}
+    {% endif %}
+    {% if bvc_data.team_name == '' and bvc_data.archive_id == '' %}
+        {% for team in bvc_data.survey_teams_filtered %}
             <div class="info box">
                 <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
             </div>
         {% endfor %}
-        <BR><BR><BR>
-    </div>
-{% endif %}
-{% if bvc_data.archived_dates.count > 0 %}
-    <select class='no-print' id="ArchivedBVCSelector">
-        <option value="">Select an archived BVC from the list:</option>
-            {% if bvc_data.team_name == '' %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Results</option>
-            {% else %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Results</option>
-            {% endif %}
-        {% for date in bvc_data.archived_dates %}
-            {% if bvc_data.team_name == '' %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">{{ date.archive_date }}</option>
-            {% else %}
-                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">{{ date.archive_date }}</option>
-            {% endif %}
+    {% endif %}
+    {% if bvc_data.team_name == '' and bvc_data.archive_id != '' %}
+        {% for team in bvc_data.survey_teams_filtered %}
+            <div class="info box">
+                <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name archive_id=bvc_data.archive_id %}"> {{ team.pretty_team_name }}</a><BR>
+            </div>
         {% endfor %}
-    </select>
-    
-    <script>
-        document.getElementById("ArchivedBVCSelector").onchange = function() {
-            if (this.selectedIndex!==0) {
-                window.location.href = this.value;
-            }        
-        };
-    </script>
+    {% endif %}
+
+</div>
+
+
+{% if bvc_data.team_name == '' and bvc_data.archive_id == '' and bvc_data.survey_type == 'DEPT-REGION-SITE' %}
+
+    <!-- Filter BVC by Dept, Region, Site -->
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="no-print">
+        <BR>
+        <div class="info box">
+
+        <table cellpadding="2">
+            <tr>
+            <td valign="top">
+                {{ form.filter_dept_names.errors }}
+                <div class="field">
+                            {{ form.filter_dept_names }}
+                </div>
+            </td>
+            <td valign="top">
+                {{ form.filter_region_names.errors }}
+                    <div class="field">
+                        {{ form.filter_region_names }}
+                    </div>
+            </td>
+            <td valign="top">
+                {{ form.filter_site_names.errors }}
+                    <div class="field">
+                        {{ form.filter_site_names }}
+                    </div>
+            </td>
+
+            <td valign="middle">
+                &nbsp;
+                <button>
+                FILTER BVC
+                <hidden><input type="submit" value=""/></hidden>
+                </button>
+            </td>
+            </tr>
+        </table>
+        </div>
+        </div>
+    </form>
+{% endif %}
+
+{% if bvc_data.archived_dates.count > 0 %}
+    <div class="no-print">
+      <BR>
+        <div class="info box">
+            Select an archived BVC from the list:
+            <BR>
+
+            <select class='no-print' id="ArchivedBVCSelector">
+                {% if bvc_data.team_name != '' %}
+                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Survey</option>
+                {% else %}
+                    {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
+                        <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">Current Survey</option>
+                    {% else %}
+                        <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Survey</option>
+                    {% endif %}
+                {% endif %}
+                
+                <script>
+                    document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
+                </script>
+
+                {% for date in bvc_data.archived_dates %}
+                    {% if bvc_data.team_name == '' %}
+                        {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
+                            <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                        {% else %}
+                            <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                        {% endif %}
+                    {% else %}
+                            <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                    {% endif %}
+
+                    {% if date.id|slugify == bvc_data.archive_id %}
+                        <script>
+                            document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
+                        </script>
+                    {% endif %}
+
+                {% endfor %}
+
+            </select>
+
+            <script>
+                document.getElementById("ArchivedBVCSelector").onchange = function() {
+                    window.location.href = this.value;
+                };
+            </script>
+        </div>
+    </div>
+
 {% endif %}
 
 <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
 
 {% if bvc_data.archived %}
-    <h2 align="center">{{ bvc_data.archive_date.date }}</h2>
+    <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
 {% else %}
     <h2 align="center">{% now () %}</h2>
 
