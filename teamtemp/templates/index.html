@@ -3,43 +3,96 @@
 {% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-<h1>Create a Team Temperature Survey</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.password.errors }}
-  <div class="field">
-    <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
-    {{ form.password }}
-  </div>
-  
-  {% if survey_type != 'DEPT-REGION-SITE' %}
-    <div style="display: none;">
-  {% endif %}
+
+{% load staticfiles %}
+
+{% load bootstrap3 %}
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% load bootstrap_themes %}
+{% bootstrap_styles theme='scafolding' type='less' %}
+{# bootstrap_styles theme='united' type='less' #}
+{# bootstrap_styles theme='cosmo' type='css' #}
+{# bootstrap_styles theme='default' type='min.css' #}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+
+            <h1>Create a Team Temperature Survey</h1>
+            
+            <label>Select Survey Type</label>
+            <BR>
+            <select class="btn btn-default" id="SurveyTypeSelector">
+                <option value="{% url 'teamtemp.views.home' %}">TEAMTEMP</option>
+                    <script>
+                        document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
+                    </script>
+                <option value="{% url 'teamtemp.views.home' survey_type='DEPT-REGION-SITE' %}">DEPT-REGION-SITE</option>
+                {% if survey_type == 'DEPT-REGION-SITE' %}
+                    <script>
+                        document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
+                    </script>
+                {% endif %}
+                <option value="{% url 'teamtemp.views.home' survey_type='CUSTOMERFEEDBACK' %}">CUSTOMERFEEDBACK</option>
+                {% if survey_type == 'CUSTOMERFEEDBACK' %}
+                    <script>
+                        document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
+                    </script>
+                {% endif %}
+            </select>
+            <script>
+                document.getElementById("SurveyTypeSelector").onchange = function() {
+                    window.location.href = this.value;
+                };
+            </script><br><br>
+            
+            <form method="post">
+              
+              {% bootstrap_form_errors form type='non_fields' %}
+              {% csrf_token %}
+              {{ form.password.errors }}
+              <label for="id_password">Survey Password (so that you can see the admin pages if you change browser)</label><br/>
+              <div class="row"><div class="col-md-6">
+              {% bootstrap_field form.password layout='inline' size='sm' %}
+              </div></div>
+              
+              {% if survey_type != 'DEPT-REGION-SITE' %}
+                <div style="display: none;">
+              {% endif %}
+
+              {{ form.dept_names.errors }}
+              <label for="dept_names">Department Names</label><br/>
+              <div class="row"><div class="col-md-6">
+              {% bootstrap_field form.dept_names layout='inline' size='sm' %}
+              </div></div>
+
+              {{ form.region_names.errors }}
+              <label for="region_names">Region Names</label><br/>
+              <div class="row"><div class="col-md-6">
+              {% bootstrap_field form.region_names layout='inline' size='sm' %}
+              </div></div>
+
+              {{ form.site_names.errors }}
+              <label for="site_names">Site Names</label><br/>
+              <div class="row"><div class="col-md-6">
+              {% bootstrap_field form.site_names layout='inline' size='sm' %}
+              </div></div>
+              
+              {% if survey_type != 'DEPT-REGION-SITE' %}
+                </div>
+              {% endif %}<br>
+              <div class="row"><div class="col-md-6">
+              {% buttons class="btn btn-primary" submit='Create' %}{% endbuttons %}
+              </div></div>
+            </form>
 
 
-  {{ form.dept_names.errors }}
-  <div class="field">
-    <label for="dept_names">Department Names</label><br/>
-    {{ form.dept_names }}
-  </div>
-
-  {{ form.region_names.errors }}
-  <div class="field">
-      <label for="region_names">Region Names</label><br/>
-      {{ form.region_names }}
-  </div>
-
-  {{ form.site_names.errors }}
-  <div class="field">
-      <label for="site_names">Site Names</label><br/>
-      {{ form.site_names }}
-  </div>
-  
-  {% if survey_type != 'DEPT-REGION-SITE' %}
+        </div>
     </div>
-  {% endif %}
-  
-  
-  <input type="submit" value="Create"/>
-</form>
+</div>
 {% endblock %}

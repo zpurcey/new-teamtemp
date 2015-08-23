@@ -6,78 +6,96 @@
 
 {% load staticfiles %}
 
+{% load bootstrap3 %}
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% load bootstrap_themes %}
+{% bootstrap_styles theme='scafolding' type='less' %}
+{# bootstrap_styles theme='united' type='less' #}
+{# bootstrap_styles theme='cosmo' type='css' #}
+{# bootstrap_styles theme='default' type='min.css' #}
 
-<table>
-    <tr>
-        <td>
-        {% if team_name != '' %}
-            <div class="info box">
-<!--[if !IE]> -->
-            <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}">BVC</a> 
-            </div><BR><BR>
-<!-- <![endif]-->
-            <div class="info box">
-                <a href="{% url 'teamtemp.views.admin' survey_id=id  %}">ALL TEAMS</a><BR>
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">                <br>
+            <div><div class="btn-group" role="group" aria-label="nav">
+                {% if team_name != '' %}
+                    <a href="{% url 'teamtemp.views.admin' survey_id=id  %}" class="btn btn-info" role="button">ADMIN</a>
+                    <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}" class="btn btn-primary" role="button">BVC</a>
+                {% else %}
+                    <a href="{% url 'teamtemp.views.admin' survey_id=id  %}" class="btn btn-info" role="button">ADMIN</a>
+                    <a href="{% url 'teamtemp.views.bvc' survey_id=id%}" class="btn btn-primary" role="button">BVC</a>
+                {% endif %}
             </div>
-            <BR><BR><BR>
-            <div class="info box">Let your team know about this survey - send them 
-            <a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team_name %}">this link</a>.</div>
-            <h1>{{ pretty_team_name }} Survey Results</h1>
-        {% else %}
-<!--[if !IE]> -->
-            <div class="info box"> 
-            <a href="{% url 'teamtemp.views.bvc' survey_id=id%}">BVC</a> 
-            </div><BR><BR>
-<!-- <![endif]-->
-            {% for team in survey_teams %}
-                <div class="info box">
-                    <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
+            {% if team_name != '' %}
+                <BR><BR><BR><BR>
+                <div class="info box">Let your team know about this survey - send them
+                    <a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team_name %}">this link</a>.</div>
+                    <h1>{{ pretty_team_name }} Survey Results</h1>
                 </div>
-            {% endfor %}
-            <BR><BR><BR>
-            <div class="info box">Let your teams know about this survey - send them their individual team link:<BR>
-                {% for team in survey_teams %}
-                    <a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a><BR>
-                {% endfor %}
-                    <BR>Click <a href="{% url 'teamtemp.views.team' survey_id=id %}">here</a> to add a NEW Team.<BR>
-            </div> 
-            <h1>Survey Results</h1>
-        {% endif %}
-        <h1>Summary</h1>
-        <ul>
-        <li>Submissions: {{ stats.count }}</li>
-        <li>Average temperature: {{ stats.average.score__avg }}</li>
-        <li>Words: 
-        {% for word in stats.words %}
-            {{ word.word }}
-            {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
-        {% endfor %}</li>
-        </ul>
-
-        <h1>Individual Responses</h1>
-        <table>
-            <tr><th>Score</th><th>Word</th></tr>
-                {% for result in results %}
-                    <tr><td>{{result.score}}</td><td>{{result.word}}</td><td>
-                        {% if result.team_name != '' %}
-                            <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=result.team_name %}">{{result.team_name}}</a>
-                        {% endif %}</td>
-                {% endfor %}
+            {% else %}
+                <BR>
+                <h1>Survey Teams</h1>
+                Let your teams know about this survey - send them their individual team survey link:<BR>
+                <table class="table table-condensed">
+                    <tr><th>Survey Link</th><th>Big Visual Chart</th><th>Admin Results</th><th>Team Config</th></tr>
+                    {% for team in survey_teams %}
+                        <tr><td><a href="{% url 'teamtemp.views.submit' survey_id=id team_name=team.team_name %}"> {{ team.pretty_team_name }}</a></td>
+                            <td><a href="{% url 'teamtemp.views.bvc' survey_id=id%}">BVC</a></td>
+                            <td><a href="{% url 'teamtemp.views.admin' survey_id=id team_name=team.team_name %}">Team Results</a></td>
+                            <td><a href="{% url 'teamtemp.views.team' survey_id=id team_name=team.team_name %}">Edit Team</a></td>
+                        </tr>
+                    {% endfor %}
+                    <tr><td>Click <a href="{% url 'teamtemp.views.team' survey_id=id %}">here</a> to add a NEW Team.</td><td></td><td></td><td></td></tr>
                 </table>
-            </td>
-        </td>
-    </tr>
-</table>
+            {% endif %}
 
-<p><p>
-{% if team_name == '' and archive_schedule == 0 %}
-    <div class="info box"><font size="1">Want to reuse your Survey Link? Would you like a BVC trending your results over time?<br>
-    <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
-{% endif %}
-{% if team_name == '' and archive_schedule > 0 %}
-    <div class="info box"><font size="2">This survey is configured to auto archive every {{ archive_schedule }} days and generate a summary from all collected results for the current iteration for all teams using this survey.<br>
-    <b>Next scheduled archive will execute on {{ next_archive_date }}.</b><br>
-    <a href="{% url 'teamtemp.views.set' id %}">Click here</a> to change the archive schedule or update the survey password.</font></div>
-{% endif %}
+            <table>
+                <tr>
+                    <td>
+                    <h1>Survey Results</h1>
+                    <h2>Summary</h2>
+                    <ul>
+                    <li>Submissions: {{ stats.count }}</li>
+                    <li>Average temperature: {{ stats.average.score__avg }}</li>
+                    <li>Words: 
+                    {% for word in stats.words %}
+                        {{ word.word }}
+                        {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+                    {% endfor %}</li>
+                    </ul>
+
+                    <h2>Individual Responses</h2>
+                    <table class="table table-striped">
+                        <tr><th>Score</th><th>Word</th><th>Team</th></tr>
+                            {% for result in results %}
+                                <tr><td>{{result.score}}</td><td>{{result.word}}</td><td>
+                                    {% if result.team_name != '' %}
+                                        <a href="{% url 'teamtemp.views.admin' survey_id=id team_name=result.team_name %}">{{result.team_name}}</a>
+                                    {% endif %}</td></tr>
+                            {% endfor %}
+                    </table>
+                </td>
+                </td>
+                </tr>
+            </table>
+
+            <p><p>
+            {% if team_name == '' and archive_schedule == 0 %}
+                <div class="info box"><font size="1">Want to reuse your Survey Link? Would you like a BVC trending your results over time?<br>
+                <a href="{% url 'teamtemp.views.reset' id %}">Click here</a> to <b>clear all current results</b> and generate a summary from all collected results for the current iteration for all teams using this survey.</font></div>
+            {% endif %}
+            {% if team_name == '' and archive_schedule > 0 %}
+                <div class="info box"><font size="2">This survey is configured to auto archive every {{ archive_schedule }} days and generate a summary from all collected results for the current iteration for all teams using this survey.<br>
+                <b>Next scheduled archive will execute on {{ next_archive_date }}.</b><br>
+                <a href="{% url 'teamtemp.views.set' id %}">Click here</a> to change the archive schedule or update the survey password.</font></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
 {% endblock %}

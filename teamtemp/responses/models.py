@@ -108,5 +108,5 @@ class Teams(models.Model):
         return self.team_name.replace('_', ' ')
 
     def __unicode__(self):
-        return u"{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id, 
+        return u"{}: {} {} {} {} {}".format(self.id, self.request.id,
                                          self.team_name, self.dept_name, self.site_name, self.region_name)

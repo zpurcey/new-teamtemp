@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.util import ErrorList
-from teamtemp.responses.models import TemperatureResponse, TeamTemperature
+from teamtemp.responses.models import TemperatureResponse, TeamTemperature, Teams
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 import re
@@ -19,10 +19,11 @@ class ErrorBox(ErrorList):
 
 class CreateSurveyForm(forms.Form):
     error_css_class='error box'
+    
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
-    dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
+    dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='DEPT1,DEPT2..', help_text='DEPT1,DEPT2..')
+    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='REGION1,REGION2..',help_text='REGION1,REGION2,..')
+    site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='SITE1,SITE2..',help_text='SITE1,SITE2..')
 
     def clean_dept_names(self):
         dept_names = self.cleaned_data['dept_names']
@@ -96,10 +97,17 @@ class FilteredBvcForm(forms.Form):
                 raise forms.ValidationError(error)
         return filter_region_names
 
-class AddTeamForm(forms.Form):
-    error_css_class='error box'
-    team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64)
+class AddTeamForm(forms.ModelForm):
+    class Meta:
+        model = Teams
+        fields = ['team_name','dept_name','region_name','site_name']
 
+    error_css_class='error box'
+    team_name = forms.CharField(max_length=64)
+    dept_name = forms.CharField(max_length=64)
+    site_name = forms.CharField(max_length=64)
+    region_name = forms.CharField(max_length=64)
+    
     def __init__(self, *args, **kwargs):
         dept_names_list = kwargs.pop('dept_names_list')
         region_names_list = kwargs.pop('region_names_list')
@@ -108,6 +116,7 @@ class AddTeamForm(forms.Form):
         self.fields['dept_name'] = forms.ChoiceField(choices=[(x,x)for x in dept_names_list],required=False)
         self.fields['region_name'] = forms.ChoiceField(choices=[(x,x)for x in region_names_list],required=False)
         self.fields['site_name'] = forms.ChoiceField(choices=[(x,x)for x in site_names_list],required=False)
+
 
     def clean_team_name(self):
         team_name = self.cleaned_data['team_name']
@@ -150,12 +159,17 @@ class SurveyResponseForm(forms.ModelForm):
         model = TemperatureResponse
         fields = ['score', 'word']
 
+    score = forms.CharField(label='')
+    word = forms.CharField(label='')
+
     def clean_score(self):
         score = self.cleaned_data['score']
+        if not score.isdigit():
+            raise forms.ValidationError('temperature %s may contain numbers only' % score)
         if int(score) < 1:
-            raise forms.ValidationError('temperature %d is too low' % score)
+            raise forms.ValidationError('temperature %s is too low' % score)
         if int(score) > 10:
-            raise forms.ValidationError('temperature %d is too high' % score)
+            raise forms.ValidationError('temperature %s is too high' % score)
         return score
 
     def clean_word(self):

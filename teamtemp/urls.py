@@ -5,9 +5,9 @@ from django.conf import settings
 from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter
 
 urlpatterns = patterns('',
-    url(r'^$', home),
     url(r'^cs$', home, {'survey_type' : 'CUSTOMERFEEDBACK'}),
     url(r'^drs$', home, {'survey_type' : 'DEPT-REGION-SITE'}),
+    url(r'^$', home),
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin),
@@ -35,6 +35,7 @@ urlpatterns = patterns('',
                        
     url(r'^reset/(?P<survey_id>[0-9a-zA-Z]{8})$', reset),
     url(r'^cron/(?P<pin>[0-9]{4})$', cron),
+    url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team),
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter),
     url(r'^static/(.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),

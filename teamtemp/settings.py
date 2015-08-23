@@ -123,6 +123,8 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'teamtemp.responses',
     'south',
+    'bootstrap3',
+    'bootstrap_themes',
 )
 
 PASSWORD_HASHERS = (

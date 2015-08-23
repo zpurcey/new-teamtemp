@@ -199,7 +199,7 @@ def submit(request, survey_id, team_name=''):
             response_id = response.id
             form = SurveyResponseForm(instance=response)
             thanks = "Thank you for submitting your answers. You can " \
-                     "amend them now or later if you need to"
+                     "amend them now or later using this browser only if you need to."
     else:
         try: 
             previous = TemperatureResponse.objects.get(request = survey_id, 
@@ -225,7 +225,7 @@ def submit(request, survey_id, team_name=''):
                                          'response_id': response_id, 'survey_type_title' : survey_type_title,
                                          'temp_question_title' : temp_question_title,
                                          'word_question_title' : word_question_title,
-                                         'team_name': team_name.replace("_", " ")})
+                                         'team_name': team_name.replace("_", " "),'id': survey_id})
 
 def admin(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
@@ -515,8 +515,11 @@ def filter(request,survey_id):
     else:
         return render(request, 'filter.html', {'form': FilteredBvcForm(dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list)})
 
-def team(request, survey_id):
+def team(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    team = None
+    if team_name != '':
+        team = get_object_or_404(Teams, request_id = survey_id,team_name=team_name)
     # if valid session token or valid password render results page
     
     survey_type = survey.survey_type
@@ -526,29 +529,53 @@ def team(request, survey_id):
     dept_names_list = dept_names.split(',')
     region_names_list = region_names.split(',')
     site_names_list = site_names.split(',')
-    #raise Exception(site_names_list,region_names_list,dept_names_list)
-    
+
     if request.method == 'POST':
         form = AddTeamForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list )
         if form.is_valid():
             csf = form.cleaned_data
-            team_name = csf['team_name'].replace(" ", "_")
+            team_name = csf['team_name'].upper().replace(" ", "_")
             dept_name = csf['dept_name']
             region_name = csf['region_name']
             site_name = csf['site_name']
             team_found = survey.teams_set.filter(team_name = team_name).count()
-            if team_found == 0:
-                team_details = Teams(request = survey,
+            print >>sys.stderr,"team_found: " + str(team_found)
+            if team_found == 0 and not team:
+                team_details = Teams(id = None,
+                                     request = survey,
                                      team_name = team_name,
                                      dept_name = dept_name,
                                      region_name = region_name,
                                      site_name = site_name)
-                team_details.save()
+            elif team:
+                #print >>sys.stderr,"creating with team.id: " + str(team.id)
+                team_details = Teams(id = team.id,
+                                     request = survey,
+                                     team_name = team_name,
+                                     dept_name = dept_name,
+                                     region_name = region_name,
+                                     site_name = site_name)
+            team_details.save()
             return HttpResponseRedirect('/admin/%s' % survey_id)
         else:
             raise Exception('Form Is Not Valid:',form)
     else:
-        return render(request, 'team.html', {'form': AddTeamForm(dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list), 'survey_type': survey_type})
+        if team_name != '':
+            try:
+                previous = Teams.objects.get(request_id = survey_id,team_name=team_name)
+                survey_settings_id = previous.id
+                #print >>sys.stderr,"survey_settings_id" + str(survey_settings_id)
+            except Teams.DoesNotExist:
+                previous = None
+                survey_settings_id = None
+        else:
+            previous = None
+            survey_settings_id = None
+        form = AddTeamForm(instance=previous,dept_names_list=dept_names_list, region_names_list=region_names_list, site_names_list=site_names_list)
+            #form = AddTeamForm(instance=previous)
+
+    return render(request, 'team.html', {'form': form, 'survey_type': survey_type, 'survey_settings_id': survey_settings_id})
+
 
 def populate_chart_data_structures(survey_type_title, teams, team_history, tz='UTC'):
     #Populate GVIS History Chart Data Structures
@@ -883,7 +910,7 @@ def bvc(request, survey_id, team_name='', archive_id='', num_iterations='0', add
                 all_region_names.append(team['region_name'])
             if not team['site_name'] in all_site_names:
                 all_site_names.append(team['site_name'])
-            #print >>sys.stderr,dept_names,region_names,site_names
+            #print >>sys.stderr,all_dept_names,all_region_names,all_site_names
 
     if len(all_dept_names) < 2:
         all_dept_names = []

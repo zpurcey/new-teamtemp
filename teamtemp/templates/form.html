@@ -1,28 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}{{ team_name }} - {{ survey_type_title }}{% endblock %}
+
+{% block title %}{{ team_name }} {{ survey_type_title }}{% endblock %}
 
 {% block body %}
-{% if thanks %}
-<div class="info box">{{ thanks }}</div>
-{% endif %}
-<h1>{{ team_name }} - {{ survey_type_title }}</h1>
+
+{% load bootstrap3 %}
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% load bootstrap_themes %}
+{% bootstrap_styles theme='united' type='less' %}
+{# bootstrap_styles theme='cosmo' type='css' #}
+{# bootstrap_styles theme='default' type='min.css' #}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+<br>
+<!--[if !IE]> -->
+            <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}" class="btn btn-primary">BVC</a>
+<!-- <![endif]-->
+
+<h1>{{ team_name }} {{ survey_type_title }}</h1>
 <h2>Submit your {{ survey_type_title }}</h2>
 <form method="post">
   {% csrf_token %}
   {% if response_id %}
   <input type="hidden" name="id" value="{{ response_id }}"/>
   {% endif %}
-  {{ form.score.errors }}
-  <div class="field">
-      <label for="id_score">{{ temp_question_title }}</label><br/>
-    {{ form.score }}
+  
+  {% bootstrap_form_errors form type='non_fields' %}
+  {{ form.score.errors }}<br>
+  {{ temp_question_title }}
+  <div class="row"><div class="col-md-2">
+  {% bootstrap_field form.score layout='inline' size='sm' %}
+  </div></div>
+  <div class="row">
+  {{ form.word.errors }}<br>
   </div>
-  {{ form.word.errors }}
-  <div class="field">
-      <label for="id_word">{{ word_question_title }}</label><br/>
-    {{ form.word }}
-  </div>
-  <input type="submit" value="Submit"/>
+  {{ word_question_title }}
+  <div class="row"><div class="col-md-6">
+  {% bootstrap_field form.word layout='vertical' size='sm' %}
+  </div></div>
+  {% buttons class="btn btn-primary" submit='Submit' %}{% endbuttons %}
+
 </form>
+    {% if thanks %}
+        <div class="info box">{{ thanks }}</div>
+    {% endif %}
+</div></div></div>
 {% endblock %}
