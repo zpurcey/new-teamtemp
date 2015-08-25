@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 
-{% block title %}{{ team_name }} {{ survey_type_title }}{% endblock %}
+{% block title %}{{ pretty_team_name }} {{ survey_type_title }}{% endblock %}
 
 {% block body %}
 
@@ -25,7 +25,7 @@
             <a href="{% url 'teamtemp.views.bvc' survey_id=id team_name=team_name %}" class="btn btn-primary">BVC</a>
 <!-- <![endif]-->
 
-<h1>{{ team_name }} {{ survey_type_title }}</h1>
+<h1>{{ pretty_team_name }} {{ survey_type_title }}</h1>
 <h2>Submit your {{ survey_type_title }}</h2>
 <form method="post">
   {% csrf_token %}

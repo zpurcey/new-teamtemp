@@ -225,7 +225,8 @@ def submit(request, survey_id, team_name=''):
                                          'response_id': response_id, 'survey_type_title' : survey_type_title,
                                          'temp_question_title' : temp_question_title,
                                          'word_question_title' : word_question_title,
-                                         'team_name': team_name.replace("_", " "),'id': survey_id})
+                                         'team_name': team_name,'pretty_team_name': team_name.replace("_", " "),
+                                         'id': survey_id})
 
 def admin(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
