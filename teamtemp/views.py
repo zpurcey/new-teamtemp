@@ -44,6 +44,7 @@ def home(request, survey_type = 'TEAMTEMP'):
                                      dept_names = dept_names,
                                      region_names = region_names,
                                      site_names = site_names,
+                                     archive_schedule = 7,
                                      default_tz = 'UTC'
                                      )
             survey.save()
