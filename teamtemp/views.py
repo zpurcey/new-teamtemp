@@ -219,6 +219,9 @@ def submit(request, survey_id, team_name=''):
     survey_type_title = 'Team Temperature'
     temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
     word_question_title = 'One word to describe how you are feeling:'
+    numbers = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
+    if survey.max_word_count > 1 and survey.max_word_count < 11:
+        word_question_title = numbers[survey.max_word_count] + ' words to describe how you are feeling:'
     if survey.survey_type == 'CUSTOMERFEEDBACK':
         survey_type_title = 'Customer Feedback'
         temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
