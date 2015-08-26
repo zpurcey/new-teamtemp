@@ -21,6 +21,7 @@ class TeamTemperature(models.Model):
     region_names = models.CharField(default='REGION,REGION2',max_length=64)
     site_names = models.CharField(default='SITE,SITE2',max_length=64)
     default_tz = models.CharField(default='Australia/Queensland',max_length=64)
+    max_word_count = models.IntegerField(default=1)
     
     def _stats_for(self, query_set):
         result = dict()

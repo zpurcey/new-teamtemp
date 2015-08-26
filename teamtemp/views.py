@@ -101,6 +101,8 @@ def set(request, survey_id):
                 thanks = thanks + "Site Names Updated. "
             if srf['default_tz'] != survey.default_tz:
                 thanks = thanks + "Default Timezone Updated. "
+            if srf['max_word_count'] != survey.max_word_count:
+                thanks = thanks + "Max Word Count Updated. "
 
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"), srf['new_team_name'].replace(" ", "_"), survey.id)
@@ -120,7 +122,8 @@ def set(request, survey_id):
                                               dept_names = srf['dept_names'],
                                               region_names = srf['region_names'],
                                               site_names = srf['site_names'],
-                                              default_tz = srf['default_tz'])
+                                              default_tz = srf['default_tz'],
+                                              max_word_count = srf['max_word_count'])
             survey_settings.save()
             survey_settings_id = survey_settings.id
             form = SurveySettingsForm(instance=survey_settings)
@@ -183,6 +186,58 @@ def submit(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     thanks = ""
     if request.method == 'POST':
+        form = SurveyResponseForm(request.POST, error_class=ErrorBox,max_word_count=survey.max_word_count)
+        response_id = request.POST.get('id', None)
+        if form.is_valid():
+            srf = form.cleaned_data
+            # TODO check that id is unique!
+            response = TemperatureResponse(id = response_id,
+                                           request = survey,
+                                           score = srf['score'],
+                                           word = srf['word'],
+                                           responder = user,
+                                           team_name = team_name,
+                                           response_date = timezone.now())
+            response.save()
+            response_id = response.id
+            form = SurveyResponseForm(instance=response,max_word_count=survey.max_word_count)
+            thanks = "Thank you for submitting your answers. You can " \
+                     "amend them now or later using this browser only if you need to."
+    else:
+        try: 
+            previous = TemperatureResponse.objects.get(request = survey_id, 
+                                                       responder = user,
+                                                       team_name = team_name,
+                                                       archived = False) 
+            response_id = previous.id
+        except TemperatureResponse.DoesNotExist:
+            previous = None
+            response_id = None
+
+        form = SurveyResponseForm(instance=previous,max_word_count=survey.max_word_count)
+
+    survey_type_title = 'Team Temperature'
+    temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
+    word_question_title = 'One word to describe how you are feeling:'
+    if survey.survey_type == 'CUSTOMERFEEDBACK':
+        survey_type_title = 'Customer Feedback'
+        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
+        word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
+
+    return render(request, 'form.html', {'form': form, 'thanks': thanks,
+                                         'response_id': response_id, 'survey_type_title' : survey_type_title,
+                                         'temp_question_title' : temp_question_title,
+                                         'word_question_title' : word_question_title,
+                                         'team_name': team_name,'pretty_team_name': team_name.replace("_", " "),
+                                         'id': survey_id})
+
+def submit_(request, survey_id, team_name=''):
+    userid = responses.get_or_create_userid(request)
+    user, created = User.objects.get_or_create(id=userid)
+    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    thanks = ""
+    
+    if request.method == 'POST':
         form = SurveyResponseForm(request.POST, error_class=ErrorBox)
         response_id = request.POST.get('id', None)
         if form.is_valid():
@@ -200,6 +255,10 @@ def submit(request, survey_id, team_name=''):
             form = SurveyResponseForm(instance=response)
             thanks = "Thank you for submitting your answers. You can " \
                      "amend them now or later using this browser only if you need to."
+
+        else:
+            raise Exception('Form Is Not Valid:',form)
+            print >>sys.stderr, "else"
     else:
         try: 
             previous = TemperatureResponse.objects.get(request = survey_id, 
@@ -216,6 +275,8 @@ def submit(request, survey_id, team_name=''):
     survey_type_title = 'Team Temperature'
     temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
     word_question_title = 'One word to describe how you are feeling:'
+    if survey.max_word_count > 1:
+        word_question_title = str(survey.max_word_count) + ' words to describe how you are feeling:'
     if survey.survey_type == 'CUSTOMERFEEDBACK':
         survey_type_title = 'Customer Feedback'
         temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'

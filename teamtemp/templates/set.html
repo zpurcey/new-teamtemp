@@ -28,6 +28,12 @@
         {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey or DEPT-REGION-SITE - aggregate results across Departments, Regions and Sites or office locations)
     </div>
     
+    {{ form.max_word_count.errors }}
+    <div class="field">
+        <label for="id_max_word_count">Max Word Count:</label><br/>
+        {{ form.max_word_count }} (Number of words accepted along with team temperature submission - Default: 1)
+    </div>
+    
     {{ form.dept_names.errors }}
     <div class="field">
         <label for="id_dept_names">Department Names:</label><br/>
@@ -79,6 +85,12 @@
         {{ form.censored_word }} (ALL occurences will be removed from this survey, ensure correct caps)
     </div>
     
+    {{ form.default_tz.errors }}
+    <div class="field">
+        <label for="id_default_tz">Default Timezone:</label><br/>
+        {{ form.default_tz }} (pytz.all_timezones)
+    </div>
+
     {{ form.default_tz.errors }}
     <div class="field">
         <label for="id_default_tz">Default Timezone:</label><br/>

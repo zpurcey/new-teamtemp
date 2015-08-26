@@ -22,7 +22,7 @@ class CreateSurveyForm(forms.Form):
     
     password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
     dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='DEPT1,DEPT2..', help_text='DEPT1,DEPT2..')
-    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='REGION1,REGION2..',help_text='REGION1,REGION2,..')
+    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='REGION1,REGION2..',help_text='REGION1,REGION2..')
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False, label='SITE1,SITE2..',help_text='SITE1,SITE2..')
 
     def clean_dept_names(self):
@@ -117,7 +117,6 @@ class AddTeamForm(forms.ModelForm):
         self.fields['region_name'] = forms.ChoiceField(choices=[(x,x)for x in region_names_list],required=False)
         self.fields['site_name'] = forms.ChoiceField(choices=[(x,x)for x in site_names_list],required=False)
 
-
     def clean_team_name(self):
         team_name = self.cleaned_data['team_name']
         matches = re.findall(r'[^A-Za-z0-9 \'-]', team_name)
@@ -161,24 +160,35 @@ class SurveyResponseForm(forms.ModelForm):
 
     score = forms.CharField(label='')
     word = forms.CharField(label='')
+    
+    def __init__(self, *args, **kwargs):
+        self.max_word_count = kwargs.pop('max_word_count')
+        super(SurveyResponseForm, self).__init__(*args, **kwargs)
+
 
     def clean_score(self):
         score = self.cleaned_data['score']
         if not score.isdigit():
-            raise forms.ValidationError('temperature %s may contain numbers only' % score)
+            raise forms.ValidationError('Temperature %s may contain numbers only' % score)
         if int(score) < 1:
-            raise forms.ValidationError('temperature %s is too low' % score)
+            raise forms.ValidationError('Temperature %s is too low' % score)
         if int(score) > 10:
-            raise forms.ValidationError('temperature %s is too high' % score)
+            raise forms.ValidationError('Temperature %s is too high' % score)
         return score
 
     def clean_word(self):
         word = self.cleaned_data['word']
-        matches = re.findall(r'[^A-Za-z0-9\'-]', word)
+        matches = re.findall(r'[^A-Za-z0-9 \'-]', word)
         if matches:
             error = '"{word}" contains invalid characters '\
                     '{matches}'.format(word=escape(word), matches=list({str(x) for x in matches}))
             raise forms.ValidationError(error)
+        
+        word_count = len(word.split())
+        if word_count > self.max_word_count:
+            error = 'Max {max_word_count} Words'.format(max_word_count=escape(self.max_word_count))
+            raise forms.ValidationError(error)
+
         return word
 
 class ResultsPasswordForm(forms.Form):
@@ -198,7 +208,7 @@ class SurveySettingsForm(forms.ModelForm):
     
     class Meta:
         model = TeamTemperature
-        fields = ['archive_schedule', 'survey_type','dept_names','region_names','site_names','default_tz']
+        fields = ['archive_schedule', 'survey_type','dept_names','region_names','site_names','default_tz','max_word_count']
     
     def clean_archive_schedule(self):
         archive_schedule = self.cleaned_data['archive_schedule']
@@ -247,4 +257,10 @@ class SurveySettingsForm(forms.ModelForm):
                 '{matches}'.format(default_tz=escape(default_tz), matches=list({str(x) for x in matches}))
             raise forms.ValidationError(error)
         return default_tz
+
+    def clean_max_word_count(self):
+        max_word_count = self.cleaned_data['max_word_count']
+        if int(max_word_count) > 5:
+            raise forms.ValidationError('Max Word Count Max Value = 5')
+        return max_word_count
 
