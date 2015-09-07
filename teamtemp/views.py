@@ -663,11 +663,10 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     history_chart_columns = ('archive_date',)
     average_index = None
     for team in teams:
-        history_chart_schema.update({team['team_name'] :  ("number",team['team_name'].replace("_", " "))})
-        history_chart_columns = history_chart_columns + (team['team_name'],)
-        if team['team_name'] == 'Average':
-            average_index = team_index
-        team_index += 1
+        if team['team_name'] != 'Average':
+            history_chart_schema.update({team['team_name'] :  ("number",team['team_name'].replace("_", " "))})
+            history_chart_columns = history_chart_columns + (team['team_name'],)
+            team_index += 1
     
     #Add average heading if not already added for adhoc filtering
     if average_index == None:
