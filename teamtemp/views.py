@@ -185,6 +185,10 @@ def submit(request, survey_id, team_name=''):
     userid = responses.get_or_create_userid(request)
     user, created = User.objects.get_or_create(id=userid)
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+    team = None
+    if team_name != '':
+        team = get_object_or_404(Teams, request_id = survey_id,team_name=team_name)
+
     thanks = ""
     if request.method == 'POST':
         form = SurveyResponseForm(request.POST, error_class=ErrorBox,max_word_count=survey.max_word_count)
