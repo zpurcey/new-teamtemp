@@ -643,10 +643,10 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
             team_index += 1
     
     #Add average heading if not already added for adhoc filtering
-    if average_index == None:
-        average_index = team_index
-        history_chart_schema.update({'Average' :  ("number",'Average')})
-        history_chart_columns = history_chart_columns + ('Average',)
+    #if team_index > 1:
+    average_index = team_index
+    history_chart_schema.update({'Average' :  ("number",'Average')})
+    history_chart_columns = history_chart_columns + ('Average',)
 
     history_chart_data = []
     row = None
@@ -654,31 +654,31 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     score_sum = 0
     responder_sum = 0
     for survey_summary in team_history:
-        if row == None:
-            row = {}
-            row['archive_date'] = timezone.localtime(survey_summary.archive_date)
-        elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
-            #TODO can it recalculate the average here for adhoc filtering
-            if num_scores > 0:
-                average_score = score_sum / num_scores
-                row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
-                score_sum = 0
-                num_scores = 0
-                responder_sum = 0
-            history_chart_data.append(row)
-            row = {}
-            row['archive_date'] = timezone.localtime(survey_summary.archive_date)
+        if survey_summary.team_name != 'Average':
+            if row == None:
+                row = {}
+                row['archive_date'] = timezone.localtime(survey_summary.archive_date)
+            elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
+                #TODO can it recalculate the average here for adhoc filtering
+                if num_scores > 0:
+                    average_score = score_sum / num_scores
+                    row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+                    score_sum = 0
+                    num_scores = 0
+                    responder_sum = 0
+                history_chart_data.append(row)
+                row = {}
+                row['archive_date'] = timezone.localtime(survey_summary.archive_date)
 
-        #Accumulate for average calc
-        score_sum = score_sum + survey_summary.average_score
-        num_scores = num_scores + 1
-        responder_sum = responder_sum + survey_summary.responder_count
+            #Accumulate for average calc
+            score_sum = score_sum + survey_summary.average_score
+            num_scores = num_scores + 1
+            responder_sum = responder_sum + survey_summary.responder_count
 
-        row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
+            row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
     
-    if num_scores > 0:
-        average_score = score_sum / num_scores
-        row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+    average_score = score_sum / num_scores
+    row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
 
     history_chart_data.append(row)
     
