@@ -414,9 +414,7 @@ def reset(request, survey_id):
     arch_date = timezone.now()
     data = {'archived': True, 'archive_date': timezone.now()}
     teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
-    average_total = 0
-    average_count = 0
-    average_responder_total = 0
+
     for team in teams:
         Summary = None
         team_stats = None
@@ -431,34 +429,10 @@ def reset(request, survey_id):
             team_name = team['team_name'],
             archive_date = arch_date)
         Summary.save()
-        average_total = average_total + team_stats['average']['score__avg']
-        average_count = average_count + 1
-        average_responder_total = average_responder_total + team_stats['count']
 
         TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
 
-    #Save Survey Summary as AGREGATE AVERAGE for all teams
-    data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
-    Summary = None
-    team_stats = None
-    summary_word_list = ""
-    team_stats = teamtemp.stats()
-        
-    if average_count > 0:
-        Summary = TeamResponseHistory(request = survey,
-            average_score = average_total/float(average_count),
-            word_list = summary_word_list,
-            responder_count = average_responder_total,
-            team_name = 'Average',
-            archive_date = arch_date)
-
-    if Summary:
-        Summary.save()
-        nowstamp = timezone.now()
-        data = {'archive_date': nowstamp}
-        TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-        print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+    print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
