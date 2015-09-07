@@ -662,7 +662,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                 #TODO can it recalculate the average here for adhoc filtering
                 if num_scores > 0:
                     average_score = score_sum / num_scores
-                    row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+                    row['Average'] = (float(average_score), str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
                     score_sum = 0
                     num_scores = 0
                     responder_sum = 0
@@ -675,10 +675,10 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
             num_scores = num_scores + 1
             responder_sum = responder_sum + survey_summary.responder_count
 
-            row[survey_summary.team_name] = (float(survey_summary.average_score), str(float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
+            row[survey_summary.team_name] = (float(survey_summary.average_score), str("%.2f" % float(survey_summary.average_score)) + " (" + str(survey_summary.responder_count) + " Responses)")
     
     average_score = score_sum / num_scores
-    row['Average'] = (float(average_score), str(float(average_score)) + " (" + str(responder_sum) + " Responses)")
+    row['Average'] = (float(average_score), str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
 
     history_chart_data.append(row)
     
