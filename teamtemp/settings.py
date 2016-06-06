@@ -3,7 +3,6 @@ import os
 import dj_database_url
 
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
-TEMPLATE_DEBUG = DEBUG
 STATIC_BASE_DIR = os.environ.get('STATIC_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
 MEDIA_BASE_DIR = os.environ.get('MEDIA_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
 
@@ -81,13 +80,6 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,13 +94,6 @@ ROOT_URLCONF = 'teamtemp.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'teamtemp.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -166,3 +151,23 @@ LOGGING = {
 IGNORE_BVC_AUTH = True
 
 CRON_PIN = os.environ.get('TEAM_TEMP_CRON_PIN', '0000')
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+		    os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
+		],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': DEBUG,
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
