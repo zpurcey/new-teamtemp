@@ -6,7 +6,7 @@ dj-static==0.0.6
 django-toolbelt==0.0.1
 gunicorn==19.6.0
 https://google-visualization-python.googlecode.com/files/gviz_api_py-1.8.2.tar.gz
-Pillow==2.5.0
+Pillow==3.2.0
 poster==0.8.1
 py-bcrypt==0.4
 psycopg2==2.6.1
