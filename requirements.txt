@@ -3,13 +3,13 @@ django-bootstrap3==7.0.1
 django-bootstrap-themes==3.3.6
 dj-database-url==0.4.1
 dj-static==0.0.6
-#django-toolbelt==0.0.1
+django-toolbelt==0.0.1
 gunicorn==19.6.0
 https://google-visualization-python.googlecode.com/files/gviz_api_py-1.8.2.tar.gz
 Pillow==2.5.0
 poster==0.8.1
 py-bcrypt==0.4
-#psycopg2==2.5.1
+psycopg2==2.6.1
 pytz==2016.4
 requests==2.10.0
 static==1.1.1
