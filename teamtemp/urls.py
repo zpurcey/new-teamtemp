@@ -39,7 +39,6 @@ urlpatterns = [
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team),
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter),
-    static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
-    static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
++ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
