@@ -4,14 +4,20 @@
 
 {% block body %}
 
+<div class="container">
+
 {% if thanks %}
 <div class="info box">{{ thanks }}</div>
 <BR><BR>
 {% endif %}
 
-<div class="info box">
-    <a href="{% url 'teamtemp.views.admin' survey_id=survey_settings_id %}">ADMIN</a>
-</div>
+<div class="row">
+    <div class="col-md-12">                <br>
+        <BR>
+        <div class="btn-group no-print" role="group" aria-label="nav">
+          <a href="{% url 'teamtemp.views.admin' survey_id=survey_settings_id %}" class="btn btn-info" role="button">ADMIN</a>
+        </div>
+
 <BR><BR>
 
 <h1>Team Temperature</h1>
@@ -93,4 +99,5 @@
 
     <input type="submit" value="Submit"/>
 </form>
+</div></div></div>
 {% endblock %}
