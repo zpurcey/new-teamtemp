@@ -1,17 +1,10 @@
 {% extends "base.html" %}
 
+{% load bootstrap3 %}
 
 {% block title %}{{ pretty_team_name }} {{ survey_type_title }}{% endblock %}
 
 {% block body %}
-
-{% load bootstrap3 %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery=1 %}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
 
 <div class="container">
     <div class="row">
@@ -28,7 +21,7 @@
   {% if response_id %}
   <input type="hidden" name="id" value="{{ response_id }}"/>
   {% endif %}
-  
+
   {% bootstrap_form_errors form type='non_fields' %}
   {{ temp_question_title }}
   <div class="row"><div class="col-md-6">

@@ -177,3 +177,7 @@ TEMPLATES = [
     },
 ]
 
+# Settings for django-bootstrap3
+BOOTSTRAP3 = {
+    'javascript_in_head': True,
+}
