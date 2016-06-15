@@ -5,8 +5,15 @@ class WordCloudImage(models.Model):
     word_list = models.CharField(max_length=5000)
     image_url = models.CharField(max_length=255)
 
+    def __unicode__(self):
+        return u"{} {} {}".format(self.creation_date, self.word_list, image_url)
+
+
 class User(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
+
+    def __unicode__(self):
+        return u"{}".format(self.id)
 
 
 class TeamTemperature(models.Model):
@@ -61,7 +68,7 @@ class TeamTemperature(models.Model):
         return self._stats_for(allresponses) 
 
     def __unicode__(self):
-        return u"{}: {} {} {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
+        return u"{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
                                    self.creation_date, self.archive_schedule, self.archive_date,
                                    self.survey_type, self.region_names, self.region_names,
                                    self.site_names, self.default_tz)
