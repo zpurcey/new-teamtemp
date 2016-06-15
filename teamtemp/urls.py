@@ -4,6 +4,7 @@ from django.conf import settings
 from django.views.static import serve
 from django.views.generic.base import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.contrib import admin as djadmin
 
 from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt
 
@@ -46,4 +47,5 @@ urlpatterns = [
     url(r'^healthcheck/?$', healthcheck, name='healthcheck'),
     url(r'^robots\.txt', robots_txt, name='robots_txt'),
     url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
+    url(r'^djadmin/', include(djadmin.site.urls)),
 ]
