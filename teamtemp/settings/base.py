@@ -188,7 +188,7 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_FRAME_DENY = True
 X_FRAME_OPTIONS = 'DENY'
 
-CSP_DEFAULT_SRC = ("'self'",)
+CSP_DEFAULT_SRC = ("'none'",)
 CSP_SCRIPT_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-eval'", "'unsafe-inline'","'self'",)
 CSP_CONNECT_SRC = ("'self'",)
 CSP_STYLE_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
