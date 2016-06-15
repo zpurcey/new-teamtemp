@@ -1,6 +1,6 @@
 import os
 
-from measure_mate.settings.base import *
+from teamtemp.settings.base import *
 
 SECURE_SSL_REDIRECT = True
 SECURE_REDIRECT_EXEMPT = (
