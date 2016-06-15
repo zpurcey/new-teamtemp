@@ -392,7 +392,7 @@ def require_dir(path):
 def save_url(url, directory):
 
     image_name = urlparse(url).path.split('/')[-1]
-    return_url = os.path.relpath(os.path.join(settings.MEDIA_URL,os.path.join(directory,image_name)))
+    return_url = os.path.join(settings.MEDIA_URL,os.path.join(directory,image_name))
     if settings.MEDIA_ROOT:
         directory = os.path.join(settings.MEDIA_ROOT, directory) 
     else:
