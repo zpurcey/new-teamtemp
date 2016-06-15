@@ -7,7 +7,7 @@ class WordCloudImage(models.Model):
     image_url = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return u"{} {} {}".format(self.creation_date, self.word_list, image_url)
+        return u"{} {} {}".format(self.creation_date, self.word_list, self.image_url)
 
 
 class User(models.Model):
