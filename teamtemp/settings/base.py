@@ -189,8 +189,8 @@ SECURE_FRAME_DENY = True
 X_FRAME_OPTIONS = 'DENY'
 
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ('www.google.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-eval'", "'unsafe-inline'","'self'",)
+CSP_SCRIPT_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-eval'", "'unsafe-inline'","'self'",)
 CSP_CONNECT_SRC = ("'self'",)
-CSP_STYLE_SRC = ('www.google.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
+CSP_STYLE_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
 CSP_IMG_SRC = ("'self'",'data:','blob:',)
 CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
