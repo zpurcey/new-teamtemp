@@ -3,8 +3,11 @@ import os
 import dj_database_url
 
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
-STATIC_BASE_DIR = os.environ.get('STATIC_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
-MEDIA_BASE_DIR = os.environ.get('MEDIA_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_BASE_DIR = os.environ.get('STATIC_BASE_DIR', BASE_DIR)
+MEDIA_BASE_DIR = os.environ.get('MEDIA_BASE_DIR', BASE_DIR)
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -44,7 +47,6 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MEDIA_ROOT = os.path.join(MEDIA_BASE_DIR, 'mediafiles')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
@@ -56,7 +58,6 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(STATIC_BASE_DIR, 'staticfiles')
 
 # URL prefix for static files.
@@ -86,6 +87,7 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,6 +95,7 @@ MIDDLEWARE_CLASSES = (
     #'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 )
 
@@ -105,14 +108,12 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    #'django.contrib.sites',
-    #'django.contrib.messages',
+    'django.contrib.sites',
+    'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admin',
+    'django.contrib.admindocs',
     'teamtemp.responses',
     'bootstrap3',
 )
@@ -153,7 +154,7 @@ LOGGING = {
     }
 }
 
-#Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
+# Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
 IGNORE_BVC_AUTH = True
 
 CRON_PIN = os.environ.get('TEAM_TEMP_CRON_PIN', '0000')
@@ -162,7 +163,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-		    os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
+		    os.path.join(BASE_DIR, 'templates').replace('\\','/'),
 		],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -181,3 +182,15 @@ TEMPLATES = [
 BOOTSTRAP3 = {
     'javascript_in_head': True,
 }
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_FRAME_DENY = True
+X_FRAME_OPTIONS = 'DENY'
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ('www.google.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_STYLE_SRC = ('www.google.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
+CSP_IMG_SRC = ("'self'",'data:','blob:',)
+CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)

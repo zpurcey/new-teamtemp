@@ -2,16 +2,15 @@ from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.views.static import serve
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
-
-from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter
+from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt
 
 urlpatterns = [
     url(r'^cs$', home, {'survey_type' : 'CUSTOMERFEEDBACK'}),
     url(r'^drs$', home, {'survey_type' : 'DEPT-REGION-SITE'}),
-    url(r'^$', home),
+    url(r'^$', home, name='home'),
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin),
@@ -44,4 +43,7 @@ urlpatterns = [
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter),
     url(r'^static/(.*)$', serve, {'document_root': settings.STATIC_ROOT}),
     url(r'^media/(.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    url(r'^healthcheck/?$', healthcheck, name='healthcheck'),
+    url(r'^robots\.txt', robots_txt, name='robots_txt'),
+    url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
 ]

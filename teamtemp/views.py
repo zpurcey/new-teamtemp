@@ -22,6 +22,12 @@ import urllib
 from django.conf import settings
 import sys
 
+def healthcheck(request):
+    return HttpResponse('ok', content_type='text/plain')
+
+def robots_txt(request):
+    return HttpResponse('', content_type='text/plain')
+
 def home(request, survey_type = 'TEAMTEMP'):
     timezone.activate(pytz.timezone('UTC'))
     if request.method == 'POST':
