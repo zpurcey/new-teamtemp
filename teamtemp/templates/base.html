@@ -4,7 +4,11 @@
 {% load staticfiles %}
 
 {% block bootstrap3_title %}{% block title %}{% endblock %}{% endblock %}
-{% block bootstrap3_extra_head %}<link rel="stylesheet" href="{% static "style.css" %}">{% endblock %}
+{% block bootstrap3_extra_head %}
+<link rel="stylesheet" href="{% static "style.css" %}">
+<link rel="shortcut icon" href="{% static "favicon.ico" %}" type="image/x-icon">
+<link rel="icon" href="{% static "favicon.ico" %}" type="image/x-icon">
+{% endblock %}
 
 {% block bootstrap3_content %}
 {# Display django.contrib.messages as Bootstrap alerts #}
