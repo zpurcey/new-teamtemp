@@ -2,7 +2,7 @@ language: python
 install:
   - pip install -U pip setuptools wheel coveralls
   - pip install -r requirements.txt
-  - python manage.py collectstatic --no-input
+  - python manage.py collectstatic --noinput
 before_script:
   - "export DATABASE_URL=sqlite:///:memory"
 script:
