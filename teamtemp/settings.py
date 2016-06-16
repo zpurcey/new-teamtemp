@@ -124,7 +124,6 @@ INSTALLED_APPS = (
     'teamtemp.responses',
     'south',
     'bootstrap3',
-    'bootstrap_themes',
 )
 
 PASSWORD_HASHERS = (
