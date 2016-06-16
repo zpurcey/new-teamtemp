@@ -4,3 +4,5 @@ media
 mediafiles
 *.pyc
 .DS_Store
+*~
+*.sqlite
