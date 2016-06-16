@@ -396,7 +396,7 @@ def save_url(url, directory):
     if settings.MEDIA_ROOT:
         directory = os.path.join(settings.MEDIA_ROOT, directory) 
     else:
-        directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
+        directory = os.path.join(settings.BASE_DIR, directory)
     require_dir(directory)
     filename = os.path.join(directory, image_name)
 
