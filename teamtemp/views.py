@@ -9,7 +9,7 @@ import pytz
 from django.utils import timezone
 from datetime import timedelta
 from teamtemp import utils, responses
-from django.utils import simplejson as json
+import json
 from django.core.serializers.json import DjangoJSONEncoder
 import gviz_api
 from django.http import HttpResponse
@@ -21,6 +21,12 @@ import errno
 import urllib
 from django.conf import settings
 import sys
+
+def healthcheck(request):
+    return HttpResponse('ok', content_type='text/plain')
+
+def robots_txt(request):
+    return HttpResponse('', content_type='text/plain')
 
 def home(request, survey_type = 'TEAMTEMP'):
     timezone.activate(pytz.timezone('UTC'))
@@ -390,7 +396,7 @@ def save_url(url, directory):
     if settings.MEDIA_ROOT:
         directory = os.path.join(settings.MEDIA_ROOT, directory) 
     else:
-        directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
+        directory = os.path.join(settings.BASE_DIR, directory)
     require_dir(directory)
     filename = os.path.join(directory, image_name)
 
@@ -910,7 +916,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2,tz='UTC'):
 def bvc(request, survey_id, team_name='', archive_id='', num_iterations='0', add_survey_ids=None,
         region_names='', site_names='', dept_names=''):
 
-    survey_ids = request.REQUEST.get('add_survey_ids',add_survey_ids)
+    survey_ids = request.GET.get('add_survey_ids',add_survey_ids)
 
     survey_id_list = [survey_id]
     if survey_ids:

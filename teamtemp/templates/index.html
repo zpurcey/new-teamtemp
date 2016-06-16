@@ -1,25 +1,17 @@
 {% extends "base.html" %}
 
+{% load bootstrap3 %}
+
 {% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery=1 %}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
 
 <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
 
             <h1>Create a Team Temperature Survey</h1>
-            
+
             <label>Select Survey Type</label>
             <BR>
             <select class="btn btn-default" id="SurveyTypeSelector">
@@ -45,9 +37,9 @@
                     window.location.href = this.value;
                 };
             </script><br><br>
-            
+
             <form method="post">
-              
+
               {% bootstrap_form_errors form type='non_fields' %}
               {% csrf_token %}
               {{ form.password.errors }}
@@ -55,7 +47,7 @@
               <div class="row"><div class="col-md-6">
               {% bootstrap_field form.password layout='inline' size='sm' %}
               </div></div>
-              
+
               {% if survey_type != 'DEPT-REGION-SITE' %}
                 <div style="display: none;">
               {% endif %}
@@ -77,7 +69,7 @@
               <div class="row"><div class="col-md-6">
               {% bootstrap_field form.site_names layout='inline' size='sm' %}
               </div></div>
-              
+
               {% if survey_type != 'DEPT-REGION-SITE' %}
                 </div>
               {% endif %}<br>

@@ -1,15 +1,18 @@
+{% extends 'bootstrap3/bootstrap3.html' %}
+
+{% load bootstrap3 %}
 {% load staticfiles %}
 
-<!doctype html>
-<html>
-<head>
-    <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="{% static "style.css" %}">
-</head>
-<body>
+{% block bootstrap3_title %}{% block title %}{% endblock %}{% endblock %}
+{% block bootstrap3_extra_head %}
+<link rel="stylesheet" href="{% static "style.css" %}">
+<link rel="shortcut icon" href="{% static "favicon.ico" %}" type="image/x-icon">
+<link rel="icon" href="{% static "favicon.ico" %}" type="image/x-icon">
+{% endblock %}
 
+{% block bootstrap3_content %}
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
 {% block body %}{% endblock %}
-
-<div class="footer no-print"><a href="{% url "about" %}">About this site</a></div>
-</body>
-</html>
+{% block footer %}<div class="footer no-print"><p><br><br><a href="{% url "about" %}">About this site</a></p></div>{% endblock %}
+{% endblock %}

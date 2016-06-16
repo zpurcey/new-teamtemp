@@ -4,16 +4,6 @@
 
 {% block body %}
 
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery=1 %}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
-
 <div class="container">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">                <br>
@@ -57,7 +47,7 @@
                     <ul>
                     <li>Submissions: {{ stats.count }}</li>
                     <li>Average temperature: {{ stats.average.score__avg }}</li>
-                    <li>Words: 
+                    <li>Words:
                     {% for word in stats.words %}
                         {{ word.word }}
                         {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}

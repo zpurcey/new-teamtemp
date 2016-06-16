@@ -3,9 +3,11 @@ import os
 import dj_database_url
 
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
-TEMPLATE_DEBUG = DEBUG
-STATIC_BASE_DIR = os.environ.get('STATIC_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
-MEDIA_BASE_DIR = os.environ.get('MEDIA_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_BASE_DIR = os.environ.get('STATIC_BASE_DIR', BASE_DIR)
+MEDIA_BASE_DIR = os.environ.get('MEDIA_BASE_DIR', BASE_DIR)
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -45,7 +47,6 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MEDIA_ROOT = os.path.join(MEDIA_BASE_DIR, 'mediafiles')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
@@ -57,7 +58,6 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(STATIC_BASE_DIR, 'staticfiles')
 
 # URL prefix for static files.
@@ -78,24 +78,24 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+# Simplified static file serving.
+# https://warehouse.python.org/project/whitenoise/
+
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
-
 MIDDLEWARE_CLASSES = (
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 )
 
 ROOT_URLCONF = 'teamtemp.urls'
@@ -103,26 +103,17 @@ ROOT_URLCONF = 'teamtemp.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'teamtemp.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/'),
-)
-
 INSTALLED_APPS = (
-    #'django.contrib.auth',
-    #'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
     'django.contrib.sessions',
     #'django.contrib.sites',
-    #'django.contrib.messages',
+    'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admin',
+    'django.contrib.admindocs',
     'teamtemp.responses',
-    'south',
     'bootstrap3',
 )
 
@@ -162,7 +153,43 @@ LOGGING = {
     }
 }
 
-#Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
+# Do not require Authentication to render BVC when IGNORE_BVC_AUTH == True
 IGNORE_BVC_AUTH = True
 
 CRON_PIN = os.environ.get('TEAM_TEMP_CRON_PIN', '0000')
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+		    os.path.join(BASE_DIR, 'templates').replace('\\','/'),
+		],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': DEBUG,
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+# Settings for django-bootstrap3
+BOOTSTRAP3 = {
+    'javascript_in_head': True,
+}
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_FRAME_DENY = True
+X_FRAME_OPTIONS = 'DENY'
+
+CSP_DEFAULT_SRC = ("'none'",)
+CSP_SCRIPT_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-eval'", "'unsafe-inline'","'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_STYLE_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
+CSP_IMG_SRC = ("'self'",'data:','blob:',)
+CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class WordCloudImage(models.Model):
     creation_date = models.DateField()
     word_list = models.CharField(max_length=5000)
@@ -92,6 +93,9 @@ class TemperatureResponse(models.Model):
                                          self.archive_date)
 
 class TeamResponseHistory(models.Model):
+    class Meta:
+        verbose_name_plural = "Team response histories"
+
     request = models.ForeignKey(TeamTemperature)
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
     word_list = models.CharField(max_length=5000)
@@ -106,6 +110,9 @@ class TeamResponseHistory(models.Model):
                                          self.team_name, self.archive_date)
 
 class Teams(models.Model):
+    class Meta:
+        verbose_name_plural = "Teams"
+
     request = models.ForeignKey(TeamTemperature)
     team_name = models.CharField(max_length=64, null=True)
     dept_name = models.CharField(max_length=64, null=True)
