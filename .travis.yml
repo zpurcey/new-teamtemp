@@ -6,6 +6,6 @@ install:
 before_script:
   - "export DATABASE_URL=sqlite:///:memory"
 script:
-  - coverage run manage.py test
+  - coverage run manage.py test --settings=teamtemp.tests.settings
 after_success:
   - coveralls
