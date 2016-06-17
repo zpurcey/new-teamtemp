@@ -5,8 +5,18 @@ from django.views.static import serve
 from django.views.generic.base import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.contrib import admin as djadmin
+from rest_framework import routers
 
-from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt
+from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt, WordCloudImageViewSet, UserViewSet, TeamTemperatureViewSet, TemperatureResponseViewSet, TeamResponseHistoryViewSet, TeamsViewSet
+
+router = routers.DefaultRouter()
+router.register(r'word_cloud_images', WordCloudImageViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'team_temperatures', TeamTemperatureViewSet)
+router.register(r'temperature_responses', TemperatureResponseViewSet)
+router.register(r'team_response_histories', TeamResponseHistoryViewSet)
+router.register(r'teams', TeamsViewSet)
+
 
 urlpatterns = [
     url(r'^cs$', home, {'survey_type' : 'CUSTOMERFEEDBACK'}),
@@ -48,4 +58,6 @@ urlpatterns = [
     url(r'^robots\.txt', robots_txt, name='robots_txt'),
     url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
     url(r'^djadmin/', include(djadmin.site.urls)),
+    url(r'^api/', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

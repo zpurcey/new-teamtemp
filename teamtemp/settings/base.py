@@ -115,6 +115,8 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'teamtemp.responses',
     'bootstrap3',
+    'rest_framework',
+    'crispy_forms',
 )
 
 PASSWORD_HASHERS = (
@@ -193,3 +195,12 @@ CSP_CONNECT_SRC = ("'self'",)
 CSP_STYLE_SRC = ('*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'","'self'",)
 CSP_IMG_SRC = ("'self'",'data:','blob:',)
 CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+

@@ -3,7 +3,7 @@ from django.db import models
 
 class WordCloudImage(models.Model):
     creation_date = models.DateField()
-    word_list = models.CharField(max_length=5000)
+    word_list = models.CharField(max_length=5000, db_index=True)
     image_url = models.CharField(max_length=255)
 
     def __unicode__(self):
@@ -20,7 +20,7 @@ class User(models.Model):
 class TeamTemperature(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
     creation_date = models.DateField()
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, related_name="team_temperatures")
     password = models.CharField(max_length=256)
     archive_schedule = models.IntegerField(default=0)
     archive_date = models.DateTimeField(null=True)
@@ -40,32 +40,32 @@ class TeamTemperature(models.Model):
 
     def stats(self):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(archived = False)
+        allresponses = self.temperature_responses.filter(archived = False)
         return self._stats_for(allresponses) 
 
     def team_stats(self, team_name):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, archived = False)
+        allresponses = self.temperature_responses.filter(team_name__in = team_name, archived = False)
         return self._stats_for(allresponses) 
 
     def archive_stats(self, archive_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(archived = True,archive_date = archive_date)
+        allresponses = self.temperature_responses.filter(archived = True,archive_date = archive_date)
         return self._stats_for(allresponses) 
 
     def archive_team_stats(self, team_name, archive_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, archive_date = archive_date, archived = True)
+        allresponses = self.temperature_responses.filter(team_name__in = team_name, archive_date = archive_date, archived = True)
         return self._stats_for(allresponses)  
 
     def accumulated_stats(self, start_date, end_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(response_date__gte=end_date, response_date__lte=start_date)
+        allresponses = self.temperature_responses.filter(response_date__gte=end_date, response_date__lte=start_date)
         return self._stats_for(allresponses) 
 
     def accumulated_team_stats(self, team_name, start_date, end_date):
         result = dict()
-        allresponses = self.temperatureresponse_set.filter(team_name__in = team_name, response_date__gte=end_date, response_date__lte=start_date)
+        allresponses = self.temperature_responses.filter(team_name__in = team_name, response_date__gte=end_date, response_date__lte=start_date)
         return self._stats_for(allresponses) 
 
     def __unicode__(self):
@@ -76,14 +76,14 @@ class TeamTemperature(models.Model):
 
 
 class TemperatureResponse(models.Model):
-    request = models.ForeignKey(TeamTemperature)
+    request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
     responder = models.ForeignKey(User)
     score = models.IntegerField()
     word = models.CharField(max_length=32)
-    team_name = models.CharField(max_length=64, null=True)
-    archived = models.BooleanField(default=False)
+    team_name = models.CharField(max_length=64, null=True, db_index=True)
+    archived = models.BooleanField(default=False, db_index=True)
     response_date = models.DateTimeField(null=True)
-    archive_date = models.DateTimeField(null=True)
+    archive_date = models.DateTimeField(null=True, db_index=True)
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id, 
@@ -96,11 +96,11 @@ class TeamResponseHistory(models.Model):
     class Meta:
         verbose_name_plural = "Team response histories"
 
-    request = models.ForeignKey(TeamTemperature)
+    request = models.ForeignKey(TeamTemperature, related_name="team_response_histories")
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
     word_list = models.CharField(max_length=5000)
     responder_count = models.IntegerField()
-    team_name = models.CharField(max_length=64, null=True)
+    team_name = models.CharField(max_length=64, null=True, db_index=True)
     archive_date = models.DateTimeField()
 
     def __unicode__(self):
@@ -112,9 +112,10 @@ class TeamResponseHistory(models.Model):
 class Teams(models.Model):
     class Meta:
         verbose_name_plural = "Teams"
+	unique_together = ("request", "team_name")
 
-    request = models.ForeignKey(TeamTemperature)
-    team_name = models.CharField(max_length=64, null=True)
+    request = models.ForeignKey(TeamTemperature, related_name="teams")
+    team_name = models.CharField(max_length=64, null=True, db_index=True)
     dept_name = models.CharField(max_length=64, null=True)
     site_name = models.CharField(max_length=64, null=True)
     region_name = models.CharField(max_length=64, null=True)

@@ -21,6 +21,56 @@ import errno
 import urllib
 from django.conf import settings
 import sys
+from responses.serializers import *
+from rest_framework import viewsets, filters
+
+
+class WordCloudImageViewSet(viewsets.ModelViewSet):
+    queryset = WordCloudImage.objects.all()
+    serializer_class = WordCloudImageSerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_fields = ('creation_date', 'word_list', 'image_url',)
+    order_fields = ('creation_date',)
+    search_fields = ('word_list',)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class TeamTemperatureViewSet(viewsets.ModelViewSet):
+    queryset = TeamTemperature.objects.all()
+    serializer_class = TeamTemperatureSerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('creator', 'survey_type',)
+    order_fields = ('creation_date',)
+
+
+class TemperatureResponseViewSet(viewsets.ModelViewSet):
+    queryset = TemperatureResponse.objects.all()
+    serializer_class = TemperatureResponseSerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('team_name', 'request', 'archived', 'response_date', 'archive_date')
+    order_fields = ('response_date', 'archive_date', 'team_name', 'word', 'score')
+
+
+class TeamResponseHistoryViewSet(viewsets.ModelViewSet):
+    queryset = TeamResponseHistory.objects.all()
+    serializer_class = TeamResponseHistorySerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_fields = ('request', 'word_list', 'team_name', 'responder_count', 'archive_date')
+    order_fields = ('request', 'archive_date', 'team_name', 'responder_count', 'average_score')
+    search_fields = ('word_list',)
+
+
+class TeamsViewSet(viewsets.ModelViewSet):
+    queryset = Teams.objects.all()
+    serializer_class = TeamSerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('request',)
+    order_fields = ('request', 'team_name',)
+
 
 def healthcheck(request):
     return HttpResponse('ok', content_type='text/plain')
@@ -83,7 +133,7 @@ def set(request, survey_id):
         return HttpResponseRedirect('/admin/%s' % survey_id)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    survey_teams = survey.teams_set.all()
+    survey_teams = survey.teams.all()
     survey_settings_id = survey_id
 
     if request.method == 'POST':
@@ -328,15 +378,15 @@ def admin(request, survey_id, team_name=''):
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
         survey_type = teamtemp.survey_type
         if team_name != '':
-            team_found = teamtemp.teams_set.filter(team_name = team_name).count()
+            team_found = teamtemp.teams.filter(team_name = team_name).count()
             if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
                 TeamDetails = Teams(request = survey,team_name = team_name)
                 TeamDetails.save()
-            results = teamtemp.temperatureresponse_set.filter(team_name = team_name, archived = False)
+            results = teamtemp.temperature_responses.filter(team_name = team_name, archived = False)
         else:
-            results = teamtemp.temperatureresponse_set.filter(archived = False)
+            results = teamtemp.temperature_responses.filter(archived = False)
 
-        survey_teams = teamtemp.teams_set.all()
+        survey_teams = teamtemp.teams.all()
 
         if team_name != '':
             stats = survey.team_stats(team_name=team_name)
@@ -418,8 +468,8 @@ def reset(request, survey_id):
 
     #Save Survey Summary for all survey teams
     arch_date = timezone.now()
-    data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    data = {'archived': True, 'archive_date': arch_date}
+    teams = teamtemp.temperature_responses.filter(archived = False).values('team_name').distinct()
 
     for team in teams:
         Summary = None
@@ -438,7 +488,7 @@ def reset(request, survey_id):
 
         TemperatureResponse.objects.filter(request = survey_id, team_name = team['team_name'], archived = False).update(**data)
 
-    print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp)
+    print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(arch_date)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
@@ -459,19 +509,19 @@ def auto_archive_surveys(request):
     print >>sys.stderr,"auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
 
     teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
-    nowstamp = timezone.now()
-    data = {'archive_date': nowstamp}
+    now_stamp = timezone.now()
+    data = {'archive_date': now_stamp}
 
     for teamtemp in teamtemps:
         print >>sys.stderr,"auto_archive_surveys: Survey " + teamtemp.id
-        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now()).date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
-        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(timezone.now())) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
-        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str( timezone.localtime(timezone.now()).date() >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
+        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(now_stamp).date()) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date())
+        print >>sys.stderr,"auto_archive_surveys: Comparing " + str(timezone.localtime(now_stamp)) + " >= " + str(timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ))
+        print >>sys.stderr,"auto_archive_surveys: Comparison returns: " + str( timezone.localtime(now_stamp).date() >= timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() )
 
-        if teamtemp.archive_date is None or (timezone.localtime( timezone.now() ).date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
+        if teamtemp.archive_date is None or (timezone.localtime( now_stamp ).date() >= (timezone.localtime( teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule) ).date() ) ):
             scheduled_archive(request, teamtemp.id)
             TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(nowstamp) + " UTC " + str(timezone.localtime(timezone.now())) + " UTC"
+            print >>sys.stderr,"Archiving: " + " " + teamtemp.id + " at " + str(now_stamp) + " UTC " + str(timezone.localtime(timezone.now())) + " UTC"
 
     print >>sys.stderr,"auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
 
@@ -485,7 +535,7 @@ def scheduled_archive(request, survey_id):
     #Save Survey Summary for all survey teams
     arch_date = timezone.now()
     data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    teams = teamtemp.temperature_responses.filter(archived = False).values('team_name').distinct()
     average_total = 0
     average_count = 0
     average_responder_total = 0
@@ -512,7 +562,7 @@ def scheduled_archive(request, survey_id):
 
     #Save Survey Summary as AGREGATE AVERAGE for all teams
     data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperatureresponse_set.filter(archived = False).values('team_name').distinct()
+    teams = teamtemp.temperature_responses.filter(archived = False).values('team_name').distinct()
     Summary = None
     team_stats = None
     summary_word_list = ""
@@ -551,7 +601,7 @@ def filter(request,survey_id):
             dept_name = csf['dept_name']
             region_name = csf['region_name']
             site_name = csf['site_name']
-            team_found = survey.teams_set.filter(team_name = team_name).count()
+            team_found = survey.teams.filter(team_name = team_name).count()
             if team_found == 0:
                 team_details = Teams(request = survey,
                                      team_name = team_name,
@@ -588,7 +638,7 @@ def team(request, survey_id, team_name=''):
             dept_name = csf['dept_name']
             region_name = csf['region_name']
             site_name = csf['site_name']
-            team_found = survey.teams_set.filter(team_name = team_name).count()
+            team_found = survey.teams.filter(team_name = team_name).count()
             print >>sys.stderr,"team_found: " + str(team_found)
             if team_found == 0 and not team:
                 team_details = Teams(id = None,
@@ -896,13 +946,13 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2,tz='UTC'):
     else:
         return None
     
-    archive_dates = survey.temperatureresponse_set.filter(archive_date__isnull=False).values('archive_date').distinct().order_by('-archive_date')
+    archive_dates = survey.temperature_responses.filter(archive_date__isnull=False).values('archive_date').distinct().order_by('-archive_date')
     
     if archive_dates.count() < num_iterations and archive_dates.count() > 0:
         iteration_index = archive_dates.count() - 1 #oldest archive date if less than target iteration count
     
     if archive_dates.count() > iteration_index:
-        response_dates = survey.temperatureresponse_set.filter(archive_date = archive_dates[iteration_index]['archive_date']).values('response_date').order_by('response_date')
+        response_dates = survey.temperature_responses.filter(archive_date = archive_dates[iteration_index]['archive_date']).values('response_date').order_by('response_date')
         
         if team_name != '':
             accumulated_stats = survey.accumulated_team_stats(team_name,timezone.now(),response_dates[0]['response_date'])
@@ -951,7 +1001,7 @@ def bvc(request, survey_id, team_name='', archive_id='', num_iterations='0', add
     filter_region_names = ''
     filter_site_names = ''
     for survey_team in bvc_data['survey_teams']:
-        team_details =  survey.teams_set.filter(team_name = survey_team.team_name).values('dept_name','region_name','site_name')
+        team_details =  survey.teams.filter(team_name = survey_team.team_name).values('dept_name','region_name','site_name')
         for team in team_details:
             if not team['dept_name'] in all_dept_names:
                 all_dept_names.append(team['dept_name'])
