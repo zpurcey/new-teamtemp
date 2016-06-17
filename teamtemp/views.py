@@ -68,7 +68,7 @@ class TeamsViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all()
     serializer_class = TeamSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('request',)
+    filter_fields = ('request','team_name')
     order_fields = ('request', 'team_name',)
 
 
