@@ -15,17 +15,17 @@
             <label>Select Survey Type</label>
             <BR>
             <select class="btn btn-default" id="SurveyTypeSelector">
-                <option value="{% url 'teamtemp.views.home' %}">TEAMTEMP</option>
+                <option value="{% url 'home' %}">TEAMTEMP</option>
                     <script>
                         document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
                     </script>
-                <option value="{% url 'teamtemp.views.home' survey_type='DEPT-REGION-SITE' %}">DEPT-REGION-SITE</option>
+                <option value="/drs">DEPT-REGION-SITE</option>
                 {% if survey_type == 'DEPT-REGION-SITE' %}
                     <script>
                         document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
                     </script>
                 {% endif %}
-                <option value="{% url 'teamtemp.views.home' survey_type='CUSTOMERFEEDBACK' %}">CUSTOMERFEEDBACK</option>
+                <option value="/cs">CUSTOMERFEEDBACK</option>
                 {% if survey_type == 'CUSTOMERFEEDBACK' %}
                     <script>
                         document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;

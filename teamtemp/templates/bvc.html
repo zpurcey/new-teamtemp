@@ -70,18 +70,18 @@
         <div class="no-print">
             <BR>
             <div class="btn-group" role="group" aria-label="nav">
-            <a href="{% url 'teamtemp.views.admin' survey_id=bvc_data.survey_id %}" class="btn btn-info" role="button">ADMIN</a>
+            <a href="{% url 'admin' survey_id=bvc_data.survey_id %}" class="btn btn-info" role="button">ADMIN</a>
             {% if bvc_data.team_name != '' or bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                <a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL TEAMS</a>
+                <a href="{% url 'bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL TEAMS</a>
             {% endif %}
             {% if bvc_data.team_name == '' and bvc_data.archive_id == '' %}
                 {% for team in bvc_data.survey_teams_filtered %}
-                    <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
+                    <a href="{% url 'bvc' survey_id=team.request.id team_name=team.team_name %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
                 {% endfor %}
             {% endif %}
             {% if bvc_data.team_name == '' and bvc_data.archive_id != '' %}
                 {% for team in bvc_data.survey_teams_filtered %}
-                    <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name archive_id=bvc_data.archive_id %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
+                    <a href="{% url 'bvc' survey_id=team.request.id team_name=team.team_name archive_id=bvc_data.archive_id %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
                 {% endfor %}
             {% endif %}
 
@@ -147,12 +147,12 @@
 
                     <select class="btn btn-default" id="ArchivedBVCSelector">
                         {% if bvc_data.team_name != '' %}
-                            <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Survey</option>
+                            <option value="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Survey</option>
                         {% else %}
                             {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">Current Survey</option>
+                                <option value="{% url 'bvc' survey_id=bvc_data.survey_id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">Current Survey</option>
                             {% else %}
-                                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Survey</option>
+                                <option value="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Survey</option>
                             {% endif %}
                         {% endif %}
 
@@ -163,12 +163,12 @@
                         {% for date in bvc_data.archived_dates %}
                             {% if bvc_data.team_name == '' %}
                                 {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                                    <option value="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=date.id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">{{ date.archive_date|date:"M. d, Y" }}</option>
                                 {% else %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                                    <option value="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
                                 {% endif %}
                             {% else %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
+                                    <option value="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
                             {% endif %}
 
                             {% if date.id|slugify == bvc_data.archive_id %}
@@ -205,15 +205,15 @@
         <div class="no-print">
             {% if num_iterations != '0' %}
                 {% if bvc_data.team_name == '' %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+                    <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
                 {% else %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
+                    <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
                 {% endif %}
             {% else %}
                 {% if bvc_data.team_name == '' %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current Results</a></h6>
+                    <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current Results</a></h6>
                 {% else %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current Results</a></h6>
+                    <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current Results</a></h6>
                 {% endif %}
             {% endif %}
         </div>
