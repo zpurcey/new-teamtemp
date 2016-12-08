@@ -23,12 +23,13 @@ from django.conf import settings
 import sys
 from responses.serializers import *
 from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
     queryset = WordCloudImage.objects.all()
     serializer_class = WordCloudImageSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
     filter_fields = ('creation_date', 'word_list', 'image_url',)
     order_fields = ('creation_date',)
     search_fields = ('word_list',)
@@ -42,7 +43,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class TeamTemperatureViewSet(viewsets.ModelViewSet):
     queryset = TeamTemperature.objects.all()
     serializer_class = TeamTemperatureSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('creator', 'survey_type',)
     order_fields = ('creation_date',)
 
@@ -50,7 +51,7 @@ class TeamTemperatureViewSet(viewsets.ModelViewSet):
 class TemperatureResponseViewSet(viewsets.ModelViewSet):
     queryset = TemperatureResponse.objects.all()
     serializer_class = TemperatureResponseSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('team_name', 'request', 'archived', 'response_date', 'archive_date')
     order_fields = ('response_date', 'archive_date', 'team_name', 'word', 'score')
 
@@ -58,7 +59,7 @@ class TemperatureResponseViewSet(viewsets.ModelViewSet):
 class TeamResponseHistoryViewSet(viewsets.ModelViewSet):
     queryset = TeamResponseHistory.objects.all()
     serializer_class = TeamResponseHistorySerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
     filter_fields = ('request', 'word_list', 'team_name', 'responder_count', 'archive_date')
     order_fields = ('request', 'archive_date', 'team_name', 'responder_count', 'average_score')
     search_fields = ('word_list',)
@@ -67,7 +68,7 @@ class TeamResponseHistoryViewSet(viewsets.ModelViewSet):
 class TeamsViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all()
     serializer_class = TeamSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
     filter_fields = ('request','team_name')
     order_fields = ('request', 'team_name',)
 
