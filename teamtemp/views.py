@@ -450,9 +450,24 @@ def cron(request, pin):
 
     if pin == cron_pin:
         auto_archive_surveys(request)
+        prune_word_cloud_cache()
         return HttpResponse()
     else:
         raise Http404
+
+def prune_word_cloud_cache(request):
+    timezone.activate(pytz.timezone('UTC'))
+    print >>sys.stderr,"prune_word_cloud_cache: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
+
+    yesterday = datetime.now() + timedelta(days=-1)
+
+    WordCloudImage.objects.filter(creation_date__lte = yesterday).delete()
+
+    for word_cloud in WordCloudImage.objects.all():
+        if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
+            word_cloud.delete()
+
+    print >>sys.stderr,"prune_word_cloud_cache: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
 
 def auto_archive_surveys(request):
     timezone.activate(pytz.timezone('UTC'))
@@ -831,6 +846,8 @@ def cached_word_cloud(word_list):
         for i in range(0,word['id__count']):
             words = words + word['word'] + " "
             word_count += 1
+
+    words = words.lower()
     
     #TODO Write a better lookup and model to replace this hack
     word_cloud_index = WordCloudImage.objects.filter(word_list = words)

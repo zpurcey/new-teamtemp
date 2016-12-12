@@ -9,6 +9,9 @@ class WordCloudImage(models.Model):
     def __unicode__(self):
         return u"{} {} {}".format(self.creation_date, self.word_list, self.image_url)
 
+    def clean(self):
+        self.word_list = self.word_list.lower()
+
 
 class User(models.Model):
     id = models.CharField(max_length=8, primary_key=True)
@@ -92,6 +95,10 @@ class TemperatureResponse(models.Model):
                                          self.archived, self.response_date,
                                          self.archive_date)
 
+    def clean(self):
+        self.word = self.word.lower()
+
+
 class TeamResponseHistory(models.Model):
     class Meta:
         verbose_name_plural = "Team response histories"
@@ -108,6 +115,10 @@ class TeamResponseHistory(models.Model):
                                          self.average_score,
                                          self.word_list, self.responder_count,
                                          self.team_name, self.archive_date)
+
+    def clean(self):
+        self.word_list = self.word_list.lower()
+
 
 class Teams(models.Model):
     class Meta:
