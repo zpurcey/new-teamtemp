@@ -1,30 +1,26 @@
-from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
-from django.core.urlresolvers import reverse
-from responses.forms import FilteredBvcForm, CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm, SurveySettingsForm
-from responses.models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams, WordCloudImage
-from django.contrib.auth.hashers import check_password, make_password
-from datetime import datetime
-from pytz import timezone
-import pytz
-from django.utils import timezone
-from datetime import timedelta
-from teamtemp import utils, responses
-import json
-from django.core.serializers.json import DjangoJSONEncoder
-import gviz_api
-from django.http import HttpResponse
-from django.http import Http404
-import unirest as Unirest
-import os
-from urlparse import urlparse
 import errno
-import urllib
-from django.conf import settings
-import hashlib
+import gviz_api
+import json
+import os
+import pytz
 import sys
-from responses.serializers import *
-from rest_framework import viewsets, filters
+import unirest as Unirest
+import urllib
+from datetime import datetime
+from datetime import timedelta
+from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
+from django.http import Http404
+from django.http import HttpResponse
+from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, filters
+from urlparse import urlparse
+
+from responses.forms import FilteredBvcForm, CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, AddTeamForm, SurveySettingsForm
+from responses.serializers import *
+from teamtemp import utils, responses
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -652,7 +648,7 @@ def team(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
     if team_name != '':
-        team = get_object_or_404(Teams, request_id = survey_id,team_name=team_name)
+        team = get_object_or_404(Teams, request_id = survey_id, team_name=team_name)
     # if valid session token or valid password render results page
     
     survey_type = survey.survey_type
@@ -680,6 +676,7 @@ def team(request, survey_id, team_name=''):
                                      dept_name = dept_name,
                                      region_name = region_name,
                                      site_name = site_name)
+                team_details.save()
             elif team:
                 #print >>sys.stderr,"creating with team.id: " + str(team.id)
                 team_details = Teams(id = team.id,
@@ -688,7 +685,7 @@ def team(request, survey_id, team_name=''):
                                      dept_name = dept_name,
                                      region_name = region_name,
                                      site_name = site_name)
-            team_details.save()
+                team_details.save()
             return HttpResponseRedirect('/admin/%s' % survey_id)
         else:
             raise Exception('Form Is Not Valid:',form)
