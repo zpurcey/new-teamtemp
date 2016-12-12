@@ -1,5 +1,6 @@
 import errno
 import gviz_api
+import hashlib
 import json
 import os
 import pytz
@@ -918,7 +919,7 @@ def cached_word_cloud(word_list):
     if words == "":
         return None
 
-    word_hash = haslib.sha1(words).hexdigest()
+    word_hash = hashlib.sha1(words).hexdigest()
 
     word_cloud_index = WordCloudImage.objects.filter(word_hash = word_hash).order_by('-id')
     
