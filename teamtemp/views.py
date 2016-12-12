@@ -389,16 +389,30 @@ def require_dir(path):
         if exc.errno != errno.EEXIST:
             raise
 
-def save_url(url, directory):
+def media_dir():
+    directory = os.path.join(settings.MEDIA_ROOT, directory) 
+    return directory
 
-    image_name = urlparse(url).path.split('/')[-1]
-    return_url = os.path.join(settings.MEDIA_URL,os.path.join(directory,image_name))
-    if settings.MEDIA_ROOT:
-        directory = os.path.join(settings.MEDIA_ROOT, directory) 
-    else:
-        directory = os.path.join(settings.BASE_DIR, directory)
+def media_basename(src):
+    name = urlparse(src).path.split('/')[-1]
+    return name
+
+def media_url(src):
+    image_name = media_basename(src)
+    url = os.path.join(settings.MEDIA_URL, os.path.join(directory, image_name))
+    return url
+
+def media_file(src):
+    image_name = media_basename(src)
+    directory = media_dir()
     require_dir(directory)
     filename = os.path.join(directory, image_name)
+    return filename
+
+def save_url(url, directory):
+
+    return_url = media_url(url)
+    filename = media_file(url)
 
     print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + " (" + return_url +")"
 
@@ -852,25 +866,28 @@ def cached_word_cloud(word_list):
 
     words = words.lower()
     
+    if words == "":
+        return None
+
     #TODO Write a better lookup and model to replace this hack
     word_cloud_index = WordCloudImage.objects.filter(word_list = words).order_by('-id')
     
     if word_cloud_index:
-        filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)
+        filename = media_file(word_cloud_index[0].image_url)
         if os.path.isfile(filename):
             print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " found"
-            word_cloudurl =  word_cloud_index[0].image_url
+            return word_cloud_index[0].image_url
         else:
             print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " doesn't exist"
             #Files have been deleted remove from db and then regenerate
             word_cloud_index.delete()
     
-    if word_cloudurl == "" and words != "":
-        word_cloudurl = generate_wordcloud(words)
-        if word_cloudurl:
-            word_cloud = WordCloudImage(creation_date = timezone.now(),
-                                        word_list = words, image_url = word_cloudurl)
-            word_cloud.save()
+    word_cloudurl = generate_wordcloud(words)
+    if word_cloudurl:
+        word_cloud = WordCloudImage(creation_date = timezone.now(),
+                                    word_list = words, image_url = word_cloudurl)
+        word_cloud.save()
+
     return word_cloudurl
 
 def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
