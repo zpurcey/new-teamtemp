@@ -4,6 +4,7 @@ from django.db import models
 class WordCloudImage(models.Model):
     creation_date = models.DateField()
     word_list = models.CharField(max_length=5000)
+    word_hash = models.CharField(max_length=40, db_index=True)
     image_url = models.CharField(max_length=255)
 
     def __unicode__(self):

@@ -20,6 +20,7 @@ from urlparse import urlparse
 import errno
 import urllib
 from django.conf import settings
+import hashlib
 import sys
 from responses.serializers import *
 from rest_framework import viewsets, filters
@@ -906,6 +907,7 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
 
 def cached_word_cloud(word_list):
     words = ""
+    word_hash = ""
     word_cloudurl = ""
     word_count = 0
 
@@ -919,8 +921,9 @@ def cached_word_cloud(word_list):
     if words == "":
         return None
 
-    #TODO Write a better lookup and model to replace this hack
-    word_cloud_index = WordCloudImage.objects.filter(word_list = words).order_by('-id')
+    word_hash = haslib.sha1(words).hexdigest()
+
+    word_cloud_index = WordCloudImage.objects.filter(word_hash = word_hash).order_by('-id')
     
     if word_cloud_index:
         filename = media_file(word_cloud_index[0].image_url, 'wordcloud_images')
@@ -935,7 +938,8 @@ def cached_word_cloud(word_list):
     word_cloudurl = generate_wordcloud(words)
     if word_cloudurl:
         word_cloud = WordCloudImage(creation_date = timezone.now(),
-                                    word_list = words, image_url = word_cloudurl)
+                                    word_list = words, word_hash = word_hash,
+                                    image_url = word_cloudurl)
         word_cloud.save()
 
     return word_cloudurl
