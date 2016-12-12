@@ -1,10 +1,10 @@
-from django.conf.urls import include, url
-from django.views.generic import TemplateView
 from django.conf import settings
-from django.views.static import serve
-from django.views.generic.base import RedirectView
-from django.contrib.staticfiles.storage import staticfiles_storage
+from django.conf.urls import include, url
 from django.contrib import admin as djadmin
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
+from django.views.static import serve
 from rest_framework import routers
 
 from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt, WordCloudImageViewSet, UserViewSet, TeamTemperatureViewSet, TemperatureResponseViewSet, TeamResponseHistoryViewSet, TeamsViewSet

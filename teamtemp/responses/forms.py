@@ -1,10 +1,12 @@
+import pytz
+import re
 from django import forms
 from django.forms.utils import ErrorList
-from teamtemp.responses.models import TemperatureResponse, TeamTemperature, Teams
-from django.utils.safestring import mark_safe
 from django.utils.html import escape
-import re
-import pytz
+from django.utils.safestring import mark_safe
+
+from teamtemp.responses.models import TemperatureResponse, TeamTemperature, Teams
+
 
 class ErrorBox(ErrorList):
     def __unicode__(self):
