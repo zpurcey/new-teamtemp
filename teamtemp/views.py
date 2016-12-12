@@ -400,7 +400,7 @@ def save_url(url, directory):
     require_dir(directory)
     filename = os.path.join(directory, image_name)
 
-    print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + "(" + return_url +")"
+    print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + " (" + return_url +")"
 
     if not os.path.exists(filename):
         print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + filename + " doesn't exist"
@@ -853,14 +853,17 @@ def cached_word_cloud(word_list):
     words = words.lower()
     
     #TODO Write a better lookup and model to replace this hack
-    word_cloud_index = WordCloudImage.objects.filter(word_list = words)
+    word_cloud_index = WordCloudImage.objects.filter(word_list = words).order_by('-id')
     
     if word_cloud_index:
-        if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)):
+        filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)
+        if os.path.isfile(filename):
+            print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " found"
             word_cloudurl =  word_cloud_index[0].image_url
         else:
+            print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " doesn't exist"
             #Files have been deleted remove from db and then regenerate
-            WordCloudImage.objects.filter(word_list = words).delete()
+            word_cloud_index.delete()
     
     if word_cloudurl == "" and words != "":
         word_cloudurl = generate_wordcloud(words)
