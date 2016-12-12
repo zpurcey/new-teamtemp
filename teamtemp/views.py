@@ -872,7 +872,7 @@ def cached_word_cloud(word_list):
     word_cloud_index = WordCloudImage.objects.filter(word_list = words).order_by('-id')
     
     if word_cloud_index:
-        filename = media_file(word_cloud_index[0].image_url)
+        filename = media_file(word_cloud_index[0].image_url, 'wordcloud_images')
         if os.path.isfile(filename):
             print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " found"
             return word_cloud_index[0].image_url
