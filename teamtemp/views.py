@@ -440,18 +440,34 @@ def require_dir(path):
         if exc.errno != errno.EEXIST:
             raise
 
-def save_url(url, directory):
+def media_dir(directory):
+    media_directory = os.path.join(settings.MEDIA_ROOT, directory) 
+    require_dir(media_directory)
+    return media_directory
 
-    image_name = urlparse(url).path.split('/')[-1]
-    return_url = os.path.join(settings.MEDIA_URL,os.path.join(directory,image_name))
-    if settings.MEDIA_ROOT:
-        directory = os.path.join(settings.MEDIA_ROOT, directory) 
-    else:
-        directory = os.path.join(settings.BASE_DIR, directory)
-    require_dir(directory)
-    filename = os.path.join(directory, image_name)
+def media_basename(src):
+    name = urlparse(src).path.split('/')[-1]
+    return name
+
+def media_url(src, directory):
+    image_name = media_basename(src)
+    url = os.path.join(settings.MEDIA_URL, os.path.join(directory, image_name))
+    return url
+
+def media_file(src, directory):
+    image_name = media_basename(src)
+    media_directory = media_dir(directory)
+    filename = os.path.join(media_directory, image_name)
+    return filename
+
+def save_url(url, directory):
+    return_url = media_url(url, directory)
+    filename = media_file(url, directory)
+
+    print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + " (" + return_url +")"
 
     if not os.path.exists(filename):
+        print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + filename + " doesn't exist"
         urllib.urlretrieve(url, filename)
        #TODO if error return None
 
@@ -501,9 +517,24 @@ def cron(request, pin):
 
     if pin == cron_pin:
         auto_archive_surveys(request)
+        prune_word_cloud_cache()
         return HttpResponse()
     else:
         raise Http404
+
+def prune_word_cloud_cache(request):
+    timezone.activate(pytz.timezone('UTC'))
+    print >>sys.stderr,"prune_word_cloud_cache: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
+
+    yesterday = datetime.now() + timedelta(days=-1)
+
+    WordCloudImage.objects.filter(creation_date__lte = yesterday).delete()
+
+    for word_cloud in WordCloudImage.objects.all():
+        if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
+            word_cloud.delete()
+
+    print >>sys.stderr,"prune_word_cloud_cache: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
 
 def auto_archive_surveys(request):
     timezone.activate(pytz.timezone('UTC'))
@@ -882,23 +913,31 @@ def cached_word_cloud(word_list):
         for i in range(0,word['id__count']):
             words = words + word['word'] + " "
             word_count += 1
+
+    words = words.lower()
     
+    if words == "":
+        return None
+
     #TODO Write a better lookup and model to replace this hack
-    word_cloud_index = WordCloudImage.objects.filter(word_list = words)
+    word_cloud_index = WordCloudImage.objects.filter(word_list = words).order_by('-id')
     
     if word_cloud_index:
-        if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud_index[0].image_url)):
-            word_cloudurl =  word_cloud_index[0].image_url
+        filename = media_file(word_cloud_index[0].image_url, 'wordcloud_images')
+        if os.path.isfile(filename):
+            print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " found"
+            return word_cloud_index[0].image_url
         else:
+            print >>sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " doesn't exist"
             #Files have been deleted remove from db and then regenerate
-            WordCloudImage.objects.filter(word_list = words).delete()
+            word_cloud_index.delete()
     
-    if word_cloudurl == "" and words != "":
-        word_cloudurl = generate_wordcloud(words)
-        if word_cloudurl:
-            word_cloud = WordCloudImage(creation_date = timezone.now(),
-                                        word_list = words, image_url = word_cloudurl)
-            word_cloud.save()
+    word_cloudurl = generate_wordcloud(words)
+    if word_cloudurl:
+        word_cloud = WordCloudImage(creation_date = timezone.now(),
+                                    word_list = words, image_url = word_cloudurl)
+        word_cloud.save()
+
     return word_cloudurl
 
 def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
