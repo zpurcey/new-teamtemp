@@ -189,7 +189,7 @@ class SurveyResponseForm(forms.ModelForm):
             error = 'Max {max_word_count} Words'.format(max_word_count=escape(self.max_word_count))
             raise forms.ValidationError(error)
 
-        return word
+        return word.lower()
 
 class ResultsPasswordForm(forms.Form):
     error_css_class='error box'
