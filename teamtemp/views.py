@@ -389,30 +389,29 @@ def require_dir(path):
         if exc.errno != errno.EEXIST:
             raise
 
-def media_dir():
-    directory = os.path.join(settings.MEDIA_ROOT, directory) 
-    return directory
+def media_dir(directory):
+    media_directory = os.path.join(settings.MEDIA_ROOT, directory) 
+    require_dir(media_directory)
+    return media_directory
 
 def media_basename(src):
     name = urlparse(src).path.split('/')[-1]
     return name
 
-def media_url(src):
+def media_url(src, directory):
     image_name = media_basename(src)
     url = os.path.join(settings.MEDIA_URL, os.path.join(directory, image_name))
     return url
 
-def media_file(src):
+def media_file(src, directory):
     image_name = media_basename(src)
-    directory = media_dir()
-    require_dir(directory)
-    filename = os.path.join(directory, image_name)
+    media_directory = media_dir(directory)
+    filename = os.path.join(media_directory, image_name)
     return filename
 
 def save_url(url, directory):
-
-    return_url = media_url(url)
-    filename = media_file(url)
+    return_url = media_url(url, directory)
+    filename = media_file(url, directory)
 
     print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + " (" + return_url +")"
 
