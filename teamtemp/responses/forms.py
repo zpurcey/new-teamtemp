@@ -119,7 +119,7 @@ class AddTeamForm(forms.ModelForm):
 
     def clean_team_name(self):
         team_name = self.cleaned_data['team_name']
-        matches = re.findall(r'[^A-Za-z0-9 \'-]', team_name)
+        matches = re.findall(r'[^\w-]', team_name)
         if matches:
             error = '"{team_name}" contains invalid characters '\
                     '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
