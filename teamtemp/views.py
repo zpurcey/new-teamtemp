@@ -400,7 +400,10 @@ def save_url(url, directory):
     require_dir(directory)
     filename = os.path.join(directory, image_name)
 
+    print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + "(" + return_url +")"
+
     if not os.path.exists(filename):
+        print >>sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + filename + " doesn't exist"
         urllib.urlretrieve(url, filename)
        #TODO if error return None
 
