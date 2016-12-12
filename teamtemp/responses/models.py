@@ -14,7 +14,7 @@ class WordCloudImage(models.Model):
 
 
 class User(models.Model):
-    id = models.CharField(max_length=8, primary_key=True)
+    id = models.CharField(max_length=32, primary_key=True)
 
     def __unicode__(self):
         return u"{}".format(self.id)
@@ -80,7 +80,7 @@ class TeamTemperature(models.Model):
 
 class TemperatureResponse(models.Model):
     request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
-    responder = models.ForeignKey(User)
+    responder = models.ForeignKey(User, related_name="temperature_responses")
     score = models.IntegerField()
     word = models.CharField(max_length=32)
     team_name = models.CharField(max_length=64, null=True, db_index=True)
