@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='wordcloudimage',
             name='word_list',
-            field=models.CharField(db_index=True, max_length=5000),
+            field=models.CharField(max_length=5000),
         ),
         migrations.AlterUniqueTogether(
             name='teams',
