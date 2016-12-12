@@ -422,7 +422,7 @@ def generate_wordcloud(word_list):
         print >>sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
         response = Unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type" : "application/json", "Word-Cloud-Key" : word_cloud_key},
-                                params=json.dumps({"textblock" : word_list, "height" : 500, "width" : 800, "s_fit" : "TRUE",
+                                params=json.dumps({"textblock" : word_list, "height" : 500, "width" : 600, "s_fit" : "TRUE",
                                                     "fixed_asp" : fixed_asp, "rotate" : rotate })
                                 )
         print >>sys.stderr, str(timezone.now()) + " Finish Word Cloud Generation: " + word_list
