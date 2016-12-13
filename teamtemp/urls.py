@@ -7,7 +7,7 @@ from django.views.generic.base import RedirectView
 from django.views.static import serve
 from rest_framework import routers
 
-from teamtemp.views import home, admin, submit, reset, bvc, team, cron, set, filter, healthcheck, robots_txt, WordCloudImageViewSet, UserViewSet, TeamTemperatureViewSet, TemperatureResponseViewSet, TeamResponseHistoryViewSet, TeamsViewSet
+from teamtemp.views import home, admin, submit, reset, bvc, team, cron, settings, filter, healthcheck, robots_txt, WordCloudImageViewSet, UserViewSet, TeamTemperatureViewSet, TemperatureResponseViewSet, TeamResponseHistoryViewSet, TeamsViewSet
 
 router = routers.DefaultRouter()
 router.register(r'word_cloud_images', WordCloudImageViewSet)
@@ -25,7 +25,7 @@ urlpatterns = [
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin, name='admin'),
-    url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', set, name='set'),
+    url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', settings, name='set'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', admin, name='admin'),
     url(r'^(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', submit, name='submit'),
 

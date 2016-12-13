@@ -128,7 +128,7 @@ def authenticated_user(request, survey_id):
     return False
 
 
-def set(request, survey_id):
+def settings(request, survey_id):
     thanks = ""
     rows_changed = 0
     survey_teams = []
@@ -149,21 +149,21 @@ def set(request, survey_id):
                 pw = make_password(srf['password'])
                 thanks = "Password Updated. "
             if srf['archive_schedule'] != survey.archive_schedule:
-                if survey.archive_date == None:
+                if survey.archive_date is None:
                     survey.archive_date = timezone.now()
-                thanks = thanks + "Schedule Updated. "
+                thanks += "Schedule Updated. "
             if srf['survey_type'] != survey.survey_type:
-                thanks = thanks + "Survey Type Updated. "
+                thanks += "Survey Type Updated. "
             if srf['dept_names'] != survey.dept_names:
-                thanks = thanks + "Dept Names Updated. "
+                thanks += "Dept Names Updated. "
             if srf['region_names'] != survey.region_names:
-                thanks = thanks + "Region Names Updated. "
+                thanks += "Region Names Updated. "
             if srf['site_names'] != survey.site_names:
-                thanks = thanks + "Site Names Updated. "
+                thanks += "Site Names Updated. "
             if srf['default_tz'] != survey.default_tz:
-                thanks = thanks + "Default Timezone Updated. "
+                thanks += "Default Timezone Updated. "
             if srf['max_word_count'] != survey.max_word_count:
-                thanks = thanks + "Max Word Count Updated. "
+                thanks += "Max Word Count Updated. "
 
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"),
@@ -289,7 +289,7 @@ def submit(request, survey_id, team_name=''):
     temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
     word_question_title = 'One word to describe how you are feeling:'
     numbers = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
-    if survey.max_word_count > 1 and survey.max_word_count < 11:
+    if 1 < survey.max_word_count < 11:
         word_question_title = numbers[survey.max_word_count] + ' words to describe how you are feeling:'
     if survey.survey_type == 'CUSTOMERFEEDBACK':
         survey_type_title = 'Customer Feedback'
@@ -331,7 +331,6 @@ def submit_(request, survey_id, team_name=''):
 
         else:
             raise Exception('Form Is Not Valid:', form)
-            print >> sys.stderr, "else"
     else:
         try:
             previous = TemperatureResponse.objects.get(request=survey_id,
@@ -352,7 +351,8 @@ def submit_(request, survey_id, team_name=''):
         word_question_title = str(survey.max_word_count) + ' words to describe how you are feeling:'
     if survey.survey_type == 'CUSTOMERFEEDBACK':
         survey_type_title = 'Customer Feedback'
-        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
+        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very ' \
+                              'positive): '
         word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
 
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
@@ -390,8 +390,8 @@ def admin(request, survey_id, team_name=''):
         if team_name != '':
             team_found = teamtemp.teams.filter(team_name=team_name).count()
             if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
-                TeamDetails = Teams(request=survey, team_name=team_name)
-                TeamDetails.save()
+                team_details = Teams(request=survey, team_name=team_name)
+                team_details.save()
             results = teamtemp.temperature_responses.filter(team_name=team_name, archived=False)
         else:
             results = teamtemp.temperature_responses.filter(archived=False)
@@ -421,7 +421,7 @@ def admin(request, survey_id, team_name=''):
 
 def generate_wordcloud(word_list):
     word_cloud_key = os.environ.get('XMASHAPEKEY')
-    if word_cloud_key != None:
+    if word_cloud_key is not None:
         timeout = 25
         Unirest.timeout(timeout)
         word_list = word_list.lower()
@@ -498,32 +498,33 @@ def reset(request, survey_id):
     if not authenticated_user(request, survey_id):
         return HttpResponseRedirect('/admin/%s' % survey_id)
 
-    teamtemp = TeamTemperature.objects.get(pk=survey_id)
+    team_temp = TeamTemperature.objects.get(pk=survey_id)
 
     # Save Survey Summary for all survey teams
     arch_date = timezone.now()
     data = {'archived': True, 'archive_date': arch_date}
-    teams = teamtemp.temperature_responses.filter(archived=False).values('team_name').distinct()
+    teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
 
     for team in teams:
-        Summary = None
-        team_stats = None
+        summary = None
         summary_word_list = ""
-        team_stats = teamtemp.team_stats([team['team_name']])
+        team_stats = team_temp.team_stats([team['team_name']])
+
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
-        Summary = TeamResponseHistory(request=survey,
+
+        summary = TeamResponseHistory(request=survey,
                                       average_score=team_stats['average']['score__avg'],
                                       word_list=summary_word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
                                       archive_date=arch_date)
-        Summary.save()
+        summary.save()
 
         TemperatureResponse.objects.filter(request=survey_id, team_name=team['team_name'], archived=False).update(
             **data)
 
-    print >> sys.stderr, "Archiving: " + " " + teamtemp.id + " at " + str(arch_date)
+    print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(arch_date)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
@@ -560,26 +561,26 @@ def auto_archive_surveys(request):
     timezone.activate(pytz.timezone('UTC'))
     print >> sys.stderr, "auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
 
-    teamtemps = TeamTemperature.objects.filter(archive_schedule__gt=0)
+    team_temperatures = TeamTemperature.objects.filter(archive_schedule__gt=0)
     now_stamp = timezone.now()
     data = {'archive_date': now_stamp}
 
-    for teamtemp in teamtemps:
-        print >> sys.stderr, "auto_archive_surveys: Survey " + teamtemp.id
+    for team_temp in team_temperatures:
+        print >> sys.stderr, "auto_archive_surveys: Survey " + team_temp.id
         print >> sys.stderr, "auto_archive_surveys: Comparing " + str(
             timezone.localtime(now_stamp).date()) + " >= " + str(
-            timezone.localtime(teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule)).date())
+            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())
         print >> sys.stderr, "auto_archive_surveys: Comparing " + str(timezone.localtime(now_stamp)) + " >= " + str(
-            timezone.localtime(teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule)))
+            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)))
         print >> sys.stderr, "auto_archive_surveys: Comparison returns: " + str(
             timezone.localtime(now_stamp).date() >= timezone.localtime(
-                teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule)).date())
+                team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())
 
-        if teamtemp.archive_date is None or (timezone.localtime(now_stamp).date() >= (
-                timezone.localtime(teamtemp.archive_date + timedelta(days=teamtemp.archive_schedule)).date())):
-            scheduled_archive(request, teamtemp.id)
-            TeamTemperature.objects.filter(pk=teamtemp.id).update(**data)
-            print >> sys.stderr, "Archiving: " + " " + teamtemp.id + " at " + str(now_stamp) + " UTC " + str(
+        if team_temp.archive_date is None or (timezone.localtime(now_stamp).date() >= (
+                timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())):
+            scheduled_archive(request, team_temp.id)
+            TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
+            print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(now_stamp) + " UTC " + str(
                 timezone.localtime(timezone.now())) + " UTC"
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
@@ -589,55 +590,52 @@ def scheduled_archive(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    teamtemp = TeamTemperature.objects.get(pk=survey_id)
+    team_temp = TeamTemperature.objects.get(pk=survey_id)
 
     # Save Survey Summary for all survey teams
     arch_date = timezone.now()
     data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperature_responses.filter(archived=False).values('team_name').distinct()
+    teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
     average_total = 0
     average_count = 0
     average_responder_total = 0
 
     for team in teams:
-        Summary = None
-        team_stats = None
+        summary = None
         summary_word_list = ""
-        team_stats = teamtemp.team_stats([team['team_name']])
+        team_stats = team_temp.team_stats([team['team_name']])
+
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
-        Summary = TeamResponseHistory(request=survey,
+
+        summary = TeamResponseHistory(request=survey,
                                       average_score=team_stats['average']['score__avg'],
                                       word_list=summary_word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
                                       archive_date=arch_date)
-        Summary.save()
+        summary.save()
         average_total = average_total + team_stats['average']['score__avg']
-        average_count = average_count + 1
+        average_count += 1
         average_responder_total = average_responder_total + team_stats['count']
 
         TemperatureResponse.objects.filter(request=survey_id, team_name=team['team_name'], archived=False).update(
             **data)
 
     # Save Survey Summary as AGREGATE AVERAGE for all teams
-    data = {'archived': True, 'archive_date': timezone.now()}
-    teams = teamtemp.temperature_responses.filter(archived=False).values('team_name').distinct()
-    Summary = None
-    team_stats = None
+    summary = None
     summary_word_list = ""
-    team_stats = teamtemp.stats()
 
     if average_count > 0:
-        Summary = TeamResponseHistory(request=survey,
+        summary = TeamResponseHistory(request=survey,
                                       average_score=average_total / float(average_count),
                                       word_list=summary_word_list,
                                       responder_count=average_responder_total,
                                       team_name='Average',
                                       archive_date=arch_date)
 
-    if Summary:
-        Summary.save()
+    if summary:
+        summary.save()
 
     return
 
@@ -763,14 +761,14 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     for team in teams:
         if team['team_name'] != 'Average':
             history_chart_schema.update({team['team_name']: ("number", team['team_name'].replace("_", " "))})
-            history_chart_columns = history_chart_columns + (team['team_name'],)
+            history_chart_columns += team['team_name'],
             team_index += 1
 
     # Add average heading if not already added for adhoc filtering
     # if team_index > 1:
     average_index = team_index
     history_chart_schema.update({'Average': ("number", 'Average')})
-    history_chart_columns = history_chart_columns + ('Average',)
+    history_chart_columns += 'Average',
 
     history_chart_data = []
     row = None
@@ -779,9 +777,8 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     responder_sum = 0
     for survey_summary in team_history:
         if survey_summary.team_name != 'Average':
-            if row == None:
-                row = {}
-                row['archive_date'] = timezone.localtime(survey_summary.archive_date)
+            if row is None:
+                row = {'archive_date': timezone.localtime(survey_summary.archive_date)}
             elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
                 # TODO can it recalculate the average here for adhoc filtering
                 if num_scores > 0:
@@ -792,12 +789,11 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                     num_scores = 0
                     responder_sum = 0
                 history_chart_data.append(row)
-                row = {}
-                row['archive_date'] = timezone.localtime(survey_summary.archive_date)
+                row = {'archive_date': timezone.localtime(survey_summary.archive_date)}
 
             # Accumulate for average calc
             score_sum = score_sum + survey_summary.average_score
-            num_scores = num_scores + 1
+            num_scores += 1
             responder_sum = responder_sum + survey_summary.responder_count
 
             row[survey_summary.team_name] = (float(survey_summary.average_score),
@@ -829,7 +825,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
         'focusTarget': 'category',
         'tooltip': {'trigger': 'selection', 'isHtml': 'true'},
     }
-    if average_index != None:
+    if average_index is not None:
         historical_options.update({'series': {average_index: {'type': "line"}}})
 
     return historical_options, json_history_chart_table, team_index
@@ -850,24 +846,24 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
     #    populate bvc_data['pretty_team_name']     no spaces in team name above
     #    populate bvc_data['survey_type_title']    survey type Team Temperature or Customer Feedback
 
-    bvc_data = {}
-    bvc_data['stats_date'] = ''
-    bvc_data['survey_teams'] = []
-    bvc_data['archived'] = False
-    bvc_data['archive_date'] = None
-    bvc_data['archive_id'] = archive_id
-    bvc_data['word_cloudurl'] = ''
-
     survey_filter = {'request__in': survey_id_list}
+    team_objects = Teams.objects.filter(**survey_filter)
 
-    bvc_data['survey_teams'] = Teams.objects.filter(**survey_filter)
-    bvc_data['team_filter'] = bvc_data['survey_teams']
-    bvc_data['team_name'] = team_name
-    bvc_data['pretty_team_name'] = team_name.replace("_", " ")
-    bvc_data['dept_names'] = dept_name
-    bvc_data['region_names'] = region_name
-    bvc_data['site_names'] = site_name
-    bvc_data['survey_type'] = survey_type
+    bvc_data = {
+        'stats_date': '',
+        'survey_teams': team_objects,
+        'archived': False,
+        'archive_date': None,
+        'archive_id': archive_id,
+        'word_cloudurl': '',
+        'team_filter': team_objects,
+        'team_name': team_name,
+        'pretty_team_name': team_name.replace("_", " "),
+        'dept_names': dept_name,
+        'region_names': region_name,
+        'site_names': site_name,
+        'survey_type': survey_type
+    }
     # print >>sys.stderr,"dept_names",bvc_data['dept_names'],"end"
 
     bvc_teams_list = [team_name]
@@ -924,17 +920,18 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
     bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
     bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
 
+    tempresponse_filter = None
     if archive_id == '':
-        filter = dict({'archived': False}, **team_filter)
+        tempresponse_filter = dict({'archived': False}, **team_filter)
     else:
         archive_set = TemperatureResponse.objects.filter(request__in=survey_id_list, id=archive_id).values(
             'archive_date')
-        filter = dict({'archived': True}, **team_filter)
+        tempresponse_filter = dict({'archived': True}, **team_filter)
         if archive_set:
             bvc_data['stats_date'] = archive_set[0]['archive_date']
-            filter = dict({'archive_date': bvc_data['stats_date']}, **filter)
+            tempresponse_filter = dict({'archive_date': bvc_data['stats_date']}, **tempresponse_filter)
 
-    results = TemperatureResponse.objects.filter(**filter)
+    results = TemperatureResponse.objects.filter(**tempresponse_filter)
 
     if results:
         bvc_data['archived'] = results[0].archived
@@ -995,10 +992,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     # BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
 
     survey_count = 0
-    agg_stats = {}
-    agg_stats['count'] = 0
-    agg_stats['average'] = 0.00
-    agg_stats['words'] = []
+    agg_stats = {'count': 0, 'average': 0.00, 'words': []}
 
     survey_filter = {'id__in': survey_id_list}
     survey_set = TeamTemperature.objects.filter(**survey_filter)
@@ -1024,7 +1018,7 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
 
         if stats['average']['score__avg']:
             agg_stats['average'] = (agg_stats['average'] + stats['average']['score__avg']) / survey_count
-        agg_stats['words'] = agg_stats['words'] + list(stats['words'])
+        agg_stats['words'] += list(stats['words'])
 
     return agg_stats
 
@@ -1040,7 +1034,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
     archive_dates = survey.temperature_responses.filter(archive_date__isnull=False).values(
         'archive_date').distinct().order_by('-archive_date')
 
-    if archive_dates.count() < num_iterations and archive_dates.count() > 0:
+    if num_iterations > archive_dates.count() > 0:
         iteration_index = archive_dates.count() - 1  # oldest archive date if less than target iteration count
 
     if archive_dates.count() > iteration_index:
