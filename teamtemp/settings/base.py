@@ -15,7 +15,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = { 'default': dj_database_url.config() }
+DATABASES = {'default': dj_database_url.config()}
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -163,8 +163,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-		    os.path.join(BASE_DIR, 'templates').replace('\\','/'),
-		],
+            os.path.join(BASE_DIR, 'templates').replace('\\', '/'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': DEBUG,

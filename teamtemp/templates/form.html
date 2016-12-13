@@ -6,38 +6,44 @@
 
 {% block body %}
 
-<div class="container">
+  <div class="container">
     <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-<br>
-<!--[if !IE]> -->
-            <a href="{% url 'bvc' survey_id=id team_name=team_name %}" class="btn btn-primary">BVC</a>
-<!-- <![endif]-->
+      <div class="col-md-6 col-md-offset-3">
+        <br>
+        <!--[if !IE]> -->
+        <a href="{% url 'bvc' survey_id=id team_name=team_name %}" class="btn btn-primary">BVC</a>
+        <!-- <![endif]-->
 
-<h1>{{ pretty_team_name }} {{ survey_type_title }}</h1>
-<h2>Submit your {{ survey_type_title }}</h2>
-<form method="post">
-  {% csrf_token %}
-  {% if response_id %}
-  <input type="hidden" name="id" value="{{ response_id }}"/>
-  {% endif %}
+        <h1>{{ pretty_team_name }} {{ survey_type_title }}</h1>
+        <h2>Submit your {{ survey_type_title }}</h2>
+        <form method="post">
+          {% csrf_token %}
+          {% if response_id %}
+            <input type="hidden" name="id" value="{{ response_id }}"/>
+          {% endif %}
 
-  {% bootstrap_form_errors form type='non_fields' %}
-  {{ temp_question_title }}
-  <div class="row"><div class="col-md-6">
-  {% bootstrap_field form.score layout='vertical' size='sm' %}
-  </div></div>
-  <div class="row">
+          {% bootstrap_form_errors form type='non_fields' %}
+          {{ temp_question_title }}
+          <div class="row">
+            <div class="col-md-6">
+              {% bootstrap_field form.score layout='vertical' size='sm' %}
+            </div>
+          </div>
+          <div class="row">
+          </div>
+          {{ word_question_title }}
+          <div class="row">
+            <div class="col-md-6">
+              {% bootstrap_field form.word layout='vertical' size='sm' %}
+            </div>
+          </div>
+          {% buttons class="btn btn-primary" submit='Submit' %}{% endbuttons %}
+
+        </form>
+        {% if thanks %}
+          <div class="info box">{{ thanks }}</div>
+        {% endif %}
+      </div>
+    </div>
   </div>
-  {{ word_question_title }}
-  <div class="row"><div class="col-md-6">
-  {% bootstrap_field form.word layout='vertical' size='sm' %}
-  </div></div>
-  {% buttons class="btn btn-primary" submit='Submit' %}{% endbuttons %}
-
-</form>
-    {% if thanks %}
-        <div class="info box">{{ thanks }}</div>
-    {% endif %}
-</div></div></div>
 {% endblock %}

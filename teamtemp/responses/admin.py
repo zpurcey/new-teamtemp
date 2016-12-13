@@ -1,6 +1,6 @@
 from django.contrib import admin
-from teamtemp.responses.models import *
 
+from teamtemp.responses.models import *
 
 admin.site.register(WordCloudImage)
 admin.site.register(User)

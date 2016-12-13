@@ -3,8 +3,8 @@
 {% block title %}Team Temperature{% endblock %}
 
 {% block body %}
-<h1>Select all categories you would like to include in your BVC (Big Visual Chart)</h1>
-<form method="post">
+  <h1>Select all categories you would like to include in your BVC (Big Visual Chart)</h1>
+  <form method="post">
     {% csrf_token %}
 
     {{ form.filter_dept_names.errors }}
@@ -25,6 +25,6 @@
       {{ form.filter_region_names }}
     </div>
 
-  <input type="submit" value="Filter"/>
-</form>
+    <input type="submit" value="Filter"/>
+  </form>
 {% endblock %}
