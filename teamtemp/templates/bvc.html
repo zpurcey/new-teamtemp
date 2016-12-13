@@ -206,53 +206,52 @@
       {% endif %}
     </div>
     <div class="row">
+      <div class="md-6">
+        <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
 
+        {% if bvc_data.archived %}
+          <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
+        {% else %}
+          <h2 align="center">{% now () %}</h2>
 
-      <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
-
-      {% if bvc_data.archived %}
-        <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
-      {% else %}
-        <h2 align="center">{% now () %}</h2>
-
-        <div class="no-print">
-          {% if num_iterations != '0' %}
-            {% if bvc_data.team_name == '' %}
-              <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Results
-                + {{ num_iterations }} Previous Iterations</a></h6>
+          <div class="no-print">
+            {% if num_iterations != '0' %}
+              {% if bvc_data.team_name == '' %}
+                <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Results
+                  + {{ num_iterations }} Previous Iterations</a></h6>
+              {% else %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current
+                  Results + {{ num_iterations }} Previous Iterations</a></h6>
+              {% endif %}
             {% else %}
-              <h6 align="center"><a
-                href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current
-                Results + {{ num_iterations }} Previous Iterations</a></h6>
+              {% if bvc_data.team_name == '' %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current
+                  Results</a></h6>
+              {% else %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current
+                  Results</a></h6>
+              {% endif %}
             {% endif %}
-          {% else %}
-            {% if bvc_data.team_name == '' %}
-              <h6 align="center"><a
-                href="{% url 'bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current
-                Results</a></h6>
-            {% else %}
-              <h6 align="center"><a
-                href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current
-                Results</a></h6>
-            {% endif %}
-          {% endif %}
-        </div>
-      {% endif %}
-
-      <!-- Display Team Temp Gauge -->
-      <div class="centregauge" id='gauge_chart'>
-      </div>
-
-      <h3 align="center">{{ bvc_data.stats.count }} Responses:</h3>
-
-      <div class="centrewordcloud">
-
-        {% if bvc_data.word_cloudurl %}
-          <img src="{{ bvc_data.word_cloudurl }}" alt="word cloud">
+          </div>
         {% endif %}
 
+        <!-- Display Team Temp Gauge -->
+        <div class="centregauge" id='gauge_chart'> </div>
       </div>
+      <div class="md-6">
+        <h3 align="center">{{ bvc_data.stats.count }} Responses:</h3>
 
+        <div class="centrewordcloud">
+          {% if bvc_data.word_cloudurl %}
+            <img src="{{ bvc_data.word_cloudurl }}" alt="word cloud">
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="row">
       <!-- History Trend Graphs -->
       <h1 align="center">{{ bvc_data.pretty_team_name }}</h1>
       <P>
