@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.conf import settings as dj_settings
 from django.conf.urls import include, url
 from django.contrib import admin as djadmin
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -52,8 +52,8 @@ urlpatterns = [
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team, name='team'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team, name='team'),
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter),
-    url(r'^static/(.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    url(r'^media/(.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    url(r'^static/(.*)$', serve, {'document_root': dj_settings.STATIC_ROOT}),
+    url(r'^media/(.*)$', serve, {'document_root': dj_settings.MEDIA_ROOT}),
     url(r'^healthcheck/?$', healthcheck, name='healthcheck'),
     url(r'^robots\.txt', robots_txt, name='robots_txt'),
     url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
