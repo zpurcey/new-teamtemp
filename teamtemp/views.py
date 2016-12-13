@@ -72,15 +72,15 @@ class TeamsViewSet(viewsets.ModelViewSet):
     order_fields = ('request', 'team_name',)
 
 
-def healthcheck(request):
+def health_check_view(request):
     return HttpResponse('ok', content_type='text/plain')
 
 
-def robots_txt(request):
+def robots_txt_view(request):
     return HttpResponse('', content_type='text/plain')
 
 
-def home(request, survey_type='TEAMTEMP'):
+def home_view(request, survey_type='TEAMTEMP'):
     timezone.activate(pytz.timezone('UTC'))
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
@@ -128,7 +128,7 @@ def authenticated_user(request, survey_id):
     return False
 
 
-def settings(request, survey_id):
+def set_view(request, survey_id):
     thanks = ""
     rows_changed = 0
     survey_teams = []
@@ -245,7 +245,7 @@ def change_team_name(team_name, new_team_name, survey_id):
     return num_rows
 
 
-def submit(request, survey_id, team_name=''):
+def submit_view(request, survey_id, team_name=''):
     userid = responses.get_or_create_userid(request)
     user, created = User.objects.get_or_create(id=userid)
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
@@ -363,7 +363,7 @@ def submit_(request, survey_id, team_name=''):
                                          'id': survey_id})
 
 
-def admin(request, survey_id, team_name=''):
+def admin_view(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
     # if valid session token or valid password render results page
@@ -490,7 +490,7 @@ def save_url(url, directory):
     return return_url
 
 
-def reset(request, survey_id):
+def reset_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
     # if valid session token or valid password render results page
@@ -529,7 +529,7 @@ def reset(request, survey_id):
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
 
-def cron(request, pin):
+def cron_view(request, pin):
     cron_pin = '0000'
     if settings.CRON_PIN:
         cron_pin = settings.CRON_PIN
@@ -640,7 +640,7 @@ def scheduled_archive(request, survey_id):
     return
 
 
-def filter(request, survey_id):
+def filter_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
     survey_type = survey.survey_type
@@ -677,7 +677,7 @@ def filter(request, survey_id):
                                     site_names_list=site_names_list)})
 
 
-def team(request, survey_id, team_name=''):
+def team_view(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
     if team_name != '':
@@ -1053,8 +1053,8 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
     return None
 
 
-def bvc(request, survey_id, team_name='', archive_id='', num_iterations='0', add_survey_ids=None,
-        region_names='', site_names='', dept_names=''):
+def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', add_survey_ids=None,
+             region_names='', site_names='', dept_names=''):
     survey_ids = request.GET.get('add_survey_ids', add_survey_ids)
 
     survey_id_list = [survey_id]
