@@ -1,19 +1,21 @@
 {
   "name": "new-teamtemp",
+  "repository": "https://github.com/rloomans/new-teamtemp",
+  "website": "https://github.com/rloomans/new-teamtemp",
   "scripts": {
   },
   "env": {
-    "DATABASE_URL": {
-      "required": true
+    "DJANGO_DEBUG": {
+      "required": false
     },
     "DJANGO_SETTINGS_MODULE": {
       "required": true
     },
     "TEAM_TEMP_CRON_PIN": {
-      "generator": "secret"
+      "required": false
     },
     "TEAM_TEMP_CRON_URL": {
-      "required": true
+      "required": false
     },
     "TEAMTEMP_SECRET_KEY": {
       "generator": "secret"
@@ -25,8 +27,6 @@
   "formation": {
   },
   "addons": [
-    "logentries",
-    "scheduler",
     "heroku-postgresql"
   ],
   "buildpacks": [
