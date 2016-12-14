@@ -1,0 +1,37 @@
+{
+  "name": "new-teamtemp",
+  "scripts": {
+  },
+  "env": {
+    "DATABASE_URL": {
+      "required": true
+    },
+    "DJANGO_SETTINGS_MODULE": {
+      "required": true
+    },
+    "TEAM_TEMP_CRON_PIN": {
+      "generator": "secret"
+    },
+    "TEAM_TEMP_CRON_URL": {
+      "required": true
+    },
+    "TEAMTEMP_SECRET_KEY": {
+      "generator": "secret"
+    },
+    "XMASHAPEKEY": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "logentries",
+    "scheduler",
+    "heroku-postgresql"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
