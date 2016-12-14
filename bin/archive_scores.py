@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
-import sys
-import requests
 
+import requests
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "teamtemp.settings")
@@ -12,4 +11,3 @@ if __name__ == "__main__":
 
     r = requests.get(url + pin)
     print r.status_code
-

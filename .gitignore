@@ -1,7 +1,31 @@
-venv
-staticfiles
-media
-mediafiles
-*.pyc
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Unit test / coverage reports
+.coverage
+coverage/
+
+# Django stuff:
+*.log
+*.pot
+*.sqlite3
+*.sqlite
+
+# Intellij
+*.iml
+.idea
+
+# Mac
 .DS_Store
+
+# Vim
 *~
+*.swp
+
+# Virtual env
+venv
+
+# project files
+staticfiles
+mediafiles
