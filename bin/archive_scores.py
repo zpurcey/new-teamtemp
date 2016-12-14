@@ -10,4 +10,4 @@ if __name__ == "__main__":
     pin = os.environ.get('TEAM_TEMP_CRON_PIN', '0000')
 
     r = requests.get(url + pin)
-    print r.status_code
+    print(r.status_code)
