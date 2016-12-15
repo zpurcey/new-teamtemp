@@ -23,4 +23,5 @@ ratings:
   - "**.jsx"
   - "**.module"
   - "**.py"
-exclude_paths: []
+exclude_paths:
+- teamtemp/responses/migrations/
