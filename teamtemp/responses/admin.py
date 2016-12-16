@@ -4,7 +4,7 @@ from teamtemp.responses.models import *
 
 def _request_id(obj):
     return obj.request.id
-upper_case_name.short_description = 'Request ID'
+_request_id.short_description = 'Request ID'
 
 class WordCloudImageAdmin(admin.ModelAdmin):
     list_display = ("id", "word_hash", "image_url", "creation_date")
