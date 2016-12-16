@@ -3,7 +3,7 @@ from django.contrib import admin
 from teamtemp.responses.models import *
 
 class WordCloudImageAdmin(admin.ModelAdmin):
-    list_display = ("id", "word_hash", "word_list", "image_url", "creation_date")
+    list_display = ("id", "word_hash", "image_url", "creation_date")
     list_display_links = ("id", "word_hash", "image_url")
     readonly_fields = ("id", "creation_date", "image_url", "word_list", "word_hash")
 
