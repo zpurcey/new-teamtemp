@@ -29,22 +29,25 @@ class WordCloudImageViewSet(viewsets.ModelViewSet):
     queryset = WordCloudImage.objects.all()
     serializer_class = WordCloudImageSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
-    filter_fields = ('creation_date', 'word_list', 'image_url',)
-    order_fields = ('creation_date',)
-    search_fields = ('word_list',)
+    filter_fields = ('creation_date', 'word_hash', 'image_url',)
+    order_fields = ('id', 'creation_date', 'modified_date', 'word_hash')
+    search_fields = ('word_list', 'word_hash', 'image_url')
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
+    filter_fields = ('creation_date', 'modified_date')
+    order_fields = ('id', 'creation_date', 'modified_date')
 
 
 class TeamTemperatureViewSet(viewsets.ModelViewSet):
     queryset = TeamTemperature.objects.all()
     serializer_class = TeamTemperatureSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('creator', 'survey_type',)
-    order_fields = ('creation_date',)
+    filter_fields = ('creator', 'survey_type', 'creation_date', 'modified_date')
+    order_fields = ('id', 'creation_date', 'modified_date')
 
 
 class TemperatureResponseViewSet(viewsets.ModelViewSet):
@@ -59,8 +62,8 @@ class TeamResponseHistoryViewSet(viewsets.ModelViewSet):
     queryset = TeamResponseHistory.objects.all()
     serializer_class = TeamResponseHistorySerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
-    filter_fields = ('request', 'word_list', 'team_name', 'responder_count', 'archive_date')
-    order_fields = ('request', 'archive_date', 'team_name', 'responder_count', 'average_score')
+    filter_fields = ('request', 'word_list', 'team_name', 'archive_date')
+    order_fields = ('archive_date', 'team_name')
     search_fields = ('word_list',)
 
 
@@ -68,8 +71,8 @@ class TeamsViewSet(viewsets.ModelViewSet):
     queryset = Teams.objects.all()
     serializer_class = TeamSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('request', 'team_name')
-    order_fields = ('request', 'team_name',)
+    filter_fields = ('request', 'team_name', 'dept_name', 'site_name', 'region_name')
+    order_fields = ('team_name',)
 
 
 def health_check_view(request):
@@ -93,8 +96,7 @@ def home_view(request, survey_type='TEAMTEMP'):
             dept_names = csf['dept_names']
             region_names = csf['region_names']
             site_names = csf['site_names']
-            survey = TeamTemperature(creation_date=timezone.now(),
-                                     password=make_password(csf['password']),
+            survey = TeamTemperature(password=make_password(csf['password']),
                                      creator=user,
                                      survey_type=survey_type,
                                      archive_date=timezone.now(),
@@ -177,7 +179,6 @@ def set_view(request, survey_id):
                 thanks = thanks + "Word removed: " + str(rows_changed) + " responses updated. "
 
             survey_settings = TeamTemperature(id=survey.id,
-                                              creation_date=survey.creation_date,
                                               creator=survey.creator,
                                               password=pw,
                                               archive_date=survey.archive_date,
@@ -446,7 +447,7 @@ def generate_wordcloud(word_list):
 def require_dir(path):
     try:
         os.makedirs(path)
-    except OSError, exc:
+    except OSError as exc:
         if exc.errno != errno.EEXIST:
             raise
 
@@ -979,8 +980,7 @@ def cached_word_cloud(word_list):
 
     word_cloudurl = generate_wordcloud(words)
     if word_cloudurl:
-        word_cloud = WordCloudImage(creation_date=timezone.now(),
-                                    word_list=words, word_hash=word_hash,
+        word_cloud = WordCloudImage(word_list=words, word_hash=word_hash,
                                     image_url=word_cloudurl)
         word_cloud.save()
 

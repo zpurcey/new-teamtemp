@@ -2,10 +2,10 @@ from django.db import models
 
 
 class WordCloudImage(models.Model):
-    creation_date = models.DateField()
-    word_list = models.CharField(max_length=5000)
     word_hash = models.CharField(max_length=40, db_index=True)
+    word_list = models.CharField(max_length=5000)
     image_url = models.CharField(max_length=255)
+    creation_date = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
         return u"{} {} {}".format(self.creation_date, self.word_list, self.image_url)
@@ -16,6 +16,7 @@ class WordCloudImage(models.Model):
 
 class User(models.Model):
     id = models.CharField(max_length=32, primary_key=True)
+    creation_date = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
         return u"{}".format(self.id)
@@ -30,18 +31,29 @@ def _stats_for(query_set):
 
 
 class TeamTemperature(models.Model):
+    TEAM_TEMP = 'TEAMTEMP'
+    DEPT_REGION_SITE = 'DEPT-REGION-SITE'
+    CUSTOMER_FEEDBACK = 'CUSTOMERFEEDBACK'
+
+    SURVEY_TYPE_CHOICES = (
+        (TEAM_TEMP, 'Team Temperature'),
+        (DEPT_REGION_SITE, 'Department-Region-Site Temperature'),
+        (CUSTOMER_FEEDBACK, 'Customer Feedback'),
+    )
+
     id = models.CharField(max_length=8, primary_key=True)
-    creation_date = models.DateField()
     creator = models.ForeignKey(User, related_name="team_temperatures")
     password = models.CharField(max_length=256)
     archive_schedule = models.IntegerField(default=0)
     archive_date = models.DateTimeField(null=True)
-    survey_type = models.CharField(default='TEAMTEMP', max_length=20)
+    survey_type = models.CharField(default=TEAM_TEMP, choices=SURVEY_TYPE_CHOICES, max_length=20, db_index=True)
     dept_names = models.CharField(default='DEPT,DEPT2', max_length=64)
     region_names = models.CharField(default='REGION,REGION2', max_length=64)
     site_names = models.CharField(default='SITE,SITE2', max_length=64)
     default_tz = models.CharField(default='Australia/Queensland', max_length=64)
     max_word_count = models.IntegerField(default=1)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
 
     def stats(self):
         allresponses = self.temperature_responses.filter(archived=False)
@@ -83,7 +95,7 @@ class TemperatureResponse(models.Model):
     word = models.CharField(max_length=32)
     team_name = models.CharField(max_length=64, null=True, db_index=True)
     archived = models.BooleanField(default=False, db_index=True)
-    response_date = models.DateTimeField(null=True)
+    response_date = models.DateTimeField(null=True, db_index=True)
     archive_date = models.DateTimeField(null=True, db_index=True)
 
     def __unicode__(self):
@@ -106,7 +118,7 @@ class TeamResponseHistory(models.Model):
     word_list = models.CharField(max_length=5000)
     responder_count = models.IntegerField()
     team_name = models.CharField(max_length=64, null=True, db_index=True)
-    archive_date = models.DateTimeField()
+    archive_date = models.DateTimeField(db_index=True)
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {}".format(self.id, self.request.id,
@@ -120,14 +132,17 @@ class TeamResponseHistory(models.Model):
 
 class Teams(models.Model):
     class Meta:
+        verbose_name = "Team"
         verbose_name_plural = "Teams"
         unique_together = ("request", "team_name")
 
     request = models.ForeignKey(TeamTemperature, related_name="teams")
     team_name = models.CharField(max_length=64, null=True, db_index=True)
-    dept_name = models.CharField(max_length=64, null=True)
-    site_name = models.CharField(max_length=64, null=True)
-    region_name = models.CharField(max_length=64, null=True)
+    dept_name = models.CharField(max_length=64, null=True, db_index=True)
+    site_name = models.CharField(max_length=64, null=True, db_index=True)
+    region_name = models.CharField(max_length=64, null=True, db_index=True)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
 
     def pretty_team_name(self):
         return self.team_name.replace('_', ' ')
