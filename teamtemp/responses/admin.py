@@ -2,9 +2,13 @@ from django.contrib import admin
 
 from teamtemp.responses.models import *
 
+def _request_id(obj):
+    return obj.request.id
+_request_id.short_description = 'Request ID'
+
 class WordCloudImageAdmin(admin.ModelAdmin):
-    list_display = ("id", "word_hash", "word_list", "image_url", "creation_date")
-    list_display_links = ("id", "word_hash", "word_list", "image_url")
+    list_display = ("id", "word_hash", "image_url", "creation_date")
+    list_display_links = ("id", "word_hash", "image_url")
     readonly_fields = ("id", "creation_date", "image_url", "word_list", "word_hash")
 
 
@@ -20,18 +24,18 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
-    list_display = ("id", "request", "responder", "team_name", "score", "word", "response_date")
+    list_display = ("id", _request_id, "responder", "team_name", "score", "word", "response_date")
     list_filter = ("archived", )
     readonly_fields = ("id", )
 
 
 class TeamResponseHistoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "request", "team_name", "average_score", "responder_count", "archive_date")
+    list_display = ("id", _request_id, "team_name", "average_score", "responder_count", "archive_date")
     readonly_fields = ("id", )
 
 
 class TeamsAdmin(admin.ModelAdmin):
-    list_display = ("id", "request", "team_name", "dept_name", "site_name", "region_name", "creation_date", "modified_date")
+    list_display = ("id", _request_id, "team_name", "dept_name", "site_name", "region_name", "creation_date", "modified_date")
     readonly_fields = ("id", "creation_date", "modified_date")
 
 
