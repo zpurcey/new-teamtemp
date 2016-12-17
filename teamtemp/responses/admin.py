@@ -26,7 +26,7 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
 class TemperatureResponseAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, "responder", "team_name", "score", "word", "response_date")
     list_filter = ("archived", )
-    readonly_fields = ("id", )
+    readonly_fields = ("id", 'responder')
 
 
 class TeamResponseHistoryAdmin(admin.ModelAdmin):
