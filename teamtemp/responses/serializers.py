@@ -6,7 +6,7 @@ from models import User, TeamTemperature, TemperatureResponse, TeamResponseHisto
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'id', 'team_temperatures', 'temperature_responses')
+        fields = ('url', 'id', 'creation_date', 'team_temperatures', 'temperature_responses')
 
 
 class WordCloudImageSerializer(serializers.HyperlinkedModelSerializer):
@@ -21,8 +21,8 @@ class TeamTemperatureSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'id', 'creation_date', 'creator', 'archive_schedule',
                   'archive_date', 'survey_type', 'default_tz',
                   'max_word_count', 'dept_names', 'site_names',
-                  'region_names', 'teams', 'team_response_histories',
-                  'temperature_responses')
+                  'region_names', 'creation_date', 'modified_date','teams',
+                  'team_response_histories', 'temperature_responses')
 
 
 class TemperatureResponseSerializer(serializers.HyperlinkedModelSerializer):
@@ -36,7 +36,7 @@ class TeamSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Teams
         fields = ('url', 'id', 'request', 'team_name', 'dept_name', 'site_name',
-                  'region_name')
+                  'region_name', 'creation_date', 'modified_date')
 
 
 class TeamResponseHistorySerializer(serializers.HyperlinkedModelSerializer):
