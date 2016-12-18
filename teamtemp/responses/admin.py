@@ -20,13 +20,15 @@ class UserAdmin(admin.ModelAdmin):
 class TeamTemperatureAdmin(admin.ModelAdmin):
     list_display = ("id", "creator", "survey_type", "creation_date")
     list_filter = ("survey_type", )
-    readonly_fields = ("id", "creation_date", "modified_date", "creator")
+    readonly_fields = ("id", "creation_date", "modified_date")
+    raw_id_fields = ("creator", )
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, "responder", "team_name", "score", "word", "response_date")
     list_filter = ("archived", )
-    readonly_fields = ("id", 'responder')
+    readonly_fields = ("id", )
+    raw_id_fields = ("responder", )
 
 
 class TeamResponseHistoryAdmin(admin.ModelAdmin):
