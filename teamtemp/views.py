@@ -537,9 +537,10 @@ def cron_view(request, pin):
 
     if pin == cron_pin:
         auto_archive_surveys(request)
-        prune_word_cloud_cache()
+        prune_word_cloud_cache(request)
         return HttpResponse()
     else:
+        print >> sys.stderr, "Cron 404: pin =" + pin + " expected = " + cron_pin
         raise Http404
 
 
@@ -547,7 +548,7 @@ def prune_word_cloud_cache(request):
     timezone.activate(pytz.timezone('UTC'))
     print >> sys.stderr, "prune_word_cloud_cache: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
 
-    yesterday = datetime.now() + timedelta(days=-1)
+    yesterday = timezone.now() + timedelta(days=-1)
 
     WordCloudImage.objects.filter(creation_date__lte=yesterday).delete()
 

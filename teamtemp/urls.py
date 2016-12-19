@@ -60,7 +60,7 @@ urlpatterns = [
         name='bvc'),
 
     url(r'^reset/(?P<survey_id>[0-9a-zA-Z]{8})$', reset_view, name='reset'),
-    url(r'^cron/(?P<pin>[0-9]{4,16})$', cron_view),
+    url(r'^cron/(?P<pin>[0-9]{4,16})$', cron_view, name='cron'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team_view, name='team'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team_view, name='team'),
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter_view),
