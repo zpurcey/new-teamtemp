@@ -6,7 +6,7 @@ from django.forms.utils import ErrorList
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from teamtemp.responses.models import TemperatureResponse, TeamTemperature, Teams
+from teamtemp.responses.models import TeamTemperature, Teams, TemperatureResponse
 
 
 class ErrorBox(ErrorList):
@@ -133,7 +133,7 @@ class AddTeamForm(forms.ModelForm):
         self.fields['site_name'] = forms.ChoiceField(choices=[(x, x) for x in site_names_list], required=False)
 
     def clean_team_name(self):
-        team_name = self.cleaned_data['team_name']
+        team_name = re.sub(r' +', '_', self.cleaned_data['team_name'].strip())
         matches = re.findall(r'[^\w-]', team_name)
         if matches:
             error = '"{team_name}" contains invalid characters ' \
