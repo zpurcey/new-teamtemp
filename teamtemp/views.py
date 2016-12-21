@@ -139,8 +139,8 @@ def set_view(request, survey_id):
         return HttpResponseRedirect('/admin/%s' % survey_id)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
     survey_teams = survey.teams.all()
-    survey_settings_id = survey_id
 
     if request.method == 'POST':
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
@@ -178,36 +178,27 @@ def set_view(request, survey_id):
                     'censored_word']
                 thanks = thanks + "Word removed: " + str(rows_changed) + " responses updated. "
 
-            survey_settings = TeamTemperature(id=survey.id,
-                                              creator=survey.creator,
-                                              password=pw,
-                                              archive_date=survey.archive_date,
-                                              archive_schedule=srf['archive_schedule'],
-                                              survey_type=srf['survey_type'],
-                                              dept_names=srf['dept_names'],
-                                              region_names=srf['region_names'],
-                                              site_names=srf['site_names'],
-                                              default_tz=srf['default_tz'],
-                                              max_word_count=srf['max_word_count'])
-            survey_settings.save()
-            survey_settings_id = survey_settings.id
-            form = SurveySettingsForm(instance=survey_settings)
+            survey.creator = survey.creator
+            survey.password = pw
+            survey.archive_date = survey.archive_date
+            survey.archive_schedule = srf['archive_schedule']
+            survey.survey_type = srf['survey_type']
+            survey.dept_names = srf['dept_names']
+            survey.region_names = srf['region_names']
+            survey.site_names = srf['site_names']
+            survey.default_tz = srf['default_tz']
+            survey.max_word_count = srf['max_word_count']
+            survey.save()
+
             if srf['current_team_name'] != '' and srf['new_team_name'] != '':
                 thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
             if srf['current_team_name'] != '' and srf['new_team_name'] == '':
                 thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
 
-    else:
-        try:
-            previous = TeamTemperature.objects.get(id=survey_id)
-            survey_settings_id = previous.id
-        except TeamTemperature.DoesNotExist:
-            previous = None
-            survey_settings_id = None
+    form = SurveySettingsForm(instance=survey)
 
-        form = SurveySettingsForm(instance=previous)
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
-                                        'survey_settings_id': survey_settings_id,
+                                        'survey_settings_id': survey.id,
                                         'survey_teams': survey_teams})
 
 
@@ -716,13 +707,11 @@ def team_view(request, survey_id, team_name=''):
                 team_details.save()
             elif team:
                 # print >>sys.stderr,"creating with team.id: " + str(team.id)
-                team_details = Teams(id=team.id,
-                                     request=survey,
-                                     team_name=team_name,
-                                     dept_name=dept_name,
-                                     region_name=region_name,
-                                     site_name=site_name)
-                team_details.save()
+                team.team_name = team_name
+                team.dept_name = dept_name
+                team.region_name = region_name
+                team.site_name = site_name
+                team.save()
 
             return HttpResponseRedirect('/admin/%s' % survey_id)
     else:
