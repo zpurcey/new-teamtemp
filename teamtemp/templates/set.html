@@ -76,7 +76,7 @@
 
           <h3>Team Name Change</h3>
           {% for team in survey_teams %}
-            {{ team.pretty_team_name }} <BR>
+            {{ team.team_name }} <BR>
           {% endfor %}
           <BR>
           {{ form.current_team_name.errors }}
@@ -92,7 +92,7 @@
           {{ form.censored_word.errors }}
           <div class="field">
             <label for="censored_word">Censor Word:</label><br/>
-            {{ form.censored_word }} (ALL occurences will be removed from this survey, ensure correct caps)
+            {{ form.censored_word }} (ALL occurences will be removed from this survey)
           </div>
 
           {{ form.default_tz.errors }}
