@@ -1,28 +1,27 @@
 import errno
-import gviz_api
 import hashlib
 import json
 import os
-import pytz
 import sys
-import unirest as Unirest
 import urllib
-from datetime import datetime
 from datetime import timedelta
-from django.conf import settings
-from django.contrib.auth.hashers import check_password, make_password
-from django.http import Http404
-from django.http import HttpResponse
-from django.shortcuts import render, HttpResponseRedirect, get_object_or_404
-from django.utils import timezone
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
 from urlparse import urlparse
 
-from responses.forms import FilteredBvcForm, CreateSurveyForm, SurveyResponseForm, ResultsPasswordForm, ErrorBox, \
-    AddTeamForm, SurveySettingsForm
+import gviz_api
+import pytz
+import unirest as Unirest
+from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
+from django.http import Http404, HttpResponse
+from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
+from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
+
+from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvcForm, ResultsPasswordForm, \
+    SurveyResponseForm, SurveySettingsForm
 from responses.serializers import *
-from teamtemp import utils, responses
+from teamtemp import responses, utils
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -204,35 +203,31 @@ def set_view(request, survey_id):
 
 def censor_word(censored_word, survey_id):
     data = {'word': ''}
-    num_rows = 0
 
-    num_rows = TemperatureResponse.objects.filter(request=survey_id, word=censored_word).count()
-    TemperatureResponse.objects.filter(request=survey_id, word=censored_word).update(**data)
+    response_set = TemperatureResponse.objects.filter(request=survey_id, word=censored_word.lower())
+    num_rows = response_set.count()
+    response_set.update(**data)
 
     return num_rows
 
 
 def change_team_name(team_name, new_team_name, survey_id):
-    data = {'team_name': new_team_name}
-    num_rows = 0
+    response_objects = TemperatureResponse.objects.filter(request=survey_id, team_name=team_name)
+    history_objects = TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name)
+    team_objects = Teams.objects.filter(request=survey_id, team_name=team_name)
+
+    num_rows = response_objects.count() + history_objects.count() + team_objects.count()
+
     if new_team_name != '':
-        num_rows = TemperatureResponse.objects.filter(request=survey_id, team_name=team_name).count()
-        TemperatureResponse.objects.filter(request=survey_id, team_name=team_name).update(**data)
+        data = {'team_name': new_team_name}
 
-        num_rows = num_rows + TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name).count()
-        TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name).update(**data)
-
-        num_rows = num_rows + Teams.objects.filter(request=survey_id, team_name=team_name).count()
-        Teams.objects.filter(request=survey_id, team_name=team_name).update(**data)
+        response_objects.update(**data)
+        history_objects.update(**data)
+        team_objects.update(**data)
     else:
-        num_rows = TemperatureResponse.objects.filter(request=survey_id, team_name=team_name).count()
-        TemperatureResponse.objects.filter(request=survey_id, team_name=team_name).delete()
-
-        num_rows = num_rows + TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name).count()
-        TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name).delete()
-
-        num_rows = num_rows + Teams.objects.filter(request=survey_id, team_name=team_name).count()
-        Teams.objects.filter(request=survey_id, team_name=team_name).delete()
+        response_objects.delete()
+        history_objects.delete()
+        team_objects.delete()
 
     return num_rows
 
@@ -500,7 +495,7 @@ def reset_view(request, survey_id):
     for team in teams:
         summary = None
         summary_word_list = ""
-        team_stats = team_temp.team_stats([team['team_name']])
+        (team_stats, response_objects) = team_temp.team_stats([team['team_name']])
 
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
@@ -513,8 +508,7 @@ def reset_view(request, survey_id):
                                       archive_date=arch_date)
         summary.save()
 
-        TemperatureResponse.objects.filter(request=survey_id, team_name=team['team_name'], archived=False).update(
-            **data)
+        response_objects.update(**data)
 
     print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(arch_date)
 
@@ -596,7 +590,7 @@ def scheduled_archive(request, survey_id):
     for team in teams:
         summary = None
         summary_word_list = ""
-        team_stats = team_temp.team_stats([team['team_name']])
+        (team_stats, team_response_objects) = team_temp.team_stats([team['team_name']])
 
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
@@ -608,14 +602,14 @@ def scheduled_archive(request, survey_id):
                                       team_name=team['team_name'],
                                       archive_date=arch_date)
         summary.save()
+
         average_total = average_total + team_stats['average']['score__avg']
         average_count += 1
         average_responder_total = average_responder_total + team_stats['count']
 
-        TemperatureResponse.objects.filter(request=survey_id, team_name=team['team_name'], archived=False).update(
-            **data)
+        team_response_objects.update(**data)
 
-    # Save Survey Summary as AGREGATE AVERAGE for all teams
+    # Save Survey Summary as AGGREGATE AVERAGE for all teams
     summary = None
     summary_word_list = ""
 
