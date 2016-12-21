@@ -12,11 +12,13 @@ class WordCloudImageAdmin(admin.ModelAdmin):
     list_display = ("id", "word_hash", "image_url", "creation_date")
     list_display_links = ("id", "word_hash", "image_url")
     readonly_fields = ("id", "creation_date", "image_url", "word_list", "word_hash")
+    search_fields = ("id", "word_hash", )
 
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ("id", "creation_date")
     readonly_fields = ("id", "creation_date")
+    search_fields = ("id", )
 
 
 class TeamTemperatureAdmin(admin.ModelAdmin):
@@ -24,6 +26,7 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
     list_filter = ("survey_type", )
     readonly_fields = ("id", "creation_date", "modified_date")
     raw_id_fields = ("creator", )
+    search_fields = ("creator__id", )
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
@@ -31,18 +34,21 @@ class TemperatureResponseAdmin(admin.ModelAdmin):
     list_filter = ("archived", )
     readonly_fields = ("id", )
     raw_id_fields = ("responder", "request")
+    search_fields = ("team_name", "request__id")
 
 
 class TeamResponseHistoryAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, "team_name", "average_score", "responder_count", "archive_date")
     readonly_fields = ("id", )
     raw_id_fields = ("request", )
+    search_fields = ("team_name", "request__id")
 
 
 class TeamsAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, "team_name", "dept_name", "site_name", "region_name", "creation_date", "modified_date")
     readonly_fields = ("id", "creation_date", "modified_date")
     raw_id_fields = ("request", )
+    search_fields = ("team_name", "request__id")
 
 
 admin.site.register(WordCloudImage, WordCloudImageAdmin)
