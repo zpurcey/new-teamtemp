@@ -26,7 +26,7 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
     list_filter = ("survey_type", )
     readonly_fields = ("id", "creation_date", "modified_date")
     raw_id_fields = ("creator", )
-    search_fields = ("creator__id", )
+    search_fields = ("id", "creator__id")
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
