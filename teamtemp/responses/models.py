@@ -1,3 +1,4 @@
+import pytz
 from django.db import models
 
 
@@ -41,6 +42,8 @@ class TeamTemperature(models.Model):
         (CUSTOMER_FEEDBACK, 'Customer Feedback'),
     )
 
+    TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.all_timezones]
+
     id = models.CharField(max_length=8, primary_key=True)
     creator = models.ForeignKey(User, related_name="team_temperatures")
     password = models.CharField(max_length=256)
@@ -50,7 +53,7 @@ class TeamTemperature(models.Model):
     dept_names = models.CharField(default='DEPT,DEPT2', blank=True, max_length=64)
     region_names = models.CharField(default='REGION,REGION2', blank=True, max_length=64)
     site_names = models.CharField(default='SITE,SITE2', blank=True, max_length=64)
-    default_tz = models.CharField(default='Australia/Queensland', max_length=64)
+    default_tz = models.CharField(default='Australia/Queensland', choices=TIMEZONE_CHOICES, max_length=64)
     max_word_count = models.IntegerField(default=1)
     creation_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
