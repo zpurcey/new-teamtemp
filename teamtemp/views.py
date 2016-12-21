@@ -386,9 +386,9 @@ def admin_view(request, survey_id, team_name=''):
         survey_teams = teamtemp.teams.all()
 
         if team_name != '':
-            stats = survey.team_stats(team_name=team_name)
+            stats, _ = survey.team_stats(team_name=team_name)
         else:
-            stats = survey.stats()
+            stats, _ = stats = survey.stats()
 
         if survey.archive_schedule > 0:
             next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule))
@@ -495,7 +495,7 @@ def reset_view(request, survey_id):
     for team in teams:
         summary = None
         summary_word_list = ""
-        (team_stats, response_objects) = team_temp.team_stats([team['team_name']])
+        team_stats, response_objects = team_temp.team_stats([team['team_name']])
 
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
@@ -590,7 +590,7 @@ def scheduled_archive(request, survey_id):
     for team in teams:
         summary = None
         summary_word_list = ""
-        (team_stats, team_response_objects) = team_temp.team_stats([team['team_name']])
+        team_stats, team_response_objects = team_temp.team_stats([team['team_name']])
 
         for word in team_stats['words']:
             summary_word_list = summary_word_list + word['word'] + " "
@@ -984,13 +984,13 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     # print >>sys.stderr,'team_name stats:',team_name
     for survey in survey_set:
         if team_name != [''] and archive_date == '':
-            stats = survey.team_stats(team_name=team_name)
+            stats, _ = survey.team_stats(team_name=team_name)
         elif team_name == [''] and archive_date != '':
-            stats = survey.archive_stats(archive_date=archive_date)
+            stats, _ = survey.archive_stats(archive_date=archive_date)
         elif team_name != [''] and archive_date != '':
-            stats = survey.archive_team_stats(team_name=team_name, archive_date=archive_date)
+            stats, _ = survey.archive_team_stats(team_name=team_name, archive_date=archive_date)
         else:
-            stats = survey.stats()
+            stats, _ = survey.stats()
 
         # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
         if int(float(num_iterations)) > 0:
@@ -1028,10 +1028,10 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
             'response_date')
 
         if team_name != '':
-            accumulated_stats = survey.accumulated_team_stats(team_name, timezone.now(),
-                                                              response_dates[0]['response_date'])
+            accumulated_stats, _ = survey.accumulated_team_stats(team_name, timezone.now(),
+                                                                 response_dates[0]['response_date'])
         else:
-            accumulated_stats = survey.accumulated_stats(timezone.now(), response_dates[0]['response_date'])
+            accumulated_stats, _ = survey.accumulated_stats(timezone.now(), response_dates[0]['response_date'])
 
         return accumulated_stats
 
