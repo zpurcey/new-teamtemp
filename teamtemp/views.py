@@ -579,7 +579,7 @@ def auto_archive_surveys(request):
                 team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())
 
         if team_temp.archive_date is None or (timezone.localtime(now_stamp).date() >= (
-                timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())):
+            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())):
             scheduled_archive(request, team_temp.id)
             TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
             print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(now_stamp) + " UTC " + str(
@@ -686,6 +686,7 @@ def team_view(request, survey_id, team_name=''):
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
     # if valid session token or valid password render results page
 
+    survey_settings_id = None
     survey_type = survey.survey_type
     dept_names = survey.dept_names
     region_names = survey.region_names
@@ -722,9 +723,8 @@ def team_view(request, survey_id, team_name=''):
                                      region_name=region_name,
                                      site_name=site_name)
                 team_details.save()
+
             return HttpResponseRedirect('/admin/%s' % survey_id)
-        else:
-            raise Exception('Form Is Not Valid:', form)
     else:
         if team_name != '':
             try:
@@ -737,6 +737,7 @@ def team_view(request, survey_id, team_name=''):
         else:
             previous = None
             survey_settings_id = None
+
         form = AddTeamForm(instance=previous, dept_names_list=dept_names_list, region_names_list=region_names_list,
                            site_names_list=site_names_list)
         # form = AddTeamForm(instance=previous)
@@ -1134,7 +1135,7 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
             # raise Exception('Form Is Valid:',form)
             csf = form.cleaned_data
             if len(all_dept_names) > len(csf['filter_dept_names']) or len(all_region_names) > len(
-                    csf['filter_region_names']) or len(all_site_names) > len(csf['filter_site_names']):
+                csf['filter_region_names']) or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])
