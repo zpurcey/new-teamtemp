@@ -83,7 +83,7 @@ def robots_txt_view(request):
 
 
 def utc_timestamp():
-    return str(timezone.localtime(timezone.now, timezone=timezone.utc))
+    return "[%s UTC]" % str(timezone.localtime(timezone.now(), timezone=timezone.utc))
 
 
 def home_view(request, survey_type='TEAMTEMP'):
@@ -534,7 +534,7 @@ def cron_view(request, pin):
 
 def prune_word_cloud_cache(request):
     timezone.activate(timezone.utc)
-    print >> sys.stderr, "prune_word_cloud_cache: Start at " + utc_timestamp
+    print >> sys.stderr, "prune_word_cloud_cache: Start at " + utc_timestamp()
 
     yesterday = timezone.now() + timedelta(days=-1)
 
@@ -544,7 +544,7 @@ def prune_word_cloud_cache(request):
         if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
             word_cloud.delete()
 
-    print >> sys.stderr, "prune_word_cloud_cache: Stop at " + utc_timestamp
+    print >> sys.stderr, "prune_word_cloud_cache: Stop at " + utc_timestamp()
 
 
 def auto_archive_surveys(request):
@@ -574,7 +574,7 @@ def auto_archive_surveys(request):
             print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(now_stamp) + " UTC " + str(
                 timezone.localtime(timezone.now())) + " UTC"
 
-    print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp
+    print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
 
 def scheduled_archive(request, survey_id, archive_date=timezone.now()):
