@@ -577,32 +577,30 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    team_temp = TeamTemperature.objects.get(pk=survey_id)
-
     # Save Survey Summary for all survey teams
     data = {'archived': True, 'archive_date': archive_date}
 
-    teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
+    teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
 
     average_total = 0
     average_count = 0
     average_responder_total = 0
+    average_word_list = ""
 
     for team in teams:
-        summary = None
-        summary_word_list = ""
+        team_stats, team_response_objects = survey.team_stats([team['team_name']])
 
-        team_stats, team_response_objects = team_temp.team_stats([team['team_name']])
+        word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
 
-        summary_word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
+        average_word_list += word_list + " "
 
-        summary = TeamResponseHistory(request=survey,
+        history = TeamResponseHistory(request=survey,
                                       average_score=team_stats['average']['score__avg'],
-                                      word_list=summary_word_list,
+                                      word_list=word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
                                       archive_date=archive_date)
-        summary.save()
+        history.save()
 
         average_total += team_stats['average']['score__avg']
         average_count += 1
@@ -611,19 +609,14 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
         team_response_objects.update(**data)
 
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
-    summary = None
-    summary_word_list = ""
-
     if average_count > 0:
-        summary = TeamResponseHistory(request=survey,
+        history = TeamResponseHistory(request=survey,
                                       average_score=average_total / float(average_count),
-                                      word_list=summary_word_list,
+                                      word_list=average_word_list.strip(),
                                       responder_count=average_responder_total,
                                       team_name='Average',
                                       archive_date=archive_date)
-
-    if summary:
-        summary.save()
+        history.save()
 
     return
 
