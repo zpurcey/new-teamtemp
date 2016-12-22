@@ -15,6 +15,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.http import Http404, HttpResponse
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from django.utils import timezone
+from django.views.static import serve as serve_static
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 
@@ -22,6 +23,7 @@ from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvc
     SurveyResponseForm, SurveySettingsForm
 from responses.serializers import *
 from teamtemp import responses, utils
+from teamtemp.headers import header
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -78,9 +80,13 @@ def health_check_view(request):
     return HttpResponse('ok', content_type='text/plain')
 
 
+@header('Cache-Control', 'public, max-age=86400')
 def robots_txt_view(request):
     return HttpResponse('', content_type='text/plain')
 
+@header('Cache-Control', 'public, max-age=315360000')
+def media_view(request, *args, **kwargs):
+    return serve_static(request,  *args, **kwargs)
 
 def utc_timestamp():
     return "[%s UTC]" % str(timezone.localtime(timezone.now(), timezone=timezone.utc))
