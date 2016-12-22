@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.test import TestCase, RequestFactory
 from rest_framework import status
 
-from measure_mate.headers import header, x_ua_compatible
+from teamtemp.headers import header, x_ua_compatible
 
 
 class HeadersTestCases(TestCase):

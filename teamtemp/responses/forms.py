@@ -14,7 +14,8 @@ class ErrorBox(ErrorList):
         return mark_safe(self.as_box())
 
     def as_box(self):
-        if not self: return u''
+        if not self:
+            return u''
         return u'<div class="error box">%s</div>' % self.as_lines()
 
     def as_lines(self):

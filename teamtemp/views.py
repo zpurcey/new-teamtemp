@@ -84,9 +84,11 @@ def health_check_view(request):
 def robots_txt_view(request):
     return HttpResponse('', content_type='text/plain')
 
+
 @header('Cache-Control', 'public, max-age=315360000')
 def media_view(request, *args, **kwargs):
-    return serve_static(request,  *args, **kwargs)
+    return serve_static(request, *args, **kwargs)
+
 
 def utc_timestamp():
     return "[%s UTC]" % str(timezone.localtime(timezone.now(), timezone=timezone.utc))
@@ -117,7 +119,7 @@ def home_view(request, survey_type='TEAMTEMP'):
                                      default_tz='UTC'
                                      )
             survey.save()
-            return HttpResponseRedirect('/team/%s' % (form_id))
+            return HttpResponseRedirect('/team/%s' % form_id)
     else:
         form = CreateSurveyForm()
     return render(request, 'index.html', {'form': form, 'survey_type': survey_type})
@@ -401,7 +403,7 @@ def admin_view(request, survey_id, team_name=''):
             stats, _ = stats = survey.stats()
 
         if survey.archive_schedule > 0:
-            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule))
+            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=survey.archive_schedule)
             if next_archive_date < timezone.localtime(timezone.now()):
                 next_archive_date = timezone.localtime(timezone.now() + timedelta(days=1))
 
@@ -565,13 +567,15 @@ def auto_archive_surveys(request):
     data = {'archive_date': now}
 
     for team_temp in team_temperatures:
-        next_archive_date = timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
+        next_archive_date = timezone.localtime(
+            team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
 
-        print >> sys.stderr, "auto_archive_surveys: Survey %s: %s >= %s == %s" % (
+        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
             team_temp.id, now_date, next_archive_date, (now_date >= next_archive_date))
 
         if team_temp.archive_date is None or (now_date >= next_archive_date):
-            print >> sys.stderr, "Archiving: %s with archive date %s UTC at %s" % (team_temp.id, str(now), utc_timestamp())
+            print >> sys.stderr, "auto_archive_surveys: Archiving %s with archive date %s UTC at %s" % (
+                team_temp.id, str(now), utc_timestamp())
 
             scheduled_archive(request, team_temp.id, now)
             TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
@@ -797,15 +801,15 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     history_chart_table.LoadData(history_chart_data)
 
     # Creating a JSon string
-    json_history_chart_table = history_chart_table.ToJSon(columns_order=(history_chart_columns))
+    json_history_chart_table = history_chart_table.ToJSon(columns_order=history_chart_columns)
 
     historical_options = {
         'legendPosition': 'newRow',
         'title': survey_type_title + ' by Team',
-        'vAxis': {'title': survey_type_title},
+        'vAxis': {'title': survey_type_title,
+                  'ticks': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
         'hAxis': {'title': "Month"},
         'seriesType': "bars",
-        'vAxis': {'ticks': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
         'max': 12,
         'min': 0,
         'focusTarget': 'category',
@@ -1119,8 +1123,9 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
         if form.is_valid():
             # raise Exception('Form Is Valid:',form)
             csf = form.cleaned_data
-            if len(all_dept_names) > len(csf['filter_dept_names']) or len(all_region_names) > len(
-                csf['filter_region_names']) or len(all_site_names) > len(csf['filter_site_names']):
+            if len(all_dept_names) > len(csf['filter_dept_names']) \
+                or len(all_region_names) > len(csf['filter_region_names']) \
+                or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])

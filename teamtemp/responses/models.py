@@ -28,7 +28,7 @@ def _stats_for(query_set):
     result['count'] = query_set.count()
     result['average'] = query_set.aggregate(models.Avg('score'))
     result['words'] = query_set.values('word').annotate(models.Count("id")).order_by()
-    return (result, query_set)
+    return result, query_set
 
 
 class TeamTemperature(models.Model):

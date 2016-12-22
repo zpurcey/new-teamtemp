@@ -10,7 +10,6 @@ class CronViewTestCases(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-
     def test_cron_view_long_pin(self):
         settings.CRON_PIN = '1234567812345678'
         url = reverse('cron', kwargs={'pin': '1234567812345678'})

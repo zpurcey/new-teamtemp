@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from models import User, TeamTemperature, TemperatureResponse, TeamResponseHistory, Teams, WordCloudImage
+from models import TeamResponseHistory, TeamTemperature, Teams, TemperatureResponse, User, WordCloudImage
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -21,7 +21,7 @@ class TeamTemperatureSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'id', 'creation_date', 'creator', 'archive_schedule',
                   'archive_date', 'survey_type', 'default_tz',
                   'max_word_count', 'dept_names', 'site_names',
-                  'region_names', 'creation_date', 'modified_date','teams',
+                  'region_names', 'creation_date', 'modified_date', 'teams',
                   'team_response_histories', 'temperature_responses')
 
 
