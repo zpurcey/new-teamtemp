@@ -303,65 +303,6 @@ def submit_view(request, survey_id, team_name=''):
                                          'id': survey_id})
 
 
-def submit_(request, survey_id, team_name=''):
-    userid = responses.get_or_create_userid(request)
-    user, created = User.objects.get_or_create(id=userid)
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    thanks = ""
-
-    if request.method == 'POST':
-        form = SurveyResponseForm(request.POST, error_class=ErrorBox)
-        response_id = request.POST.get('id', None)
-        if form.is_valid():
-            srf = form.cleaned_data
-            # TODO check that id is unique!
-            response = TemperatureResponse(id=response_id,
-                                           request=survey,
-                                           score=srf['score'],
-                                           word=srf['word'],
-                                           responder=user,
-                                           team_name=team_name,
-                                           response_date=timezone.now())
-            response.save()
-            response_id = response.id
-            form = SurveyResponseForm(instance=response)
-            thanks = "Thank you for submitting your answers. You can " \
-                     "amend them now or later using this browser only if you need to."
-
-        else:
-            raise Exception('Form Is Not Valid:', form)
-    else:
-        try:
-            previous = TemperatureResponse.objects.get(request=survey_id,
-                                                       responder=user,
-                                                       team_name=team_name,
-                                                       archived=False)
-            response_id = previous.id
-        except TemperatureResponse.DoesNotExist:
-            previous = None
-            response_id = None
-
-        form = SurveyResponseForm(instance=previous)
-
-    survey_type_title = 'Team Temperature'
-    temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
-    word_question_title = 'One word to describe how you are feeling:'
-    if survey.max_word_count > 1:
-        word_question_title = str(survey.max_word_count) + ' words to describe how you are feeling:'
-    if survey.survey_type == 'CUSTOMERFEEDBACK':
-        survey_type_title = 'Customer Feedback'
-        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very ' \
-                              'positive): '
-        word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
-
-    return render(request, 'form.html', {'form': form, 'thanks': thanks,
-                                         'response_id': response_id, 'survey_type_title': survey_type_title,
-                                         'temp_question_title': temp_question_title,
-                                         'word_question_title': word_question_title,
-                                         'team_name': team_name, 'pretty_team_name': team_name.replace("_", " "),
-                                         'id': survey_id})
-
-
 def admin_view(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
