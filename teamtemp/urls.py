@@ -4,13 +4,12 @@ from django.contrib import admin as djadmin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
-from django.views.static import serve
+from django.views.static import serve as serve_static
 from rest_framework import routers
 
-from teamtemp.views import home_view, admin_view, submit_view, reset_view, bvc_view, team_view, cron_view, set_view, \
-    filter_view, health_check_view, \
-    robots_txt_view, WordCloudImageViewSet, UserViewSet, TeamTemperatureViewSet, TemperatureResponseViewSet, \
-    TeamResponseHistoryViewSet, TeamsViewSet
+from teamtemp.views import TeamResponseHistoryViewSet, TeamTemperatureViewSet, TeamsViewSet, TemperatureResponseViewSet, \
+    UserViewSet, WordCloudImageViewSet, admin_view, bvc_view, cron_view, filter_view, health_check_view, home_view, \
+    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view
 
 router = routers.DefaultRouter()
 router.register(r'word_cloud_images', WordCloudImageViewSet)
@@ -64,8 +63,8 @@ urlpatterns = [
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team_view, name='team'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team_view, name='team'),
     url(r'^filter/(?P<survey_id>[0-9a-zA-Z]{8})$', filter_view),
-    url(r'^static/(.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    url(r'^media/(.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    url(r'^static/(.*)$', serve_static, {'document_root': settings.STATIC_ROOT}, name='static'),
+    url(r'^media/(.*)$', media_view, {'document_root': settings.MEDIA_ROOT}, name='media'),
     url(r'^healthcheck/?$', health_check_view, name='healthcheck'),
     url(r'^robots\.txt', robots_txt_view, name='robots_txt'),
     url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
