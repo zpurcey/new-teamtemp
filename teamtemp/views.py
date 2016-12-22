@@ -941,10 +941,9 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
 
 def cached_word_cloud(word_list):
     words = ""
-    word_hash = ""
-    word_cloudurl = ""
     word_count = 0
 
+    # we want these to include and count duplicates
     for word in word_list:
         for i in range(0, word['id__count']):
             words += word['word'] + " "
@@ -957,19 +956,23 @@ def cached_word_cloud(word_list):
 
     word_hash = hashlib.sha1(words).hexdigest()
 
-    word_cloud_index = WordCloudImage.objects.filter(word_hash=word_hash).order_by('-id')
+    # most recent word cloud first
+    word_cloud_objects = WordCloudImage.objects.filter(word_hash=word_hash).order_by('-id')
 
-    if word_cloud_index:
-        filename = media_file(word_cloud_index[0].image_url, 'wordcloud_images')
+    if word_cloud_objects:
+        word_cloud_image = word_cloud_objects[0]
+        filename = media_file(word_cloud_image.image_url, 'wordcloud_images')
+
         if os.path.isfile(filename):
             print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " found"
-            return word_cloud_index[0].image_url
+            return word_cloud_image.image_url
         else:
             print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " doesn't exist"
-            # Files have been deleted remove from db and then regenerate
-            word_cloud_index.delete()
+            # Most recent word cloud has been deleted: remove all for this word list from db and then regenerate
+            word_cloud_objects.delete()
 
     word_cloudurl = generate_wordcloud(words)
+
     if word_cloudurl:
         word_cloud = WordCloudImage(word_list=words, word_hash=word_hash,
                                     image_url=word_cloudurl)
