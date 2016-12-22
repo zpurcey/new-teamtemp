@@ -82,8 +82,12 @@ def robots_txt_view(request):
     return HttpResponse('', content_type='text/plain')
 
 
+def utc_timestamp():
+    return str(timezone.localtime(timezone.now, timezone=timezone.utc))
+
+
 def home_view(request, survey_type='TEAMTEMP'):
-    timezone.activate(pytz.timezone('UTC'))
+    timezone.activate(timezone.utc)
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -169,13 +173,13 @@ def set_view(request, survey_id):
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"),
                                                 srf['new_team_name'].replace(" ", "_"), survey.id)
-                print >> sys.stderr, "Team Name Updated: " + " " + str(rows_changed) + " From: " + srf[
+                print >> sys.stderr, "Team Name Updated:  " + str(rows_changed) + " From: " + srf[
                     'current_team_name'] + " To: " + srf['new_team_name']
             if srf['censored_word'] != '':
                 rows_changed = censor_word(srf['censored_word'], survey.id)
-                print >> sys.stderr, "Word removed: " + " " + str(rows_changed) + " word removed: " + srf[
+                print >> sys.stderr, "Word removed:  " + str(rows_changed) + " word removed: " + srf[
                     'censored_word']
-                thanks = thanks + "Word removed: " + str(rows_changed) + " responses updated. "
+                thanks += "Word removed: " + str(rows_changed) + " responses updated. "
 
             survey.creator = survey.creator
             survey.password = pw
@@ -190,9 +194,9 @@ def set_view(request, survey_id):
             survey.save()
 
             if srf['current_team_name'] != '' and srf['new_team_name'] != '':
-                thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
+                thanks += "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
             if srf['current_team_name'] != '' and srf['new_team_name'] == '':
-                thanks = thanks + "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
+                thanks += "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
 
     form = SurveySettingsForm(instance=survey)
 
@@ -510,7 +514,7 @@ def reset_view(request, survey_id):
 
         response_objects.update(**data)
 
-    print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(arch_date)
+    print >> sys.stderr, "Archiving:  " + team_temp.id + " at " + str(arch_date)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
@@ -530,8 +534,8 @@ def cron_view(request, pin):
 
 
 def prune_word_cloud_cache(request):
-    timezone.activate(pytz.timezone('UTC'))
-    print >> sys.stderr, "prune_word_cloud_cache: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
+    timezone.activate(timezone.utc)
+    print >> sys.stderr, "prune_word_cloud_cache: Start at " + utc_timestamp
 
     yesterday = timezone.now() + timedelta(days=-1)
 
@@ -541,12 +545,12 @@ def prune_word_cloud_cache(request):
         if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
             word_cloud.delete()
 
-    print >> sys.stderr, "prune_word_cloud_cache: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
+    print >> sys.stderr, "prune_word_cloud_cache: Stop at " + utc_timestamp
 
 
 def auto_archive_surveys(request):
-    timezone.activate(pytz.timezone('UTC'))
-    print >> sys.stderr, "auto_archive_surveys: Start at " + str(timezone.localtime(timezone.now())) + " UTC"
+    timezone.activate(timezone.utc)
+    print >> sys.stderr, "auto_archive_surveys: Start at " + utc_timestamp()
 
     team_temperatures = TeamTemperature.objects.filter(archive_schedule__gt=0)
     now_stamp = timezone.now()
@@ -566,11 +570,12 @@ def auto_archive_surveys(request):
         if team_temp.archive_date is None or (timezone.localtime(now_stamp).date() >= (
             timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())):
             scheduled_archive(request, team_temp.id)
+
             TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
             print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(now_stamp) + " UTC " + str(
                 timezone.localtime(timezone.now())) + " UTC"
 
-    print >> sys.stderr, "auto_archive_surveys: Stop at " + str(timezone.localtime(timezone.now())) + " UTC"
+    print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp
 
 
 def scheduled_archive(request, survey_id):
@@ -582,7 +587,9 @@ def scheduled_archive(request, survey_id):
     # Save Survey Summary for all survey teams
     arch_date = timezone.now()
     data = {'archived': True, 'archive_date': timezone.now()}
+
     teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
+
     average_total = 0
     average_count = 0
     average_responder_total = 0
@@ -590,6 +597,7 @@ def scheduled_archive(request, survey_id):
     for team in teams:
         summary = None
         summary_word_list = ""
+
         team_stats, team_response_objects = team_temp.team_stats([team['team_name']])
 
         for word in team_stats['words']:
@@ -603,9 +611,9 @@ def scheduled_archive(request, survey_id):
                                       archive_date=arch_date)
         summary.save()
 
-        average_total = average_total + team_stats['average']['score__avg']
+        average_total += team_stats['average']['score__avg']
         average_count += 1
-        average_responder_total = average_responder_total + team_stats['count']
+        average_responder_total += team_stats['count']
 
         team_response_objects.update(**data)
 
@@ -778,9 +786,9 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                 row = {'archive_date': timezone.localtime(survey_summary.archive_date)}
 
             # Accumulate for average calc
-            score_sum = score_sum + survey_summary.average_score
+            score_sum += survey_summary.average_score
             num_scores += 1
-            responder_sum = responder_sum + survey_summary.responder_count
+            responder_sum += survey_summary.responder_count
 
             row[survey_summary.team_name] = (float(survey_summary.average_score),
                                              str("%.2f" % float(survey_summary.average_score)) + " (" + str(
@@ -856,8 +864,8 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
 
     # if any survey's are customer feedback surveys display customer BVC
     num_teamtemp_surveys = TeamTemperature.objects.filter(pk__in=survey_id_list,
-                                                          survey_type__in=['TEAMTEMP', 'DEPT-REGION-SITE']).count
-    num_cust_surveys = TeamTemperature.objects.filter(pk__in=survey_id_list, survey_type='CUSTOMERFEEDBACK').count
+                                                          survey_type__in=['TEAMTEMP', 'DEPT-REGION-SITE']).count()
+    num_cust_surveys = TeamTemperature.objects.filter(pk__in=survey_id_list, survey_type='CUSTOMERFEEDBACK').count()
     # Bug here
     # what does count return for an empty set?
     # is None greater than 0?
@@ -956,10 +964,10 @@ def cached_word_cloud(word_list):
     if word_cloud_index:
         filename = media_file(word_cloud_index[0].image_url, 'wordcloud_images')
         if os.path.isfile(filename):
-            print >> sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " found"
+            print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " found"
             return word_cloud_index[0].image_url
         else:
-            print >> sys.stderr, str(timezone.now()) + " Cached Word Cloud: " + filename + " doesn't exist"
+            print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " doesn't exist"
             # Files have been deleted remove from db and then regenerate
             word_cloud_index.delete()
 
@@ -980,9 +988,8 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     agg_stats = {'count': 0, 'average': 0.00, 'words': []}
 
     survey_filter = {'id__in': survey_id_list}
-    survey_set = TeamTemperature.objects.filter(**survey_filter)
-    # print >>sys.stderr,'team_name stats:',team_name
-    for survey in survey_set:
+
+    for survey in TeamTemperature.objects.filter(**survey_filter):
         if team_name != [''] and archive_date == '':
             stats, _ = survey.team_stats(team_name=team_name)
         elif team_name == [''] and archive_date != '':
@@ -1044,7 +1051,7 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
 
     survey_id_list = [survey_id]
     if survey_ids:
-        survey_id_list = survey_id_list + survey_ids.split(',')
+        survey_id_list += survey_ids.split(',')
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
@@ -1123,13 +1130,13 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])
             for filter_dept_name in csf['filter_dept_names']:
-                filter_dept_names = filter_dept_names + filter_dept_name + ','
+                filter_dept_names += filter_dept_name + ','
 
             for filter_region_name in csf['filter_region_names']:
-                filter_region_names = filter_region_names + filter_region_name + ','
+                filter_region_names += filter_region_name + ','
 
             for filter_site_name in csf['filter_site_names']:
-                filter_site_names = filter_site_names + filter_site_name + ','
+                filter_site_names += filter_site_name + ','
             print >> sys.stderr, "Filter this bvc:", filter_this_bvc
             return HttpResponseRedirect('/bvc/%s/dept=%s/region=%s/site=%s' % (
                 survey_id, filter_dept_names.rstrip(","), filter_region_names.rstrip(","),
