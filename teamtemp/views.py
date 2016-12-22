@@ -24,6 +24,8 @@ from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvc
 from responses.serializers import *
 from teamtemp import responses, utils
 from teamtemp.headers import header
+from teamtemp.responses import get_userid, create_userid
+from teamtemp.responses.models import *
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -101,9 +103,7 @@ def home_view(request, survey_type='TEAMTEMP'):
         if form.is_valid():
             csf = form.cleaned_data
             form_id = utils.random_string(8)
-            userid = responses.get_or_create_userid(request)
-            user, created = User.objects.get_or_create(id=userid)
-            # TODO check that id is unique!
+            user, created = get_or_create_user(request)
             dept_names = csf['dept_names']
             region_names = csf['region_names']
             site_names = csf['site_names']
@@ -130,8 +130,7 @@ def authenticated_user(request, survey_id):
 
     # Retrieve User Token - if user does not exist return false
     try:
-        userid = request.session.get('userid', '__nothing__')
-        user = User.objects.get(id=userid)
+        user = get_user(request)
     except User.DoesNotExist:
         return False
 
@@ -245,8 +244,8 @@ def change_team_name(team_name, new_team_name, survey_id):
 
 
 def submit_view(request, survey_id, team_name=''):
-    userid = responses.get_or_create_userid(request)
-    user, created = User.objects.get_or_create(id=userid)
+    user, created = get_or_create_user(request)
+
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
     if team_name != '':
@@ -258,7 +257,6 @@ def submit_view(request, survey_id, team_name=''):
         response_id = request.POST.get('id', None)
         if form.is_valid():
             srf = form.cleaned_data
-            # TODO check that id is unique!
             response = TemperatureResponse(id=response_id,
                                            request=survey,
                                            score=srf['score'],
@@ -319,12 +317,12 @@ def admin_view(request, survey_id, team_name=''):
             password = rpf['password'].encode('utf-8')
     else:
         try:
-            userid = request.session.get('userid', '__nothing__')
-            user = User.objects.get(id=userid)
+            user = get_user(request)
         except User.DoesNotExist:
             return render(request, 'password.html', {'form': ResultsPasswordForm()})
     if user and survey.creator.id == user.id or check_password(password, survey.password):
-        request.session['userid'] = survey.creator.id
+        # TODO: this causes all admins to share responses. Should be a separate list of user entitlements
+        responses.set_userid(request, survey.creator.id)
         teamtemp = TeamTemperature.objects.get(pk=survey_id)
         survey_type = teamtemp.survey_type
         if team_name != '':
@@ -1098,3 +1096,29 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                                                   region_names_list_on=region_names_list_on,
                                                   site_names_list=all_site_names, site_names_list_on=site_names_list_on)
                       })
+
+
+def get_user(request):
+    userid = get_userid(request)
+    if userid:
+        return User.objects.get(id=userid)
+
+
+def get_or_create_user(request):
+    user = None
+    created = False
+
+    userid = get_userid(request)
+
+    if userid:
+        return User.objects.get_or_create(id=userid)
+    else:
+        tries = 5
+        while user is None and tries >= 0:
+            tries -= 1
+            userid = create_userid(request)
+            user = User.objects.create(id=userid)
+            if user:
+                return user, True
+
+    raise Exception("Can't create unique user id")
