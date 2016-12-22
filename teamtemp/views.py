@@ -501,8 +501,7 @@ def reset_view(request, survey_id):
         summary_word_list = ""
         team_stats, response_objects = team_temp.team_stats([team['team_name']])
 
-        for word in team_stats['words']:
-            summary_word_list = summary_word_list + word['word'] + " "
+        summary_word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
 
         summary = TeamResponseHistory(request=survey,
                                       average_score=team_stats['average']['score__avg'],
@@ -600,8 +599,7 @@ def scheduled_archive(request, survey_id):
 
         team_stats, team_response_objects = team_temp.team_stats([team['team_name']])
 
-        for word in team_stats['words']:
-            summary_word_list = summary_word_list + word['word'] + " "
+        summary_word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
 
         summary = TeamResponseHistory(request=survey,
                                       average_score=team_stats['average']['score__avg'],
@@ -949,10 +947,10 @@ def cached_word_cloud(word_list):
 
     for word in word_list:
         for i in range(0, word['id__count']):
-            words = words + word['word'] + " "
+            words += word['word'] + " "
             word_count += 1
 
-    words = words.lower()
+    words = words.lower().strip()
 
     if words == "":
         return None
