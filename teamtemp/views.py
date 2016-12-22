@@ -577,15 +577,14 @@ def auto_archive_surveys(request):
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp
 
 
-def scheduled_archive(request, survey_id):
+def scheduled_archive(request, survey_id, archive_date=timezone.now()):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
     team_temp = TeamTemperature.objects.get(pk=survey_id)
 
     # Save Survey Summary for all survey teams
-    arch_date = timezone.now()
-    data = {'archived': True, 'archive_date': timezone.now()}
+    data = {'archived': True, 'archive_date': archive_date}
 
     teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
 
@@ -606,7 +605,7 @@ def scheduled_archive(request, survey_id):
                                       word_list=summary_word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
-                                      archive_date=arch_date)
+                                      archive_date=archive_date)
         summary.save()
 
         average_total += team_stats['average']['score__avg']
@@ -625,7 +624,7 @@ def scheduled_archive(request, survey_id):
                                       word_list=summary_word_list,
                                       responder_count=average_responder_total,
                                       team_name='Average',
-                                      archive_date=arch_date)
+                                      archive_date=archive_date)
 
     if summary:
         summary.save()
