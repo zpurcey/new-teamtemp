@@ -552,27 +552,23 @@ def auto_archive_surveys(request):
     print >> sys.stderr, "auto_archive_surveys: Start at " + utc_timestamp()
 
     team_temperatures = TeamTemperature.objects.filter(archive_schedule__gt=0)
-    now_stamp = timezone.now()
-    data = {'archive_date': now_stamp}
+
+    now = timezone.now()
+    now_date = timezone.localtime(now).date()
+
+    data = {'archive_date': now}
 
     for team_temp in team_temperatures:
-        print >> sys.stderr, "auto_archive_surveys: Survey " + team_temp.id
-        print >> sys.stderr, "auto_archive_surveys: Comparing " + str(
-            timezone.localtime(now_stamp).date()) + " >= " + str(
-            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())
-        print >> sys.stderr, "auto_archive_surveys: Comparing " + str(timezone.localtime(now_stamp)) + " >= " + str(
-            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)))
-        print >> sys.stderr, "auto_archive_surveys: Comparison returns: " + str(
-            timezone.localtime(now_stamp).date() >= timezone.localtime(
-                team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())
+        next_archive_date = timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
 
-        if team_temp.archive_date is None or (timezone.localtime(now_stamp).date() >= (
-            timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date())):
-            scheduled_archive(request, team_temp.id)
+        print >> sys.stderr, "auto_archive_surveys: Survey %s: %s >= %s == %s" % (
+            team_temp.id, now_date, next_archive_date, (now_date >= next_archive_date))
 
+        if team_temp.archive_date is None or (now_date >= next_archive_date):
+            print >> sys.stderr, "Archiving: %s with archive date %s UTC at %s" % (team_temp.id, str(now), utc_timestamp())
+
+            scheduled_archive(request, team_temp.id, now)
             TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
-            print >> sys.stderr, "Archiving: " + " " + team_temp.id + " at " + str(now_stamp) + " UTC " + str(
-                timezone.localtime(timezone.now())) + " UTC"
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
