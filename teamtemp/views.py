@@ -523,7 +523,7 @@ def archive_survey(request, survey, archive_date=timezone.now()):
         average_count += 1
         average_responder_total += team_stats['count']
 
-        team_response_objects.update({'archived': True, 'archive_date': archive_date})
+        team_response_objects.update(archived=True, archive_date=archive_date)
 
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
     if average_count > 0:
@@ -535,7 +535,8 @@ def archive_survey(request, survey, archive_date=timezone.now()):
                                       archive_date=archive_date)
         history.save()
 
-    survey.update({'archive_date': archive_date})
+    survey.archive_date = archive_date
+    survey.save()
 
     return
 
