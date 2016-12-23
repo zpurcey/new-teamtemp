@@ -24,6 +24,8 @@ from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvc
 from responses.serializers import *
 from teamtemp import responses, utils
 from teamtemp.headers import header
+from teamtemp.responses import create_userid, get_userid
+from teamtemp.responses.models import *
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -84,9 +86,11 @@ def health_check_view(request):
 def robots_txt_view(request):
     return HttpResponse('', content_type='text/plain')
 
+
 @header('Cache-Control', 'public, max-age=315360000')
 def media_view(request, *args, **kwargs):
-    return serve_static(request,  *args, **kwargs)
+    return serve_static(request, *args, **kwargs)
+
 
 def utc_timestamp():
     return "[%s UTC]" % str(timezone.localtime(timezone.now(), timezone=timezone.utc))
@@ -99,9 +103,7 @@ def home_view(request, survey_type='TEAMTEMP'):
         if form.is_valid():
             csf = form.cleaned_data
             form_id = utils.random_string(8)
-            userid = responses.get_or_create_userid(request)
-            user, created = User.objects.get_or_create(id=userid)
-            # TODO check that id is unique!
+            user, created = get_or_create_user(request)
             dept_names = csf['dept_names']
             region_names = csf['region_names']
             site_names = csf['site_names']
@@ -117,23 +119,30 @@ def home_view(request, survey_type='TEAMTEMP'):
                                      default_tz='UTC'
                                      )
             survey.save()
-            return HttpResponseRedirect('/team/%s' % (form_id))
+
+            responses.add_admin_for_survey(request, survey.id)
+
+            return HttpResponseRedirect('/team/%s' % form_id)
     else:
         form = CreateSurveyForm()
     return render(request, 'index.html', {'form': form, 'survey_type': survey_type})
 
 
-def authenticated_user(request, survey_id):
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+def authenticated_user(request, survey):
+    if survey is None:
+        raise Exception('Must supply a survey object')
 
     # Retrieve User Token - if user does not exist return false
     try:
-        userid = request.session.get('userid', '__nothing__')
-        user = User.objects.get(id=userid)
+        user, _ = get_or_create_user(request)
     except User.DoesNotExist:
         return False
 
     if survey.creator.id == user.id:
+        responses.add_admin_for_survey(request, survey.id)
+        return True
+
+    if responses.is_admin_for_survey(request, survey.id):
         return True
 
     return False
@@ -142,12 +151,11 @@ def authenticated_user(request, survey_id):
 def set_view(request, survey_id):
     thanks = ""
     rows_changed = 0
-    survey_teams = []
-
-    if not authenticated_user(request, survey_id):
-        return HttpResponseRedirect('/admin/%s' % survey_id)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
+    if not authenticated_user(request, survey):
+        return HttpResponseRedirect('/admin/%s' % survey_id)
 
     survey_teams = survey.teams.all()
 
@@ -243,8 +251,8 @@ def change_team_name(team_name, new_team_name, survey_id):
 
 
 def submit_view(request, survey_id, team_name=''):
-    userid = responses.get_or_create_userid(request)
-    user, created = User.objects.get_or_create(id=userid)
+    user, created = get_or_create_user(request)
+
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
     if team_name != '':
@@ -256,7 +264,6 @@ def submit_view(request, survey_id, team_name=''):
         response_id = request.POST.get('id', None)
         if form.is_valid():
             srf = form.cleaned_data
-            # TODO check that id is unique!
             response = TemperatureResponse(id=response_id,
                                            request=survey,
                                            score=srf['score'],
@@ -301,119 +308,54 @@ def submit_view(request, survey_id, team_name=''):
                                          'id': survey_id})
 
 
-def submit_(request, survey_id, team_name=''):
-    userid = responses.get_or_create_userid(request)
-    user, created = User.objects.get_or_create(id=userid)
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    thanks = ""
-
-    if request.method == 'POST':
-        form = SurveyResponseForm(request.POST, error_class=ErrorBox)
-        response_id = request.POST.get('id', None)
-        if form.is_valid():
-            srf = form.cleaned_data
-            # TODO check that id is unique!
-            response = TemperatureResponse(id=response_id,
-                                           request=survey,
-                                           score=srf['score'],
-                                           word=srf['word'],
-                                           responder=user,
-                                           team_name=team_name,
-                                           response_date=timezone.now())
-            response.save()
-            response_id = response.id
-            form = SurveyResponseForm(instance=response)
-            thanks = "Thank you for submitting your answers. You can " \
-                     "amend them now or later using this browser only if you need to."
-
-        else:
-            raise Exception('Form Is Not Valid:', form)
-    else:
-        try:
-            previous = TemperatureResponse.objects.get(request=survey_id,
-                                                       responder=user,
-                                                       team_name=team_name,
-                                                       archived=False)
-            response_id = previous.id
-        except TemperatureResponse.DoesNotExist:
-            previous = None
-            response_id = None
-
-        form = SurveyResponseForm(instance=previous)
-
-    survey_type_title = 'Team Temperature'
-    temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
-    word_question_title = 'One word to describe how you are feeling:'
-    if survey.max_word_count > 1:
-        word_question_title = str(survey.max_word_count) + ' words to describe how you are feeling:'
-    if survey.survey_type == 'CUSTOMERFEEDBACK':
-        survey_type_title = 'Customer Feedback'
-        temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very ' \
-                              'positive): '
-        word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
-
-    return render(request, 'form.html', {'form': form, 'thanks': thanks,
-                                         'response_id': response_id, 'survey_type_title': survey_type_title,
-                                         'temp_question_title': temp_question_title,
-                                         'word_question_title': word_question_title,
-                                         'team_name': team_name, 'pretty_team_name': team_name.replace("_", " "),
-                                         'id': survey_id})
-
-
 def admin_view(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
-    # if valid session token or valid password render results page
-    password = None
-    user = None
-    survey_teams = []
-    next_archive_date = timezone.now()
 
     if request.method == 'POST':
         form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             rpf = form.cleaned_data
             password = rpf['password'].encode('utf-8')
-    else:
-        try:
-            userid = request.session.get('userid', '__nothing__')
-            user = User.objects.get(id=userid)
-        except User.DoesNotExist:
-            return render(request, 'password.html', {'form': ResultsPasswordForm()})
-    if user and survey.creator.id == user.id or check_password(password, survey.password):
-        request.session['userid'] = survey.creator.id
-        teamtemp = TeamTemperature.objects.get(pk=survey_id)
-        survey_type = teamtemp.survey_type
-        if team_name != '':
-            team_found = teamtemp.teams.filter(team_name=team_name).count()
-            if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
-                team_details = Teams(request=survey, team_name=team_name)
-                team_details.save()
-            results = teamtemp.temperature_responses.filter(team_name=team_name, archived=False)
-        else:
-            results = teamtemp.temperature_responses.filter(archived=False)
+            if check_password(password, survey.password):
+                responses.add_admin_for_survey(request, survey.id)
+                return HttpResponseRedirect('/admin/%s' % survey_id)
 
-        survey_teams = teamtemp.teams.all()
-
-        if team_name != '':
-            stats, _ = survey.team_stats(team_name=team_name)
-        else:
-            stats, _ = stats = survey.stats()
-
-        if survey.archive_schedule > 0:
-            next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=(survey.archive_schedule))
-            if next_archive_date < timezone.localtime(timezone.now()):
-                next_archive_date = timezone.localtime(timezone.now() + timedelta(days=1))
-
-        return render(request, 'results.html',
-                      {'id': survey_id, 'stats': stats,
-                       'results': results, 'team_name': team_name,
-                       'pretty_team_name': team_name.replace("_", " "), 'survey_teams': survey_teams,
-                       'archive_schedule': survey.archive_schedule,
-                       'next_archive_date': next_archive_date.strftime("%A %d %B %Y")
-                       })
-    else:
+    if not authenticated_user(request, survey):
         return render(request, 'password.html', {'form': ResultsPasswordForm()})
+
+    survey_type = survey.survey_type
+    if team_name != '':
+        team_found = survey.teams.filter(team_name=team_name).count()
+        if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
+            team_details = Teams(request=survey, team_name=team_name)
+            team_details.save()
+        results = survey.temperature_responses.filter(team_name=team_name, archived=False)
+    else:
+        results = survey.temperature_responses.filter(archived=False)
+
+    survey_teams = survey.teams.all()
+
+    if team_name != '':
+        stats, _ = survey.team_stats(team_name=team_name)
+    else:
+        stats, _ = stats = survey.stats()
+
+    next_archive_date = timezone.now()
+
+    if survey.archive_schedule > 0:
+        next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=survey.archive_schedule)
+        if next_archive_date < timezone.localtime(timezone.now()):
+            next_archive_date = timezone.localtime(timezone.now() + timedelta(days=1))
+
+    return render(request, 'results.html',
+                  {'id': survey_id, 'stats': stats,
+                   'results': results, 'team_name': team_name,
+                   'pretty_team_name': team_name.replace("_", " "), 'survey_teams': survey_teams,
+                   'archive_schedule': survey.archive_schedule,
+                   'next_archive_date': next_archive_date.strftime("%A %d %B %Y")
+                   })
 
 
 def generate_wordcloud(word_list):
@@ -489,37 +431,11 @@ def save_url(url, directory):
 
 def reset_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
-    # if valid session token or valid password render results page
 
-    if not authenticated_user(request, survey_id):
-        return HttpResponseRedirect('/admin/%s' % survey_id)
-
-    team_temp = TeamTemperature.objects.get(pk=survey_id)
-
-    # Save Survey Summary for all survey teams
-    arch_date = timezone.now()
-    data = {'archived': True, 'archive_date': arch_date}
-    teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
-
-    for team in teams:
-        summary = None
-        summary_word_list = ""
-        team_stats, response_objects = team_temp.team_stats([team['team_name']])
-
-        summary_word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
-
-        summary = TeamResponseHistory(request=survey,
-                                      average_score=team_stats['average']['score__avg'],
-                                      word_list=summary_word_list,
-                                      responder_count=team_stats['count'],
-                                      team_name=team['team_name'],
-                                      archive_date=arch_date)
-        summary.save()
-
-        response_objects.update(**data)
-
-    print >> sys.stderr, "Archiving:  " + team_temp.id + " at " + str(arch_date)
+    if authenticated_user(request, survey):
+        archive_survey(request, survey)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
@@ -562,30 +478,25 @@ def auto_archive_surveys(request):
     now = timezone.now()
     now_date = timezone.localtime(now).date()
 
-    data = {'archive_date': now}
-
     for team_temp in team_temperatures:
-        next_archive_date = timezone.localtime(team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
+        next_archive_date = timezone.localtime(
+            team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
 
-        print >> sys.stderr, "auto_archive_surveys: Survey %s: %s >= %s == %s" % (
+        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
             team_temp.id, now_date, next_archive_date, (now_date >= next_archive_date))
 
         if team_temp.archive_date is None or (now_date >= next_archive_date):
-            print >> sys.stderr, "Archiving: %s with archive date %s UTC at %s" % (team_temp.id, str(now), utc_timestamp())
-
-            scheduled_archive(request, team_temp.id, now)
-            TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
+            archive_survey(request, team_temp, archive_date=now)
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
 
-def scheduled_archive(request, survey_id, archive_date=timezone.now()):
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+def archive_survey(request, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    # Save Survey Summary for all survey teams
-    data = {'archived': True, 'archive_date': archive_date}
+    print >> sys.stderr, "Archiving %s with date %s UTC at %s" % (survey.id, str(archive_date), utc_timestamp())
 
+    # Save Survey Summary for all survey teams
     teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
 
     average_total = 0
@@ -612,7 +523,7 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
         average_count += 1
         average_responder_total += team_stats['count']
 
-        team_response_objects.update(**data)
+        team_response_objects.update({'archived': True, 'archive_date': archive_date})
 
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
     if average_count > 0:
@@ -623,6 +534,8 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
                                       team_name='Average',
                                       archive_date=archive_date)
         history.save()
+
+    survey.update({'archive_date': archive_date})
 
     return
 
@@ -797,15 +710,15 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     history_chart_table.LoadData(history_chart_data)
 
     # Creating a JSon string
-    json_history_chart_table = history_chart_table.ToJSon(columns_order=(history_chart_columns))
+    json_history_chart_table = history_chart_table.ToJSon(columns_order=history_chart_columns)
 
     historical_options = {
         'legendPosition': 'newRow',
         'title': survey_type_title + ' by Team',
-        'vAxis': {'title': survey_type_title},
+        'vAxis': {'title': survey_type_title,
+                  'ticks': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
         'hAxis': {'title': "Month"},
         'seriesType': "bars",
-        'vAxis': {'ticks': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
         'max': 12,
         'min': 0,
         'focusTarget': 'category',
@@ -1119,8 +1032,9 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
         if form.is_valid():
             # raise Exception('Form Is Valid:',form)
             csf = form.cleaned_data
-            if len(all_dept_names) > len(csf['filter_dept_names']) or len(all_region_names) > len(
-                csf['filter_region_names']) or len(all_site_names) > len(csf['filter_site_names']):
+            if len(all_dept_names) > len(csf['filter_dept_names']) \
+                or len(all_region_names) > len(csf['filter_region_names']) \
+                or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])
@@ -1152,3 +1066,27 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                                                   region_names_list_on=region_names_list_on,
                                                   site_names_list=all_site_names, site_names_list_on=site_names_list_on)
                       })
+
+
+def get_user(request):
+    userid = get_userid(request)
+    if userid:
+        return User.objects.get(id=userid)
+
+
+def get_or_create_user(request):
+    userid = get_userid(request)
+
+    if userid:
+        return User.objects.get_or_create(id=userid)
+    else:
+        user = None
+        tries = 5
+        while user is None and tries >= 0:
+            tries -= 1
+            userid = create_userid(request)
+            user = User.objects.create(id=userid)
+            if user:
+                return user, True
+
+    raise Exception("Can't create unique user")
