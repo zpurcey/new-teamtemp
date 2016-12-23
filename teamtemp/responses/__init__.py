@@ -1,6 +1,6 @@
 from teamtemp import utils
 
-USER_ID_KEY = 'userid'
+USER_ID_KEY = 'user_id'
 ADMIN_KEY = 'admin_for_surveys'
 
 
