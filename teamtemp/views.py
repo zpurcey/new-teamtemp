@@ -720,7 +720,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                   'ticks': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
         'hAxis': {'title': "Month"},
         'seriesType': "bars",
-        'max': 12,
+        'max': 10,
         'min': 0,
         'focusTarget': 'category',
         'tooltip': {'trigger': 'selection', 'isHtml': 'true'},
