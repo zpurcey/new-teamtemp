@@ -139,10 +139,10 @@ def authenticated_user(request, survey):
         return False
 
     if survey.creator.id == user.id:
-        responses.add_admin_for_survey(request, survey_id)
+        responses.add_admin_for_survey(request, survey.id)
         return True
 
-    if responses.is_admin_for_survey(request, survey_id):
+    if responses.is_admin_for_survey(request, survey.id):
         return True
 
     return False
@@ -434,34 +434,8 @@ def reset_view(request, survey_id):
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    if not authenticated_user(request, survey):
-        return HttpResponseRedirect('/admin/%s' % survey_id)
-
-    team_temp = TeamTemperature.objects.get(pk=survey_id)
-
-    # Save Survey Summary for all survey teams
-    arch_date = timezone.now()
-    data = {'archived': True, 'archive_date': arch_date}
-    teams = team_temp.temperature_responses.filter(archived=False).values('team_name').distinct()
-
-    for team in teams:
-        summary = None
-        summary_word_list = ""
-        team_stats, response_objects = team_temp.team_stats([team['team_name']])
-
-        summary_word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
-
-        summary = TeamResponseHistory(request=survey,
-                                      average_score=team_stats['average']['score__avg'],
-                                      word_list=summary_word_list,
-                                      responder_count=team_stats['count'],
-                                      team_name=team['team_name'],
-                                      archive_date=arch_date)
-        summary.save()
-
-        response_objects.update(**data)
-
-    print >> sys.stderr, "Archiving:  " + team_temp.id + " at " + str(arch_date)
+    if authenticated_user(request, survey):
+        archive_survey(request, survey)
 
     return HttpResponseRedirect('/admin/%s' % survey_id)
 
@@ -504,8 +478,6 @@ def auto_archive_surveys(request):
     now = timezone.now()
     now_date = timezone.localtime(now).date()
 
-    data = {'archive_date': now}
-
     for team_temp in team_temperatures:
         next_archive_date = timezone.localtime(
             team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
@@ -514,22 +486,17 @@ def auto_archive_surveys(request):
             team_temp.id, now_date, next_archive_date, (now_date >= next_archive_date))
 
         if team_temp.archive_date is None or (now_date >= next_archive_date):
-            print >> sys.stderr, "auto_archive_surveys: Archiving %s with archive date %s UTC at %s" % (
-                team_temp.id, str(now), utc_timestamp())
-
-            scheduled_archive(request, team_temp.id, now)
-            TeamTemperature.objects.filter(pk=team_temp.id).update(**data)
+            archive_survey(request, team_temp, archive_date=now)
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
 
-def scheduled_archive(request, survey_id, archive_date=timezone.now()):
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
+def archive_survey(request, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    # Save Survey Summary for all survey teams
-    data = {'archived': True, 'archive_date': archive_date}
+    print >> sys.stderr, "Archiving %s with date %s UTC at %s" % (survey.id, str(archive_date), utc_timestamp())
 
+    # Save Survey Summary for all survey teams
     teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
 
     average_total = 0
@@ -556,7 +523,7 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
         average_count += 1
         average_responder_total += team_stats['count']
 
-        team_response_objects.update(**data)
+        team_response_objects.update({'archived': True, 'archive_date': archive_date})
 
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
     if average_count > 0:
@@ -567,6 +534,8 @@ def scheduled_archive(request, survey_id, archive_date=timezone.now()):
                                       team_name='Average',
                                       archive_date=archive_date)
         history.save()
+
+    survey.update({'archive_date': archive_date})
 
     return
 
