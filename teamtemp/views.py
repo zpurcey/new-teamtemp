@@ -448,7 +448,7 @@ def cron_view(request, pin):
     if pin == cron_pin:
         auto_archive_surveys(request)
         prune_word_cloud_cache(request)
-        return HttpResponse()
+        return HttpResponse('ok', content_type='text/plain')
     else:
         print >> sys.stderr, "Cron 404: pin =" + pin + " expected = " + cron_pin
         raise Http404
