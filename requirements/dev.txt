@@ -1,0 +1,7 @@
+-r base.txt
+
+factory_boy>=2.8.1
+coverage>=4.3.1
+db-sqlite3>=0.0.1
+django-extensions>=1.7.3
+pydot>=1.2.2

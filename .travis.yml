@@ -1,0 +1,15 @@
+language: python
+install:
+  - pip install -U pip setuptools wheel coveralls
+  - pip install -r requirements.txt
+  - pip install -U codeclimate-test-reporter
+  - python manage.py collectstatic --no-input
+before_script:
+  - "export DATABASE_URL=sqlite:///:memory"
+script:
+  - coverage run manage.py test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  - coveralls
+  - codeclimate-test-reporter
+  - pip list -o
