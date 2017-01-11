@@ -37,8 +37,9 @@
               {% bootstrap_field form.word layout='vertical' size='sm' %}
             </div>
           </div>
-          {% buttons class="btn btn-primary" submit='Submit' %}{% endbuttons %}
-
+          {% buttons %}
+            {% bootstrap_button "Submit" button_type="submit" button_class="btn-primary" %}
+          {% endbuttons %}
         </form>
         {% if thanks %}
           <div class="info box">{{ thanks }}</div>

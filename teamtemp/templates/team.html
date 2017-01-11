@@ -57,7 +57,9 @@
           {% if survey_type != 'DEPT-REGION-SITE' %}
             </div><br>
           {% endif %}
-          {% buttons class="btn btn-primary" submit='Save' %}{% endbuttons %}
+          {% buttons %}
+            {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+          {% endbuttons %}
         </form>
         {{ team_name }} {{ dept_name }} {{ region_name }} {{ site_name }}
       </div>
