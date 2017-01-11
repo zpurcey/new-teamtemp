@@ -1,12 +1,12 @@
 language: python
+env:
+  - DATABASE_URL="sqlite:///:memory"
+  - DJANGO_SETTINGS_MODULE=teamtemp.settings.dev
 install:
   - pip install -U pip setuptools wheel coveralls
   - pip install -r requirements.txt
   - pip install -U codeclimate-test-reporter
   - python manage.py collectstatic --no-input
-before_script:
-  - "export DATABASE_URL=sqlite:///:memory"
-  - "export DJANGO_SETTINGS_MODULE=teamtemp.settings.dev"
 script:
   - coverage run manage.py test
 after_success:
