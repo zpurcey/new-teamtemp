@@ -113,7 +113,7 @@ class TemperatureResponse(models.Model):
                                                      self.archive_date)
 
     def clean(self):
-        self.word = self.word.lower()
+        self.word = self.word.lower().strip()
 
 
 class TeamResponseHistory(models.Model):
@@ -135,7 +135,7 @@ class TeamResponseHistory(models.Model):
                                                self.team_name, self.archive_date)
 
     def clean(self):
-        self.word_list = self.word_list.lower()
+        self.word_list = self.word_list.lower().strip()
 
 
 class Teams(models.Model):
