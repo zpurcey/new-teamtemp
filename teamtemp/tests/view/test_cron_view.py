@@ -1,3 +1,5 @@
+import re
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.conf import settings
@@ -16,3 +18,9 @@ class CronViewTestCases(TestCase):
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_cron_view_wrong_pin(self):
+        url = reverse('cron', kwargs={'pin': '6666'})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

@@ -454,7 +454,7 @@ def cron_view(request, pin):
         prune_word_cloud_cache(request)
         return HttpResponse('ok', content_type='text/plain')
     else:
-        print >> sys.stderr, "Cron 404: pin =" + pin + " expected = " + cron_pin
+        print >> sys.stderr, "Cron 404: pin = " + pin + " expected = " + cron_pin
         raise Http404
 
 
