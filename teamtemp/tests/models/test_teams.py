@@ -13,7 +13,7 @@ class TeamTestCases(TestCase):
         self.assertRegexpMatches(str(team), "^%d: %s %s " % (team.id, team.request.id, team.team_name))
 
     def test_pretty_team_name(self):
-        team = TeamFactory(team_name = 'bob-and-his-friends')
+        team = TeamFactory(team_name = 'bob_and_his_friends')
         self.assertEqual(team.pretty_team_name(), 'bob and his friends')
 
     def test_uniq_team_names(self):
