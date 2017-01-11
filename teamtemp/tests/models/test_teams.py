@@ -10,6 +10,7 @@ class TeamTestCases(TestCase):
         self.assertTrue(len(team.team_name) > 0)
         self.assertIsNotNone(team.creation_date)
         self.assertIsNotNone(team.modified_date)
+        self.assertRegexpMatches(str(team), "^%d: %s %s " % (team.id, team.request.id, team.team_name))
 
     def test_uniq_team_names(self):
         team1 = TeamFactory()

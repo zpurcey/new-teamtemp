@@ -9,6 +9,7 @@ class UserTestCases(TestCase):
         user = UserFactory()
         self.assertTrue(len(user.id) > 0)
         self.assertIsNotNone(user.creation_date)
+        self.assertEqual(str(user), "%s: %s" % (user.id, user.creation_date))
 
     def test_uniq_user_ids(self):
         user1 = UserFactory()

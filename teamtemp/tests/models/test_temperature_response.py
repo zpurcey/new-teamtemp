@@ -11,6 +11,7 @@ class TemperatureResponseTestCases(TestCase):
         self.assertTrue(len(response.team_name) > 0)
         self.assertIsNotNone(response.response_date)
         self.assertIsNotNone(response.request)
+        self.assertRegexpMatches(str(response), "^%d: %s %s %d %s %s " % (response.id, response.request.id, response.responder.id, response.score, response.word, response.team_name)) 
 
     def test_multiple_responses_for_user_and_survey(self):
         user = UserFactory()

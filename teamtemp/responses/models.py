@@ -11,7 +11,7 @@ class WordCloudImage(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
-        return u"{} {} {}".format(self.creation_date, self.word_list, self.image_url)
+        return u"{}: {} {} {} {}".format(self.id, self.creation_date, self.word_hash, self.word_list, self.image_url)
 
     def clean(self):
         self.word_list = self.word_list.lower().strip()
@@ -23,7 +23,7 @@ class User(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
-        return u"{}".format(self.id)
+        return u"{}: {}".format(self.id, self.creation_date)
 
 
 def _stats_for(query_set):

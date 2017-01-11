@@ -1,3 +1,5 @@
+import re
+
 from django.test import TestCase
 from django.forms import ValidationError
 
@@ -11,6 +13,7 @@ class TeamTemperatureTestCases(TestCase):
         self.assertIsNotNone(teamtemp.creation_date)
         self.assertIsNotNone(teamtemp.modified_date)
         self.assertEqual(teamtemp.survey_type, 'TEAMTEMP')
+        self.assertRegexpMatches(str(teamtemp), "%s: %s %s " % (teamtemp.id, teamtemp.creator.id, re.escape(str(teamtemp.creation_date))))
 
     def test_customer_feedback(self):
         teamtemp = TeamTemperatureFactory(survey_type='CUSTOMERFEEDBACK')
