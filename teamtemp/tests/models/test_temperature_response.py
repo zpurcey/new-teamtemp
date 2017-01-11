@@ -1,3 +1,5 @@
+import itertools
+
 from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, UserFactory
@@ -31,17 +33,20 @@ class TemperatureResponseTestCases(TestCase):
         self.assertEqual(teamtemp2.temperature_responses.count(), 1)
 
     def test_multiple_responses_for_a_survey(self):
-        user1 = UserFactory()
-        user2 = UserFactory()
         teamtemp = TeamTemperatureFactory()
-        response1 = TemperatureResponseFactory(request=teamtemp, responder=user1)
-        response2 = TemperatureResponseFactory(request=teamtemp, responder=user2)
-        self.assertEqual(teamtemp.temperature_responses.count(), 2)
+        response1 = TemperatureResponseFactory(request=teamtemp)
+        response2 = TemperatureResponseFactory(request=teamtemp)
+        response3 = TemperatureResponseFactory(request=teamtemp, word=response2.word)
+        self.assertEqual(teamtemp.temperature_responses.count(), 3)
 
         stats, query_set = teamtemp.stats()
 
-        self.assertEqual(stats['count'], 2)
-        self.assertEqual(stats['average']['score__avg'], float(response1.score + response2.score) / 2)
-        self.assertEqual(sorted(map(lambda x: x['word'], stats['words'])), sorted([response1.word, response2.word]))
+        self.assertEqual(stats['count'], 3)
+        self.assertEqual(stats['average']['score__avg'], float(response1.score + response2.score + response3.score) / 3)
 
-        self.assertEqual(query_set.count(), 2)
+        words = map(lambda x: [x['word']] * x['id__count'], stats['words'])
+        flat_words = sorted(itertools.chain(*words))
+
+        self.assertEqual(flat_words, sorted([response1.word, response2.word, response3.word]))
+
+        self.assertEqual(query_set.count(), 3)
