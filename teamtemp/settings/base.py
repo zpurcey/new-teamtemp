@@ -82,9 +82,6 @@ STATICFILES_FINDERS = (
 
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
