@@ -6,6 +6,7 @@ install:
   - python manage.py collectstatic --no-input
 before_script:
   - "export DATABASE_URL=sqlite:///:memory"
+  - "export DJANGO_SETTINGS_MODULE=teamtemp.settings.dev"
 script:
   - coverage run manage.py test
 after_success:
