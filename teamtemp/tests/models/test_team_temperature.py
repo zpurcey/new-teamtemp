@@ -15,6 +15,12 @@ class TeamTemperatureTestCases(TestCase):
         self.assertEqual(teamtemp.survey_type, 'TEAMTEMP')
         self.assertRegexpMatches(str(teamtemp), "%s: %s %s " % (teamtemp.id, teamtemp.creator.id, re.escape(str(teamtemp.creation_date))))
 
+        stats, query_set = teamtemp.stats()
+        self.assertEqual(stats['count'], 0)
+        self.assertIsNone(stats['average']['score__avg'])
+        self.assertEqual(stats['words'].count(), 0)
+        self.assertEqual(query_set.count(), 0)
+
     def test_customer_feedback(self):
         teamtemp = TeamTemperatureFactory(survey_type='CUSTOMERFEEDBACK')
         self.assertTrue(len(teamtemp.id) > 0)
