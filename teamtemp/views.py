@@ -118,6 +118,7 @@ def home_view(request, survey_type='TEAMTEMP'):
                                      archive_schedule=7,
                                      default_tz='UTC'
                                      )
+            survey.full_clean()
             survey.save()
 
             responses.add_admin_for_survey(request, survey.id)
@@ -205,6 +206,7 @@ def set_view(request, survey_id):
             survey.site_names = srf['site_names']
             survey.default_tz = srf['default_tz']
             survey.max_word_count = srf['max_word_count']
+            survey.full_clean()
             survey.save()
 
             if srf['current_team_name'] != '' and srf['new_team_name'] != '':
@@ -271,6 +273,7 @@ def submit_view(request, survey_id, team_name=''):
                                            responder=user,
                                            team_name=team_name,
                                            response_date=timezone.now())
+            response.full_clean()
             response.save()
             response_id = response.id
             form = SurveyResponseForm(instance=response, max_word_count=survey.max_word_count)
@@ -330,6 +333,7 @@ def admin_view(request, survey_id, team_name=''):
         team_found = survey.teams.filter(team_name=team_name).count()
         if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
             team_details = Teams(request=survey, team_name=team_name)
+            team_details.full_clean()
             team_details.save()
         results = survey.temperature_responses.filter(team_name=team_name, archived=False)
     else:
@@ -517,6 +521,7 @@ def archive_survey(request, survey, archive_date=timezone.now()):
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
                                       archive_date=archive_date)
+        history.full_clean()
         history.save()
 
         average_total += team_stats['average']['score__avg']
@@ -533,9 +538,11 @@ def archive_survey(request, survey, archive_date=timezone.now()):
                                       responder_count=average_responder_total,
                                       team_name='Average',
                                       archive_date=archive_date)
+        history.full_clean()
         history.save()
 
     survey.archive_date = archive_date
+    survey.full_clean()
     survey.save()
 
     return
@@ -568,6 +575,7 @@ def filter_view(request, survey_id):
                                      dept_name=dept_name,
                                      region_name=region_name,
                                      site_name=site_name)
+                team_details.full_clean()
                 team_details.save()
             return HttpResponseRedirect('/admin/%s' % survey_id)
         else:
@@ -612,6 +620,7 @@ def team_view(request, survey_id, team_name=''):
                                      dept_name=dept_name,
                                      region_name=region_name,
                                      site_name=site_name)
+                team_details.full_clean()
                 team_details.save()
             elif team:
                 # print >>sys.stderr,"creating with team.id: " + str(team.id)
@@ -619,6 +628,7 @@ def team_view(request, survey_id, team_name=''):
                 team.dept_name = dept_name
                 team.region_name = region_name
                 team.site_name = site_name
+                team.full_clean()
                 team.save()
 
             return HttpResponseRedirect('/admin/%s' % survey_id)
@@ -884,6 +894,7 @@ def cached_word_cloud(word_list):
     if word_cloudurl:
         word_cloud = WordCloudImage(word_list=words, word_hash=word_hash,
                                     image_url=word_cloudurl)
+        word_cloud.full_clean()
         word_cloud.save()
 
     return word_cloudurl
