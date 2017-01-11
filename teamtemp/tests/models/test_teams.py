@@ -29,7 +29,7 @@ class TeamTestCases(TestCase):
         self.assertEqual(team1.request.id, team2.request.id)
         self.assertEqual(teamtemp.teams.count(), 2)
 
-    def test_duplicate_team_names_for_different_requests(self):
+    def test_duplicate_team_names(self):
         teamtemp = TeamTemperatureFactory()
         with self.assertRaises(ValidationError):
             team1 = TeamFactory(team_name='bob', request=teamtemp)
