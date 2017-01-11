@@ -1,62 +1,86 @@
+import datetime
+import hashlib
+import random
 import string
 
 import factory
-import factory.fuzzy
+from factory.fuzzy import FuzzyInteger, FuzzyDecimal, FuzzyText
+
+from factory_djoy import CleanModelFactory
 
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 
 from teamtemp import utils
-from teamtemp.responses.models import TeamResponseHistory, Teams, TeamTemperature, TemperatureResponse, User, WordCloudImage
+from teamtemp.responses.models import TeamResponseHistory, Teams, \
+        TeamTemperature, TemperatureResponse, User, WordCloudImage
 
+from faker import Faker
 
-class UserFactory(factory.django.DjangoModelFactory):
+fake = Faker()
+
+class UserFactory(CleanModelFactory):
     class Meta:
         model = User
         django_get_or_create = ('id',)
 
-    id = utils.random_string(32)
+    id = FuzzyText(length=32, chars=utils.chars)
 
 
-class TeamTemperatureFactory(factory.django.DjangoModelFactory):
+class TeamTemperatureFactory(CleanModelFactory):
     class Meta:
         model = TeamTemperature
-        django_get_or_create = ('id', 'survey_type', 'creator')
+        django_get_or_create = ('id',)
 
-    id = utils.random_string(8)
+    id = FuzzyText(length=8, chars=utils.chars)
     creator = factory.SubFactory(UserFactory)
     password = make_password('testing')
 
 
-class TeamFactory(factory.django.DjangoModelFactory):
+class TeamFactory(CleanModelFactory):
     class Meta:
         model = Teams
         django_get_or_create = ('team_name',)
 
     request = factory.SubFactory(TeamTemperatureFactory)
-    name = factory.Sequence(lambda n: 'Tag-%d' % n)
+    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
 
 
-class TemperatureResponse(factory.django.DjangoModelFactory):
+class TemperatureResponseFactory(CleanModelFactory):
     class Meta:
         model = TemperatureResponse
 
     request = factory.SubFactory(TeamTemperatureFactory)
     responder = factory.SubFactory(UserFactory)
-    score = factory.FuzzyInteger(1, 10)
-    word = factory.fuzzy.FuzzyText(length=32, chars=string.ascii_letters)
-    response_date = factory.LazyFunction(timezone.now())
-    team = factory.SubFactory(TeamsFactory)
-    team_name = factory.LazyAttribute(lambda a: a.team.team_name)
+    score = FuzzyInteger(1, 10)
+    word = FuzzyText(length=random.randint(2, 32), chars=(string.ascii_letters + '-'))
+    response_date = factory.LazyFunction(timezone.now)
+    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
 
 
-class TeamResponseHistoryFactory(factory.django.DjangoModelFactory):
+class TeamResponseHistoryFactory(CleanModelFactory):
     class Meta:
         model = TeamResponseHistory
 
     request = factory.SubFactory(TeamTemperatureFactory)
-    average_score = factory.FuzzyFloat(1, 10)
-    responder_count = factory.FuzzyInt(1,25)
-    word_list = factory.LazyAttribute(lambda a: (factory.fuzzy.FuzzyText(length=factory.FuzzyInt(2,32), chars=string.ascii_letters) for i in range(1, a.responder_count))
-    name = factory.Sequence(lambda n: 'Team %d' % n)
-    short_desc = 'Test Team Short Description'
+    average_score = FuzzyDecimal(1, 10, 5)
+    responder_count = FuzzyInteger(1, 25)
+    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
+    archive_date = factory.LazyFunction(timezone.now)
+
+    @factory.lazy_attribute
+    def word_list(self):
+        return fake.words(nb=self.responder_count)
+
+
+class WordCloudImageFactory(CleanModelFactory):
+    class Meta:
+        model = WordCloudImage
+
+    word_list = ' '.join(fake.words(nb=random.randint(1, 25)))
+    image_url = "/%s/%s" % (fake.uri_path(), fake.file_name(category='image'))
+    creation_date = factory.LazyFunction(timezone.now)
+
+    @factory.lazy_attribute
+    def word_hash(self):
+        return hashlib.sha1(self.word_list).hexdigest()
