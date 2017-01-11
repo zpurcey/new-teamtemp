@@ -1,8 +1,10 @@
 import pytz
+import hashlib
 from django.db import models
 
 
 class WordCloudImage(models.Model):
+    id = models.AutoField(primary_key=True)
     word_hash = models.CharField(max_length=40, db_index=True)
     word_list = models.CharField(max_length=5000)
     image_url = models.CharField(max_length=255)
@@ -12,7 +14,8 @@ class WordCloudImage(models.Model):
         return u"{} {} {}".format(self.creation_date, self.word_list, self.image_url)
 
     def clean(self):
-        self.word_list = self.word_list.lower()
+        self.word_list = self.word_list.lower().strip()
+        self.word_hash = hashlib.sha1(self.word_list).hexdigest()
 
 
 class User(models.Model):
@@ -48,7 +51,7 @@ class TeamTemperature(models.Model):
     creator = models.ForeignKey(User, related_name="team_temperatures")
     password = models.CharField(max_length=256)
     archive_schedule = models.IntegerField(default=0)
-    archive_date = models.DateTimeField(null=True)
+    archive_date = models.DateTimeField(blank=True, null=True)
     survey_type = models.CharField(default=TEAM_TEMP, choices=SURVEY_TYPE_CHOICES, max_length=20, db_index=True)
     dept_names = models.CharField(blank=True, null=True, max_length=64)
     region_names = models.CharField(blank=True, null=True, max_length=64)
@@ -92,14 +95,15 @@ class TeamTemperature(models.Model):
 
 
 class TemperatureResponse(models.Model):
+    id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
     responder = models.ForeignKey(User, related_name="temperature_responses")
     score = models.IntegerField()
     word = models.CharField(max_length=32)
-    team_name = models.CharField(max_length=64, null=True, db_index=True)
+    team_name = models.CharField(max_length=64, db_index=True)
     archived = models.BooleanField(default=False, db_index=True)
-    response_date = models.DateTimeField(null=True, db_index=True)
-    archive_date = models.DateTimeField(null=True, db_index=True)
+    response_date = models.DateTimeField(db_index=True)
+    archive_date = models.DateTimeField(blank=True, null=True, db_index=True)
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id,
@@ -116,6 +120,7 @@ class TeamResponseHistory(models.Model):
     class Meta:
         verbose_name_plural = "Team response histories"
 
+    id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="team_response_histories")
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
     word_list = models.CharField(max_length=5000)
@@ -139,11 +144,12 @@ class Teams(models.Model):
         verbose_name_plural = "Teams"
         unique_together = ("request", "team_name")
 
+    id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="teams")
-    team_name = models.CharField(max_length=64, null=True, db_index=True)
-    dept_name = models.CharField(max_length=64, null=True, db_index=True)
-    site_name = models.CharField(max_length=64, null=True, db_index=True)
-    region_name = models.CharField(max_length=64, null=True, db_index=True)
+    team_name = models.CharField(max_length=64, db_index=True)
+    dept_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+    site_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+    region_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
