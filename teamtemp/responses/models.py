@@ -27,11 +27,11 @@ class User(models.Model):
 
 
 def _stats_for(query_set):
-    result = dict()
-    result['count'] = query_set.count()
-    result['average'] = query_set.aggregate(models.Avg('score'))
-    result['words'] = query_set.values('word').annotate(models.Count("id")).order_by()
-    return result, query_set
+    return {
+        'count':   query_set.count(),
+        'average': query_set.aggregate(models.Avg('score')),
+        'words':   query_set.values('word').annotate(models.Count("id")).order_by()
+    }, query_set
 
 
 class TeamTemperature(models.Model):
@@ -62,30 +62,22 @@ class TeamTemperature(models.Model):
     modified_date = models.DateTimeField(auto_now=True)
 
     def stats(self):
-        allresponses = self.temperature_responses.filter(archived=False)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(archived=False))
 
     def team_stats(self, team_name):
-        allresponses = self.temperature_responses.filter(team_name__in=team_name, archived=False)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, archived=False))
 
     def archive_stats(self, archive_date):
-        allresponses = self.temperature_responses.filter(archived=True, archive_date=archive_date)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(archived=True, archive_date=archive_date))
 
     def archive_team_stats(self, team_name, archive_date):
-        allresponses = self.temperature_responses.filter(team_name__in=team_name, archive_date=archive_date,
-                                                         archived=True)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, archive_date=archive_date, archived=True))
 
     def accumulated_stats(self, start_date, end_date):
-        allresponses = self.temperature_responses.filter(response_date__gte=end_date, response_date__lte=start_date)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(response_date__gte=end_date, response_date__lte=start_date))
 
     def accumulated_team_stats(self, team_name, start_date, end_date):
-        allresponses = self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date,
-                                                         response_date__lte=start_date)
-        return _stats_for(allresponses)
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date, response_date__lte=start_date))
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
