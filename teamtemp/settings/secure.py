@@ -18,3 +18,5 @@ CSRF_COOKIE_HTTPONLY = True
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ['TEAMTEMP_SECRET_KEY']
+
+DATABASES = {'default': dj_database_url.config()}
