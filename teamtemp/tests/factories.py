@@ -1,23 +1,20 @@
-import datetime
 import hashlib
 import random
 import string
 
 import factory
-from factory.fuzzy import FuzzyInteger, FuzzyDecimal, FuzzyText
-
-from factory_djoy import CleanModelFactory
-
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from factory.fuzzy import FuzzyInteger, FuzzyDecimal, FuzzyText
+from factory_djoy import CleanModelFactory
+from faker import Faker
 
 from teamtemp import utils
 from teamtemp.responses.models import TeamResponseHistory, Teams, \
-        TeamTemperature, TemperatureResponse, User, WordCloudImage
-
-from faker import Faker
+    TeamTemperature, TemperatureResponse, User, WordCloudImage
 
 fake = Faker()
+
 
 class UserFactory(CleanModelFactory):
     class Meta:

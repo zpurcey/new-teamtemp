@@ -1,5 +1,5 @@
-from django.test import TestCase
 from django.forms import ValidationError
+from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TeamFactory
 
@@ -13,7 +13,7 @@ class TeamTestCases(TestCase):
         self.assertRegexpMatches(str(team), "^%d: %s %s " % (team.id, team.request.id, team.team_name))
 
     def test_pretty_team_name(self):
-        team = TeamFactory(team_name = 'bob_and_his_friends')
+        team = TeamFactory(team_name='bob_and_his_friends')
         self.assertEqual(team.pretty_team_name(), 'bob and his friends')
 
     def test_uniq_team_names(self):
@@ -32,8 +32,8 @@ class TeamTestCases(TestCase):
     def test_duplicate_team_names(self):
         teamtemp = TeamTemperatureFactory()
         with self.assertRaises(ValidationError):
-            team1 = TeamFactory(team_name='bob', request=teamtemp)
-            team2 = TeamFactory(team_name='bob', request=teamtemp)
+            _ = TeamFactory(team_name='bob', request=teamtemp)
+            _ = TeamFactory(team_name='bob', request=teamtemp)
 
     def test_duplicate_team_names_for_different_requests(self):
         team1 = TeamFactory(team_name='bob')

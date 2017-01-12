@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 
 from teamtemp.settings.base import *
 

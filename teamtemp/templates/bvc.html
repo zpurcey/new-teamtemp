@@ -15,12 +15,12 @@
       <!-- Team Temp Gauge -->
       var avg = 0;
       if ( {{bvc_data.stats.count}} > 0 ) {
-        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) );
+        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) )
       }
 
       var gauge_data = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['', 0],
+        ['', 0]
       ]);
 
       var gauge_options = {
@@ -39,7 +39,7 @@
       setTimeout(function () {
         var gauge_data = google.visualization.arrayToDataTable([
           ['Label', 'Value'],
-          ['', avg],
+          ['', avg]
         ]);
         gaugeChart.draw(gauge_data, gauge_options);
       }, 200);

@@ -1,7 +1,7 @@
 import re
 
-from django.test import TestCase
 from django.forms import ValidationError
+from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, UserFactory
 
@@ -13,7 +13,8 @@ class TeamTemperatureTestCases(TestCase):
         self.assertIsNotNone(teamtemp.creation_date)
         self.assertIsNotNone(teamtemp.modified_date)
         self.assertEqual(teamtemp.survey_type, 'TEAMTEMP')
-        self.assertRegexpMatches(str(teamtemp), "%s: %s %s " % (teamtemp.id, teamtemp.creator.id, re.escape(str(teamtemp.creation_date))))
+        self.assertRegexpMatches(str(teamtemp), "%s: %s %s " % (
+            teamtemp.id, teamtemp.creator.id, re.escape(str(teamtemp.creation_date))))
 
         stats, query_set = teamtemp.stats()
         self.assertEqual(stats['count'], 0)
@@ -43,5 +44,5 @@ class TeamTemperatureTestCases(TestCase):
 
     def test_duplicate_teamtemp_ids(self):
         with self.assertRaises(ValidationError):
-            teamtemp1 = TeamTemperatureFactory(id='bob')
-            teamtemp2 = TeamTemperatureFactory(id='bob')
+            _ = TeamTemperatureFactory(id='bob')
+            _ = TeamTemperatureFactory(id='bob')

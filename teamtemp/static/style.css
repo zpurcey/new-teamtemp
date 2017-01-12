@@ -61,23 +61,11 @@ ul {
   text-align: left;
 }
 
-button_ {
-  background: none !important;
-  border: none;
-  padding: 0 !important;
-  font: inherit;
-  color: #0000EE;
-  /*border is optional*/
-  border-bottom: 1px solid #444;
-  cursor: pointer;
-}
-
-hidden {
+.hidden {
   display: none;
 }
 
 .google-visualization-tooltip {
-
   top: -125px !important;
   left: 200px !important;
   margin: 500px 0 0 0 !important;

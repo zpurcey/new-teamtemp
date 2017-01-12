@@ -1,5 +1,4 @@
 import errno
-import hashlib
 import json
 import os
 import sys
@@ -8,8 +7,7 @@ from datetime import timedelta
 from urlparse import urlparse
 
 import gviz_api
-import pytz
-import unirest as Unirest
+import unirest
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.http import Http404, HttpResponse
@@ -78,12 +76,12 @@ class TeamsViewSet(viewsets.ModelViewSet):
     order_fields = ('team_name',)
 
 
-def health_check_view(request):
+def health_check_view(_):
     return HttpResponse('ok', content_type='text/plain')
 
 
 @header('Cache-Control', 'public, max-age=86400')
-def robots_txt_view(request):
+def robots_txt_view(_):
     return HttpResponse('', content_type='text/plain')
 
 
@@ -256,9 +254,9 @@ def submit_view(request, survey_id, team_name=''):
     user, created = get_or_create_user(request)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    team = None
     if team_name != '':
-        team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
+        # ensuree team exists
+        _ = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
 
     thanks = ""
     if request.method == 'POST':
@@ -366,7 +364,7 @@ def generate_wordcloud(word_list):
     word_cloud_key = os.environ.get('XMASHAPEKEY')
     if word_cloud_key is not None:
         timeout = 25
-        Unirest.timeout(timeout)
+        unirest.timeout(timeout)
         word_list = word_list.lower()
         fixed_asp = "FALSE"
         rotate = "FALSE"
@@ -375,7 +373,7 @@ def generate_wordcloud(word_list):
             fixed_asp = "TRUE"
             rotate = "TRUE"
         print >> sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
-        response = Unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
+        response = unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type": "application/json", "Word-Cloud-Key": word_cloud_key},
                                 params=json.dumps({"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
                                                    "fixed_asp": fixed_asp, "rotate": rotate})
@@ -458,7 +456,7 @@ def cron_view(request, pin):
         raise Http404
 
 
-def prune_word_cloud_cache(request):
+def prune_word_cloud_cache(_):
     timezone.activate(timezone.utc)
     print >> sys.stderr, "prune_word_cloud_cache: Start at " + utc_timestamp()
 
@@ -495,7 +493,7 @@ def auto_archive_surveys(request):
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
 
-def archive_survey(request, survey, archive_date=timezone.now()):
+def archive_survey(_, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
     print >> sys.stderr, "Archiving %s with date %s UTC at %s" % (survey.id, str(archive_date), utc_timestamp())
@@ -551,7 +549,6 @@ def archive_survey(request, survey, archive_date=timezone.now()):
 def filter_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
-    survey_type = survey.survey_type
     dept_names = survey.dept_names
     region_names = survey.region_names
     site_names = survey.site_names
@@ -663,7 +660,6 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     #    json_history_chart_table
     #
     timezone.activate(pytz.timezone(tz))
-    num_rows = 0
     team_index = 0
     history_chart_schema = {"archive_date": ("datetime", "Archive_Date")}
     history_chart_columns = ('archive_date',)
@@ -675,8 +671,8 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
             team_index += 1
 
     # Add average heading if not already added for adhoc filtering
-    # if team_index > 1:
-    average_index = team_index
+    if team_index > 1:
+        average_index = team_index
     history_chart_schema.update({'Average': ("number", 'Average')})
     history_chart_columns += 'Average',
 
@@ -816,7 +812,6 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
 
         if dept_filter != survey_filter:
             filtered_teams = Teams.objects.filter(**dept_filter).values('team_name')
-            # print >>sys.stderr,'filtered_teams:',filtered_teams,Teams.objects.filter(**dept_filter).values('team_name')
             filtered_team_list = []
             for team in filtered_teams:
                 filtered_team_list.append(team['team_name'])
@@ -830,10 +825,8 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
     bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
     bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
 
-    tempresponse_filter = None
-    if archive_id == '':
-        tempresponse_filter = dict({'archived': False}, **team_filter)
-    else:
+    tempresponse_filter = dict({'archived': False}, **team_filter)
+    if archive_id != '':
         archive_set = TemperatureResponse.objects.filter(request__in=survey_id_list, id=archive_id).values(
             'archive_date')
         tempresponse_filter = dict({'archived': True}, **team_filter)
@@ -937,11 +930,10 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
 
 def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
     timezone.activate(pytz.timezone(tz))
-    iteration_index = 0
-    if num_iterations > 0:
-        iteration_index = num_iterations - 1
-    else:
+    if num_iterations <= 0:
         return None
+
+    iteration_index = num_iterations - 1
 
     archive_dates = survey.temperature_responses.filter(archive_date__isnull=False).values(
         'archive_date').distinct().order_by('-archive_date')
@@ -978,11 +970,9 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
 
     json_history_chart_table = None
     historical_options = {}
-    bvc_data = {}
     team_index = 0
 
     # Populate data for BVC including previously archived BVC
-    # bvc_data['archived_dates'] & ['archive_date'] & ['archived'] & ['stats_date'] & ['team_history'] & ['survey_teams']
     bvc_data = populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dept_names, region_names,
                                  site_names, survey.survey_type)
     bvc_data['survey_id'] = survey_id
@@ -1045,8 +1035,8 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
             # raise Exception('Form Is Valid:',form)
             csf = form.cleaned_data
             if len(all_dept_names) > len(csf['filter_dept_names']) \
-                or len(all_region_names) > len(csf['filter_region_names']) \
-                or len(all_site_names) > len(csf['filter_site_names']):
+                    or len(all_region_names) > len(csf['filter_region_names']) \
+                    or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])

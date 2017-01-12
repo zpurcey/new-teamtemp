@@ -1,5 +1,5 @@
-from django.test import TestCase
 from django.forms import ValidationError
+from django.test import TestCase
 
 from teamtemp.tests.factories import UserFactory
 
@@ -18,5 +18,5 @@ class UserTestCases(TestCase):
 
     def test_duplicate_user_ids(self):
         with self.assertRaises(ValidationError):
-            user1 = UserFactory(id='bob')
-            user2 = UserFactory(id='bob')
+            _ = UserFactory(id='bob')
+            _ = UserFactory(id='bob')

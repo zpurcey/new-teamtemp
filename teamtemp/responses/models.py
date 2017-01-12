@@ -1,5 +1,6 @@
-import pytz
 import hashlib
+
+import pytz
 from django.db import models
 
 
@@ -28,10 +29,10 @@ class User(models.Model):
 
 def _stats_for(query_set):
     return {
-        'count':   query_set.count(),
-        'average': query_set.aggregate(models.Avg('score')),
-        'words':   query_set.values('word').annotate(models.Count("id")).order_by()
-    }, query_set
+               'count': query_set.count(),
+               'average': query_set.aggregate(models.Avg('score')),
+               'words': query_set.values('word').annotate(models.Count("id")).order_by()
+           }, query_set
 
 
 class TeamTemperature(models.Model):
@@ -71,13 +72,15 @@ class TeamTemperature(models.Model):
         return _stats_for(self.temperature_responses.filter(archived=True, archive_date=archive_date))
 
     def archive_team_stats(self, team_name, archive_date):
-        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, archive_date=archive_date, archived=True))
+        return _stats_for(
+            self.temperature_responses.filter(team_name__in=team_name, archive_date=archive_date, archived=True))
 
     def accumulated_stats(self, start_date, end_date):
         return _stats_for(self.temperature_responses.filter(response_date__gte=end_date, response_date__lte=start_date))
 
     def accumulated_team_stats(self, team_name, start_date, end_date):
-        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date, response_date__lte=start_date))
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date,
+                                                            response_date__lte=start_date))
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,

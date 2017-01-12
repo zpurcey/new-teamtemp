@@ -1,6 +1,5 @@
 # Django settings for teamtemp project.
 import os
-import dj_database_url
 
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
 
