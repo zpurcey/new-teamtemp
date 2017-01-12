@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TeamFactory, TeamResponseHistoryFactory
@@ -20,3 +21,7 @@ class TeamResponseHistoryTestCases(TestCase):
         response_history1 = TeamResponseHistoryFactory(request=teamtemp, team_name=team.team_name)
         response_history2 = TeamResponseHistoryFactory(request=teamtemp, team_name=team.team_name)
         self.assertEqual(teamtemp.team_response_histories.count(), 2)
+
+    def test_response_history_float(self):
+        response_history = TeamResponseHistoryFactory(average_score = ("%.5f" % float(1 / float(3))))
+        self.assertEqual(response_history.average_score, Decimal("0.33333"))

@@ -516,7 +516,7 @@ def archive_survey(request, survey, archive_date=timezone.now()):
         average_word_list += word_list + " "
 
         history = TeamResponseHistory(request=survey,
-                                      average_score=team_stats['average']['score__avg'],
+                                      average_score=("%.5f" % float(team_stats['average']['score__avg'])),
                                       word_list=word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
@@ -533,7 +533,7 @@ def archive_survey(request, survey, archive_date=timezone.now()):
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
     if average_count > 0:
         history = TeamResponseHistory(request=survey,
-                                      average_score=average_total / float(average_count),
+                                      average_score=("%.5f" % float(average_total / float(average_count))),
                                       word_list=average_word_list.strip(),
                                       responder_count=average_responder_total,
                                       team_name='Average',
