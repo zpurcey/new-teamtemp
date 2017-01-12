@@ -33,7 +33,7 @@ class WordCloudImageViewSet(viewsets.ModelViewSet):
     serializer_class = WordCloudImageSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
     filter_fields = ('creation_date', 'word_hash', 'image_url',)
-    order_fields = ('id', 'creation_date', 'modified_date', 'word_hash')
+    order_fields = ('id', 'creation_date', 'word_hash')
     search_fields = ('word_list', 'word_hash', 'image_url')
 
 
@@ -41,8 +41,8 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter,)
-    filter_fields = ('creation_date', 'modified_date')
-    order_fields = ('id', 'creation_date', 'modified_date')
+    filter_fields = ('creation_date',)
+    order_fields = ('id', 'creation_date')
 
 
 class TeamTemperatureViewSet(viewsets.ModelViewSet):
