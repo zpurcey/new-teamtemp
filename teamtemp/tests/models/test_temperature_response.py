@@ -2,7 +2,7 @@ import itertools
 
 from django.test import TestCase
 
-from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, UserFactory
+from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, UserFactory, TeamFactory
 
 
 class TemperatureResponseTestCases(TestCase):
@@ -51,3 +51,18 @@ class TemperatureResponseTestCases(TestCase):
         self.assertEqual(flat_words, sorted([response1.word, response2.word, response3.word]))
 
         self.assertEqual(query_set.count(), 3)
+
+    def test_forbid_multiple_responses_for_user(self):
+        user = UserFactory()
+        team = TeamFactory()
+        teamtemp = team.request
+        response1 = TemperatureResponseFactory(request=teamtemp, team_name=team.team_name, responder=user)
+        response2 = TemperatureResponseFactory(request=teamtemp, team_name=team.team_name, responder=user)
+        print "\n"
+        print str(response1.__dict__)
+        print "\n"
+        print str(response2.__dict__)
+        print "\n"
+        self.assertEqual(user.temperature_responses.count(), 1)
+        self.assertEqual(teamtemp.temperature_responses.count(), 1)
+
