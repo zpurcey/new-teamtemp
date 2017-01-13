@@ -90,6 +90,9 @@ class TeamTemperature(models.Model):
 
 
 class TemperatureResponse(models.Model):
+    class Meta:
+        unique_together = ("request", "responder", "team_name", "archive_date")
+
     id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
     responder = models.ForeignKey(User, related_name="temperature_responses")
