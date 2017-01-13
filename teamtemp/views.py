@@ -380,13 +380,13 @@ def generate_wordcloud(word_list, word_hash):
         if word_count < 20:
             fixed_asp = "TRUE"
             rotate = "TRUE"
-        print >> sys.stderr, "Start Word Cloud Generation: [%s] %s %s" % (word_hash, word_list, utc_timestamp())
+        print >> sys.stderr, "Start Word Cloud Generation: [%s] %s" % (word_hash, word_list)
         response = unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type": "application/json", "Word-Cloud-Key": word_cloud_key},
                                 params=json.dumps({"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
                                                    "fixed_asp": fixed_asp, "rotate": rotate})
                                 )
-        print >> sys.stderr, "Finish Word Cloud Generation: [%s] %s response_code=%d %s" % (word_hash, word_list, response.code, utc_timestamp())
+        print >> sys.stderr, "Finish Word Cloud Generation: [%s] response_code=%d" % (word_hash, response.code)
         if response.code == 200:
             return save_url(response.body['url'], 'wordcloud_images', word_hash)
 
@@ -435,16 +435,16 @@ def save_url(url, directory, basename):
     return_url = media_url(url, directory, basename)
     filename = media_file(url, directory, basename)
 
-    print >> sys.stderr, "Saving Word Cloud: %s as %s (%s) %s" % (url, filename, return_url, utc_timestamp())
+    print >> sys.stderr, "Saving Word Cloud: %s as %s" % (url, filename)
 
     if not os.path.exists(filename):
         try:
             urllib.urlretrieve(url, filename)
         except IOError as exc:
-            print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s %s" % (str(exc), url, filename, utc_timestamp())
+            print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename)
             return None
         except urllib.ContentTooShortError as exc:
-            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s %s" % (str(exc), url, filename, utc_timestamp())
+            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (str(exc), url, filename)
             return None
 
     return return_url
@@ -894,10 +894,10 @@ def cached_word_cloud(word_list):
         filename = media_file(word_cloud_image.image_url, 'wordcloud_images')
 
         if os.path.isfile(filename):
-            print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " found"
+            print >> sys.stderr, "Cached Word Cloud: " + filename + " found"
             return word_cloud_image.image_url
         else:
-            print >> sys.stderr, utc_timestamp() + " Cached Word Cloud: " + filename + " doesn't exist"
+            print >> sys.stderr, "Cached Word Cloud: " + filename + " not found"
             # Most recent word cloud has been deleted: remove all for this word list from db and then regenerate
             word_cloud_objects.delete()
 
