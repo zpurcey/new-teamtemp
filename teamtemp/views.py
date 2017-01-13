@@ -186,8 +186,8 @@ def set_view(request, survey_id):
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"),
                                                 srf['new_team_name'].replace(" ", "_"), survey.id)
-                print >> sys.stderr, "Team Name Updated:  " + str(rows_changed) + " From: " + srf[
-                    'current_team_name'] + " To: " + srf['new_team_name']
+                print >> sys.stderr, "Team Name Updated: " + str(rows_changed) + " From: '" + srf[
+                    'current_team_name'] + "' To: '" + srf['new_team_name'] + "'"
             if srf['censored_word'] != '':
                 rows_changed = censor_word(srf['censored_word'], survey.id)
                 print >> sys.stderr, "Word removed:  " + str(rows_changed) + " word removed: " + srf[
@@ -368,7 +368,7 @@ def admin_view(request, survey_id, team_name=''):
                    })
 
 
-def generate_wordcloud(word_list):
+def generate_wordcloud(word_list, word_hash):
     word_cloud_key = os.environ.get('XMASHAPEKEY')
     if word_cloud_key is not None:
         timeout = 25
@@ -380,15 +380,16 @@ def generate_wordcloud(word_list):
         if word_count < 20:
             fixed_asp = "TRUE"
             rotate = "TRUE"
-        print >> sys.stderr, str(timezone.now()) + " Start Word Cloud Generation: " + word_list
+        print >> sys.stderr, "Start Word Cloud Generation: [%s] %s %s" % (word_hash, word_list, utc_timestamp())
         response = unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Content-Type": "application/json", "Word-Cloud-Key": word_cloud_key},
                                 params=json.dumps({"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
                                                    "fixed_asp": fixed_asp, "rotate": rotate})
                                 )
-        print >> sys.stderr, str(timezone.now()) + " Finish Word Cloud Generation: " + word_list
+        print >> sys.stderr, "Finish Word Cloud Generation: [%s] %s response_code=%d %s" % (word_hash, word_list, response.code, utc_timestamp())
         if response.code == 200:
-            return save_url(response.body['url'], 'wordcloud_images')
+            return save_url(response.body['url'], 'wordcloud_images', word_hash)
+
     return None
 
 
@@ -406,40 +407,44 @@ def media_dir(directory):
     return media_directory
 
 
-def media_basename(src):
+def media_filename(src, basename=None):
     name = urlparse(src).path.split('/')[-1]
+    if basename:
+        ext = name.split('.')[-1]
+        if ext:
+            return '.'.join([basename, ext])
+        else:
+            return basename
     return name
 
 
-def media_url(src, directory):
-    image_name = media_basename(src)
+def media_url(src, directory, basename=None):
+    image_name = media_filename(src, basename)
     url = os.path.join(settings.MEDIA_URL, os.path.join(directory, image_name))
     return url
 
 
-def media_file(src, directory):
-    image_name = media_basename(src)
+def media_file(src, directory, basename=None):
+    image_name = media_filename(src, basename)
     media_directory = media_dir(directory)
     filename = os.path.join(media_directory, image_name)
     return filename
 
 
-def save_url(url, directory):
-    return_url = media_url(url, directory)
-    filename = media_file(url, directory)
+def save_url(url, directory, basename):
+    return_url = media_url(url, directory, basename)
+    filename = media_file(url, directory, basename)
 
-    print >> sys.stderr, str(
-        timezone.now()) + " Saving Word Cloud: " + url + " as " + filename + " (" + return_url + ")"
+    print >> sys.stderr, "Saving Word Cloud: %s as %s (%s) %s" % (url, filename, return_url, utc_timestamp())
 
     if not os.path.exists(filename):
-        print >> sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + filename + " doesn't exist"
         try:
             urllib.urlretrieve(url, filename)
         except IOError as exc:
-            print >> sys.stderr, str(timezone.now()) + " Failed Saving Word Cloud: IOError for " + url + " as " + filename + " (" + return_url + ")"
+            print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s %s" % (str(exc), url, filename, utc_timestamp())
             return None
         except urllib.ContentTooShortError as exc:
-            print >> sys.stderr, str(timezone.now()) + " Failed Saving Word Cloud: ContentTooShortError for " + url + " as " + filename + " (" + return_url + ")"
+            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s %s" % (str(exc), url, filename, utc_timestamp())
             return None
 
     return return_url
@@ -896,7 +901,7 @@ def cached_word_cloud(word_list):
             # Most recent word cloud has been deleted: remove all for this word list from db and then regenerate
             word_cloud_objects.delete()
 
-    word_cloudurl = generate_wordcloud(words)
+    word_cloudurl = generate_wordcloud(words, word_hash)
 
     if word_cloudurl:
         word_cloud = WordCloudImage(word_list=words, word_hash=word_hash,
