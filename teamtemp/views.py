@@ -261,7 +261,7 @@ def submit_view(request, survey_id, team_name=''):
     response = None
     if request.method == 'POST' and request.POST.get('id', None):
         try:
-            response = TemperatureResponse.objects.get(response_id=request.POST.get('id'))
+            response = TemperatureResponse.objects.get(id=request.POST.get('id'))
         except TemperatureResponse.DoesNotExist:
             pass
 
