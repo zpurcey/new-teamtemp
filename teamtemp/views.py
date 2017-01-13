@@ -309,7 +309,8 @@ def submit_view(request, survey_id, team_name=''):
         word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
 
     return render(request, 'form.html', {'form': form, 'thanks': thanks,
-                                         'response_id': response.id, 'survey_type_title': survey_type_title,
+                                         'response_id': response.id if response else None,
+                                         'survey_type_title': survey_type_title,
                                          'temp_question_title': temp_question_title,
                                          'word_question_title': word_question_title,
                                          'team_name': team_name, 'pretty_team_name': team_name.replace("_", " "),
