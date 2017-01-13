@@ -433,8 +433,14 @@ def save_url(url, directory):
 
     if not os.path.exists(filename):
         print >> sys.stderr, str(timezone.now()) + " Saving Word Cloud: " + filename + " doesn't exist"
-        urllib.urlretrieve(url, filename)
-        # TODO if error return None
+        try:
+            urllib.urlretrieve(url, filename)
+        except IOError as exc:
+            print >> sys.stderr, str(timezone.now()) + " Failed Saving Word Cloud: IOError for " + url + " as " + filename + " (" + return_url + ")"
+            return None
+        except urllib.ContentTooShortError as exc:
+            print >> sys.stderr, str(timezone.now()) + " Failed Saving Word Cloud: ContentTooShortError for " + url + " as " + filename + " (" + return_url + ")"
+            return None
 
     return return_url
 
