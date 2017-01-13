@@ -612,7 +612,7 @@ def team_view(request, survey_id, team_name=''):
                            region_names_list=region_names_list, site_names_list=site_names_list)
         if form.is_valid():
             csf = form.cleaned_data
-            team_name = csf['team_name'].upper().replace(" ", "_")
+            team_name = csf['team_name'].replace(" ", "_")
             dept_name = csf['dept_name']
             region_name = csf['region_name']
             site_name = csf['site_name']
