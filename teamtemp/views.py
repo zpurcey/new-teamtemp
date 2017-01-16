@@ -500,9 +500,8 @@ def auto_archive_surveys(request):
     for team_temp in team_temperatures:
         team_temp.fill_next_archive_date()
 
-        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s (now=%s archive_date=%s next_archive_date=%s)" % (
-            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date), now,
-            team_temp.archive_date, team_temp.next_archive_date)
+        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
+            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date))
 
         if team_temp.archive_date is None or (now_date >= team_temp.next_archive_date):
             archive_survey(request, team_temp, archive_date=now)

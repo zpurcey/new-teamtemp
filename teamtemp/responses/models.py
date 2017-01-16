@@ -102,7 +102,9 @@ class TeamTemperature(models.Model):
             if self.next_archive_date is None:
                 self.fill_next_archive_date()
 
-            self.next_archive_date = self.next_archive_date + timedelta(days=self.archive_schedule)
+            now = timezone.now().date()
+            while self.next_archive_date < now:
+                self.next_archive_date = self.next_archive_date + timedelta(days=self.archive_schedule)
 
         return self.next_archive_date
 
