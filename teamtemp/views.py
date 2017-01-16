@@ -10,6 +10,7 @@ import gviz_api
 import unirest
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
+from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from django.utils import timezone
@@ -512,6 +513,7 @@ def auto_archive_surveys(request):
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
 
 
+@transaction.atomic
 def archive_survey(_, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
@@ -653,7 +655,6 @@ def team_view(request, survey_id, team_name=''):
             try:
                 previous = Teams.objects.get(request_id=survey_id, team_name=team_name)
                 survey_settings_id = previous.id
-                # print >>sys.stderr,"survey_settings_id" + str(survey_settings_id)
             except Teams.DoesNotExist:
                 previous = None
                 survey_settings_id = None
@@ -663,7 +664,6 @@ def team_view(request, survey_id, team_name=''):
 
         form = AddTeamForm(instance=previous, dept_names_list=dept_names_list, region_names_list=region_names_list,
                            site_names_list=site_names_list)
-        # form = AddTeamForm(instance=previous)
 
     return render(request, 'team.html',
                   {'form': form, 'survey_type': survey_type, 'survey_settings_id': survey_settings_id})
