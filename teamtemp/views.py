@@ -503,7 +503,7 @@ def auto_archive_surveys(request):
         print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
             team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date))
 
-        if team_temp.archive_date is None or (now_date >= team_temp.next_archive_date):
+        if now_date >= team_temp.next_archive_date:
             archive_survey(request, team_temp, archive_date=now)
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
@@ -513,7 +513,7 @@ def auto_archive_surveys(request):
 def archive_survey(_, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    print >> sys.stderr, "Archiving %s with date %s UTC at %s" % (survey.id, str(archive_date), utc_timestamp())
+    print >> sys.stderr, "Archiving %s with date %s UTC" % (survey.id, str(archive_date))
 
     # Save Survey Summary for all survey teams
     teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
@@ -556,6 +556,8 @@ def archive_survey(_, survey, archive_date=timezone.now()):
 
     survey.advance_next_archive_date()
     survey.archive_date = archive_date
+
+    print >> sys.stderr, "Next Archive Date %s" % (survey.next_archive_date)
 
     survey.full_clean()
     survey.save()
