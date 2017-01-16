@@ -288,6 +288,6 @@ class SurveySettingsForm(forms.ModelForm):
 
     def clean_max_word_count(self):
         max_word_count = self.cleaned_data['max_word_count']
-        if int(max_word_count) > 5:
-            raise forms.ValidationError('Max Word Count Max Value = 5')
+        if 1 > int(max_word_count) > 5:
+            raise forms.ValidationError('Max Word Count Min Value = 1, Max Value = 5')
         return max_word_count
