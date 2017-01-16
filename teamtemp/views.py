@@ -537,7 +537,6 @@ def archive_survey(_, survey, archive_date=timezone.now()):
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
                                       archive_date=archive_date)
-        history.full_clean()
         history.save()
 
         average_total += team_stats['average']['score__avg']
@@ -554,7 +553,6 @@ def archive_survey(_, survey, archive_date=timezone.now()):
                                       responder_count=average_responder_total,
                                       team_name='Average',
                                       archive_date=archive_date)
-        history.full_clean()
         history.save()
 
     survey.advance_next_archive_date()
