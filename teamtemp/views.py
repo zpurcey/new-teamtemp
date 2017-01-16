@@ -212,8 +212,8 @@ def set_view(request, survey_id):
                 thanks += "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
             if srf['current_team_name'] != '' and srf['new_team_name'] == '':
                 thanks += "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
-
-    form = SurveySettingsForm(instance=survey)
+    else:
+        form = SurveySettingsForm(instance=survey)
 
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
                                         'survey_settings_id': survey.id,
@@ -295,8 +295,8 @@ def submit_view(request, survey_id, team_name=''):
 
             thanks = "Thank you for submitting your answers. You can " \
                      "amend them now or later using this browser only if you need to."
-
-    form = SurveyResponseForm(instance=response, max_word_count=survey.max_word_count)
+    else:
+        form = SurveyResponseForm(instance=response, max_word_count=survey.max_word_count)
 
     survey_type_title = 'Team Temperature'
     temp_question_title = 'Temperature (1-10) (1 is very negative, 6 is OK, 10 is very positive):'
