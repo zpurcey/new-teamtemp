@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.hashers import make_password
 
 from teamtemp.responses.models import *
 
@@ -37,6 +38,12 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
     readonly_fields = ("id", "creation_date", "modified_date")
     raw_id_fields = ("creator",)
     search_fields = ("id", "creator__id")
+
+    def save_model(self, request, obj, form, change):
+        password = form.cleaned_data['password']
+        if not change or not password.startswith('bcrypt$$'):
+            obj.password = make_password(password)
+        super(TeamTemperatureAdmin, self).save_model(request, obj, form, change)
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):

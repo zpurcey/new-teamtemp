@@ -8,7 +8,7 @@ SECRET_KEY = os.environ.get('TEAMTEMP_SECRET_KEY', 'rp47vufz8lrr1cxki7lmc9w221aj
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'teamtemp.sqlite'),
+        'NAME': os.path.join(PROJECT_DIR, 'teamtemp.sqlite'),
     }
 }
 
