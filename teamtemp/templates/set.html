@@ -41,26 +41,28 @@
             {{ form.max_word_count }} (Number of words accepted along with team temperature submission - Default: 1)
           </div>
 
-          {{ form.dept_names.errors }}
-          <div class="field">
-            <label for="id_dept_names">Department Names:</label><br/>
-            {{ form.dept_names }} (Comma separated list of department names for new teams when Survey Type is
-            DEPT-REGION-SITE)
-          </div>
+          {% if form.survey_type == 'DEPT-REGION-SITE' %}
+              {{ form.dept_names.errors }}
+              <div class="field">
+                <label for="id_dept_names">Department Names:</label><br/>
+                {{ form.dept_names }} (Comma separated list of department names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
 
-          {{ form.region_names.errors }}
-          <div class="field">
-            <label for="id_region_names">Region Names:</label><br/>
-            {{ form.region_names }} (Comma separated list of region names for new teams when Survey Type is
-            DEPT-REGION-SITE)
-          </div>
+              {{ form.region_names.errors }}
+              <div class="field">
+                <label for="id_region_names">Region Names:</label><br/>
+                {{ form.region_names }} (Comma separated list of region names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
 
-          {{ form.site_names.errors }}
-          <div class="field">
-            <label for="id_site_names">Site Names:</label><br/>
-            {{ form.site_names }} (Comma separated list of Site names for new teams when Survey Type is
-            DEPT-REGION-SITE)
-          </div>
+              {{ form.site_names.errors }}
+              <div class="field">
+                <label for="id_site_names">Site Names:</label><br/>
+                {{ form.site_names }} (Comma separated list of Site names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
+          {% endif %}
 
           {{ form.archive_schedule.errors }}
           <div class="field">
