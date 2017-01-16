@@ -1,8 +1,10 @@
 import re
 
 import pytz
+import sys
 from django import forms
 from django.forms.utils import ErrorList
+from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -222,17 +224,25 @@ class SurveySettingsForm(forms.ModelForm):
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
+    next_archive_date = forms.DateField(widget=forms.DateInput(), required=False)
 
     class Meta:
         model = TeamTemperature
         fields = ['archive_schedule', 'survey_type', 'dept_names', 'region_names', 'site_names', 'default_tz',
-                  'max_word_count']
+                  'max_word_count', 'next_archive_date']
 
     def clean_archive_schedule(self):
         archive_schedule = self.cleaned_data['archive_schedule']
         if int(archive_schedule) > 28:
             raise forms.ValidationError('Archive Schedule Max 28 Days')
         return archive_schedule
+
+    def clean_next_archive_date(self):
+        next_archive_date = self.cleaned_data['next_archive_date']
+        if next_archive_date is not None:
+            if next_archive_date < timezone.now().date():
+                raise forms.ValidationError('Next Archive Date must not be past')
+        return next_archive_date
 
     def clean_survey_type(self):
         survey_type = self.cleaned_data['survey_type']

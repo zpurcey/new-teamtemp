@@ -1,7 +1,9 @@
 import hashlib
 
 import pytz
+from datetime import timedelta
 from django.db import models
+from django.utils import timezone
 
 
 class WordCloudImage(models.Model):
@@ -53,6 +55,7 @@ class TeamTemperature(models.Model):
     password = models.CharField(max_length=256)
     archive_schedule = models.IntegerField(default=0)
     archive_date = models.DateTimeField(blank=True, null=True)
+    next_archive_date = models.DateField(blank=True, null=True)
     survey_type = models.CharField(default=TEAM_TEMP, choices=SURVEY_TYPE_CHOICES, max_length=20, db_index=True)
     dept_names = models.CharField(blank=True, null=True, max_length=64)
     region_names = models.CharField(blank=True, null=True, max_length=64)
@@ -81,6 +84,27 @@ class TeamTemperature(models.Model):
     def accumulated_team_stats(self, team_name, start_date, end_date):
         return _stats_for(self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date,
                                                             response_date__lte=start_date))
+
+    def fill_next_archive_date(self, overwrite=False):
+        if self.archive_schedule > 0:
+            if self.next_archive_date is None or overwrite:
+                if self.archive_date is not None:
+                    self.next_archive_date = (self.archive_date + timedelta(days=self.archive_schedule)).date()
+                else:
+                    self.next_archive_date = timezone.now().date()
+        elif overwrite:
+            self.next_archive_date = None
+
+        return self.next_archive_date
+
+    def advance_next_archive_date(self):
+        if self.archive_schedule > 0:
+            if self.next_archive_date is None:
+                self.fill_next_archive_date()
+
+            self.next_archive_date = (self.next_archive_date + timedelta(days=self.archive_schedule)).date()
+
+        return self.next_archive_date
 
     def __unicode__(self):
         return u"{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,

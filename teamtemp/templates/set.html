@@ -70,6 +70,12 @@
             {{ form.archive_schedule }} (Number of days. 0 to disable automated archive.)
           </div>
 
+          {{ form.next_archive_date.errors }}
+          <div class="field">
+            <label for="id_next_archive_date">Next Archive Date:</label><br/>
+            {{ form.next_archive_date }} (Date of next automated archive.)
+          </div>
+
           {{ form.password.errors }}
           <div class="field">
             <label for="id_password">Change Survey Password:</label><br/>

@@ -115,8 +115,8 @@ def home_view(request, survey_type='TEAMTEMP'):
                                      region_names=region_names,
                                      site_names=site_names,
                                      archive_schedule=7,
-                                     default_tz='UTC'
-                                     )
+                                     default_tz='UTC')
+            survey.fill_next_archive_date()
             survey.full_clean()
             survey.save()
 
@@ -163,25 +163,34 @@ def set_view(request, survey_id):
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             srf = form.cleaned_data
-            pw = survey.password
             if srf['password'] != '':
-                pw = make_password(srf['password'])
+                survey.password = make_password(srf['password'])
                 thanks = "Password Updated. "
             if srf['archive_schedule'] != survey.archive_schedule:
-                if survey.archive_date is None:
-                    survey.archive_date = timezone.now()
+                survey.archive_schedule = srf['archive_schedule']
                 thanks += "Schedule Updated. "
+                survey.fill_next_archive_date(overwrite=True)
+                thanks += "Next Archive Date Updated to %s. " % survey.next_archive_date
+            elif srf['next_archive_date'] != survey.next_archive_date:
+                survey.next_archive_date = srf['next_archive_date']
+                thanks += "Next Archive Date Updated to %s. " % survey.next_archive_date
             if srf['survey_type'] != survey.survey_type:
+                survey.survey_type = srf['survey_type']
                 thanks += "Survey Type Updated. "
             if srf['dept_names'] != survey.dept_names:
+                survey.dept_names = srf['dept_names']
                 thanks += "Dept Names Updated. "
             if srf['region_names'] != survey.region_names:
+                survey.region_names = srf['region_names']
                 thanks += "Region Names Updated. "
             if srf['site_names'] != survey.site_names:
+                survey.site_names = srf['site_names']
                 thanks += "Site Names Updated. "
             if srf['default_tz'] != survey.default_tz:
+                survey.default_tz = srf['default_tz']
                 thanks += "Default Timezone Updated. "
             if srf['max_word_count'] != survey.max_word_count:
+                survey.max_word_count = srf['max_word_count']
                 thanks += "Max Word Count Updated. "
 
             if srf['current_team_name'] != '':
@@ -195,16 +204,6 @@ def set_view(request, survey_id):
                     'censored_word']
                 thanks += "Word removed: " + str(rows_changed) + " responses updated. "
 
-            survey.creator = survey.creator
-            survey.password = pw
-            survey.archive_date = survey.archive_date
-            survey.archive_schedule = srf['archive_schedule']
-            survey.survey_type = srf['survey_type']
-            survey.dept_names = srf['dept_names']
-            survey.region_names = srf['region_names']
-            survey.site_names = srf['site_names']
-            survey.default_tz = srf['default_tz']
-            survey.max_word_count = srf['max_word_count']
             survey.full_clean()
             survey.save()
 
@@ -353,19 +352,17 @@ def admin_view(request, survey_id, team_name=''):
     else:
         stats, _ = stats = survey.stats()
 
-    next_archive_date = timezone.now()
-
+    next_archive_date = None
     if survey.archive_schedule > 0:
-        next_archive_date = timezone.localtime(survey.archive_date) + timedelta(days=survey.archive_schedule)
-        if next_archive_date < timezone.localtime(timezone.now()):
-            next_archive_date = timezone.localtime(timezone.now() + timedelta(days=1))
+        survey.fill_next_archive_date()
+        next_archive_date = survey.next_archive_date.strftime("%A %d %B %Y")
 
     return render(request, 'results.html',
                   {'id': survey_id, 'stats': stats,
                    'results': results, 'team_name': team_name,
                    'pretty_team_name': team_name.replace("_", " "), 'survey_teams': survey_teams,
                    'archive_schedule': survey.archive_schedule,
-                   'next_archive_date': next_archive_date.strftime("%A %d %B %Y")
+                   'next_archive_date': next_archive_date
                    })
 
 
@@ -501,13 +498,13 @@ def auto_archive_surveys(request):
     now_date = timezone.localtime(now).date()
 
     for team_temp in team_temperatures:
-        next_archive_date = timezone.localtime(
-            team_temp.archive_date + timedelta(days=team_temp.archive_schedule)).date()
+        team_temp.fill_next_archive_date()
 
-        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
-            team_temp.id, now_date, next_archive_date, (now_date >= next_archive_date))
+        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s (now=%s archive_date=%s next_archive_date=%s)" % (
+            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date), now,
+            team_temp.archive_date, team_temp.next_archive_date)
 
-        if team_temp.archive_date is None or (now_date >= next_archive_date):
+        if team_temp.archive_date is None or (now_date >= team_temp.next_archive_date):
             archive_survey(request, team_temp, archive_date=now)
 
     print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
@@ -560,7 +557,9 @@ def archive_survey(_, survey, archive_date=timezone.now()):
         history.full_clean()
         history.save()
 
+    survey.advance_next_archive_date()
     survey.archive_date = archive_date
+
     survey.full_clean()
     survey.save()
 
