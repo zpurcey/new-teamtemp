@@ -70,10 +70,13 @@ class FilteredBvcForm(forms.Form):
         dept_names_list = kwargs.pop('dept_names_list')
         region_names_list = kwargs.pop('region_names_list')
         site_names_list = kwargs.pop('site_names_list')
-        dept_names_list_on = kwargs.pop('dept_names_list_on')
-        region_names_list_on = kwargs.pop('region_names_list_on')
-        site_names_list_on = kwargs.pop('site_names_list_on')
+
+        dept_names_list_on = kwargs.pop('dept_names_list_on') if 'dept_names_list' in kwargs else None
+        region_names_list_on = kwargs.pop('region_names_list_on') if 'region_names_list' in kwargs else None
+        site_names_list_on = kwargs.pop('site_names_list_on') if 'site_names_list' in kwargs else None
+
         super(FilteredBvcForm, self).__init__(*args, **kwargs)
+
         self.fields['filter_dept_names'] = forms.MultipleChoiceField(choices=[(x, x) for x in dept_names_list],
                                                                      widget=forms.CheckboxSelectMultiple,
                                                                      required=False, initial=dept_names_list_on)

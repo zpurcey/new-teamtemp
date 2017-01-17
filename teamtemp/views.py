@@ -588,43 +588,6 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     return True
 
 
-def filter_view(request, survey_id):
-    survey = get_object_or_404(TeamTemperature, pk=survey_id)
-
-    dept_names = survey.dept_names
-    region_names = survey.region_names
-    site_names = survey.site_names
-    dept_names_list = dept_names.split(',')
-    region_names_list = region_names.split(',')
-    site_names_list = site_names.split(',')
-
-    if request.method == 'POST':
-        form = FilteredBvcForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list,
-                               region_names_list=region_names_list, site_names_list=site_names_list)
-        if form.is_valid():
-            csf = form.cleaned_data
-            team_name = csf['team_name'].replace(" ", "_")
-            dept_name = csf['dept_name']
-            region_name = csf['region_name']
-            site_name = csf['site_name']
-            team_found = survey.teams.filter(team_name=team_name).count()
-            if team_found == 0:
-                team_details = Teams(request=survey,
-                                     team_name=team_name,
-                                     dept_name=dept_name,
-                                     region_name=region_name,
-                                     site_name=site_name)
-                team_details.full_clean()
-                team_details.save()
-            return HttpResponseRedirect('/admin/%s' % survey_id)
-        else:
-            raise Exception('Form Is Not Valid:', form)
-    else:
-        return render(request, 'filter.html', {
-            'form': FilteredBvcForm(dept_names_list=dept_names_list, region_names_list=region_names_list,
-                                    site_names_list=site_names_list)})
-
-
 def team_view(request, survey_id, team_name=None):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
