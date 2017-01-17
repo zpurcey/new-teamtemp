@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings {{ survey_settings_id }}{% endblock %}
+{% block title %}Settings {{ survey.id }}{% endblock %}
 
 {% block body %}
 
@@ -15,7 +15,7 @@
       <div class="col-md-12"><br>
         <BR>
         <div class="btn-group no-print" role="group" aria-label="nav">
-          <a href="{% url 'admin' survey_id=survey_settings_id %}" class="btn btn-info" role="button">ADMIN</a>
+          <a href="{% url 'admin' survey_id=survey.id %}" class="btn btn-info" role="button">ADMIN</a>
         </div>
 
         <BR><BR>
@@ -24,9 +24,7 @@
         <h2>Survey Settings</h2>
         <form method="post">
           {% csrf_token %}
-          {% if response_id %}
-            <input type="hidden" name="id" value="{{ response_id }}"/>
-          {% endif %}
+          <input type="hidden" name="id" value="{{ survey.id }}"/>
 
           {{ form.survey_type.errors }}
           <div class="field">
@@ -41,7 +39,7 @@
             {{ form.max_word_count }} (Number of words accepted along with team temperature submission - Default: 1)
           </div>
 
-          {% if form.survey_type == 'DEPT-REGION-SITE' %}
+          {% if survey.survey_type == 'DEPT-REGION-SITE' %}
               {{ form.dept_names.errors }}
               <div class="field">
                 <label for="id_dept_names">Department Names:</label><br/>

@@ -212,7 +212,7 @@ def set_view(request, survey_id):
         form = SurveySettingsForm(instance=survey)
 
     return render(request, 'set.html', {'form': form, 'thanks': thanks,
-                                        'survey_settings_id': survey.id,
+                                        'survey': survey,
                                         'survey_teams': survey_teams})
 
 
