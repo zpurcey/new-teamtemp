@@ -370,7 +370,7 @@ def admin_view(request, survey_id, team_name=''):
     if team_name != '':
         stats, _ = survey.team_stats(team_name=team_name)
     else:
-        stats, _ = stats = survey.stats()
+        stats, _ = survey.stats()
 
     next_archive_date = None
     if survey.archive_schedule > 0:
