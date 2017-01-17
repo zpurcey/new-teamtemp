@@ -651,8 +651,8 @@ def team_view(request, survey_id, team_name=None):
 
             with transaction.atomic():
                 if team:
-                    if new_team_name != team.name:
-                        rows_changed = change_team_name(team.name, new_team_name, survey.id)
+                    if new_team_name != team.team_name:
+                        rows_changed = change_team_name(team.team_name, new_team_name, survey.id)
 
                     team.dept_name = dept_name
                     team.region_name = region_name
