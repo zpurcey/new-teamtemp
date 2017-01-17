@@ -71,9 +71,9 @@ class FilteredBvcForm(forms.Form):
         region_names_list = kwargs.pop('region_names_list')
         site_names_list = kwargs.pop('site_names_list')
 
-        dept_names_list_on = kwargs.pop('dept_names_list_on') if 'dept_names_list' in kwargs else None
-        region_names_list_on = kwargs.pop('region_names_list_on') if 'region_names_list' in kwargs else None
-        site_names_list_on = kwargs.pop('site_names_list_on') if 'site_names_list' in kwargs else None
+        dept_names_list_on = kwargs.pop('dept_names_list_on') if 'dept_names_list_on' in kwargs else None
+        region_names_list_on = kwargs.pop('region_names_list_on') if 'region_names_list_on' in kwargs else None
+        site_names_list_on = kwargs.pop('site_names_list_on') if 'site_names_list_on' in kwargs else None
 
         super(FilteredBvcForm, self).__init__(*args, **kwargs)
 
@@ -131,13 +131,13 @@ class AddTeamForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         dept_name_choices = [(x, x) for x in kwargs.pop('dept_names_list')]
-        dept_name_choices.append( ('', '-') )
+        dept_name_choices.append(('', '-'))
 
         region_name_choices = [(x, x) for x in kwargs.pop('region_names_list')]
-        region_name_choices.append( ('', '-') )
+        region_name_choices.append(('', '-'))
 
         site_name_choices = [(x, x) for x in kwargs.pop('site_names_list')]
-        site_name_choices.append( ('', '-') )
+        site_name_choices.append(('', '-'))
 
         super(AddTeamForm, self).__init__(*args, **kwargs)
 

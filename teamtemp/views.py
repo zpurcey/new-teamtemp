@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
+from django.urls import reverse
 from django.views.static import serve as serve_static
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
@@ -98,7 +99,7 @@ def home_view(request, survey_type='TEAMTEMP'):
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             csf = form.cleaned_data
-            form_id = utils.random_string(8)
+            survey_id = utils.random_string(8)
             user, created = get_or_create_user(request)
             dept_names = csf['dept_names']
             region_names = csf['region_names']
@@ -107,7 +108,7 @@ def home_view(request, survey_type='TEAMTEMP'):
                                      creator=user,
                                      survey_type=survey_type,
                                      archive_date=timezone.now(),
-                                     id=form_id,
+                                     id=survey_id,
                                      dept_names=dept_names,
                                      region_names=region_names,
                                      site_names=site_names,
@@ -119,7 +120,7 @@ def home_view(request, survey_type='TEAMTEMP'):
 
             responses.add_admin_for_survey(request, survey.id)
 
-            return HttpResponseRedirect('/team/%s' % form_id)
+            return HttpResponseRedirect(reverse('team', kwargs={'survey_id': survey_id}))
     else:
         form = CreateSurveyForm()
     return render(request, 'index.html', {'form': form, 'survey_type': survey_type})
@@ -152,7 +153,7 @@ def set_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
     if not authenticated_user(request, survey):
-        return HttpResponseRedirect('/admin/%s' % survey_id)
+        return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
     survey_teams = survey.teams.all()
 
@@ -255,9 +256,9 @@ def submit_view(request, survey_id, team_name=''):
     user, created = get_or_create_user(request)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
-    if team_name != '':
-        # ensure team exists
-        _ = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
+
+    # ensure team exists
+    team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name) if team_name != '' else None
 
     response = None
     if request.method == 'POST' and request.POST.get('id', None):
@@ -314,7 +315,8 @@ def submit_view(request, survey_id, team_name=''):
                                          'survey_type_title': survey_type_title,
                                          'temp_question_title': temp_question_title,
                                          'word_question_title': word_question_title,
-                                         'team_name': team_name, 'pretty_team_name': team_name.replace("_", " "),
+                                         'team_name': team_name,
+                                         'pretty_team_name': team.pretty_team_name if team else '',
                                          'id': survey_id})
 
 
@@ -345,7 +347,7 @@ def admin_view(request, survey_id, team_name=''):
             password = rpf['password'].encode('utf-8')
             if check_password(password, survey.password):
                 responses.add_admin_for_survey(request, survey.id)
-                return HttpResponseRedirect('/admin/%s' % survey_id)
+                return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
     if not authenticated_user(request, survey):
         if form is None:
@@ -461,7 +463,7 @@ def save_url(url, directory, basename):
             return None
         except urllib.ContentTooShortError as exc:
             print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (
-            str(exc), url, filename)
+                str(exc), url, filename)
             return None
 
     return return_url
@@ -479,7 +481,8 @@ def reset_view(request, survey_id):
         else:
             result = "failed\n"
 
-    return HttpResponseRedirect('/admin/%s' % survey_id, content=result, content_type='text/plain')
+    return HttpResponseRedirect(
+        reverse('admin', content=result, content_type='text/plain', kwargs={'survey_id': survey_id}))
 
 
 def cron_view(request, pin):
@@ -635,7 +638,7 @@ def team_view(request, survey_id, team_name=None):
                     team.full_clean()
                     team.save()
 
-                return HttpResponseRedirect('/admin/%s' % survey_id)
+                return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
     else:
         form = AddTeamForm(instance=team, dept_names_list=dept_names_list, region_names_list=region_names_list,
                            site_names_list=site_names_list)
@@ -974,29 +977,21 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     if bvc_data['num_rows'] > 0:
         historical_options, json_history_chart_table, team_index = populate_chart_data_structures(
             bvc_data['survey_type_title'], bvc_data['teams'], bvc_data['team_history'], survey.default_tz)
-    # raise Exception(historical_options,json_history_chart_table,team_index)
 
     # Cached word cloud
     if bvc_data['stats']['words']:
         bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
 
-    all_dept_names = []
-    all_region_names = []
-    all_site_names = []
-    filter_dept_names = ''
-    filter_region_names = ''
-    filter_site_names = ''
+    all_dept_names = set()
+    all_region_names = set()
+    all_site_names = set()
+
     for survey_team in bvc_data['survey_teams']:
-        team_details = survey.teams.filter(team_name=survey_team.team_name).values('dept_name', 'region_name',
-                                                                                   'site_name')
-        for team in team_details:
-            if not team['dept_name'] in all_dept_names:
-                all_dept_names.append(team['dept_name'])
-            if not team['region_name'] in all_region_names:
-                all_region_names.append(team['region_name'])
-            if not team['site_name'] in all_site_names:
-                all_site_names.append(team['site_name'])
-                # print >>sys.stderr,all_dept_names,all_region_names,all_site_names
+        teams = survey.teams.filter(team_name=survey_team.team_name).values('dept_name', 'region_name', 'site_name')
+        for team in teams:
+            all_dept_names.add(team['dept_name'])
+            all_region_names.add(team['region_name'])
+            all_site_names.add(team['site_name'])
 
     if len(all_dept_names) < 2:
         all_dept_names = []
@@ -1005,46 +1000,32 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     if len(all_site_names) < 2:
         all_site_names = []
 
-    if dept_names == '':
-        dept_names_list_on = all_dept_names
-    else:
-        dept_names_list_on = dept_names.split(',')
-    if region_names == '':
-        region_names_list_on = all_region_names
-    else:
-        region_names_list_on = region_names.split(',')
-    if site_names == '':
-        site_names_list_on = all_site_names
-    else:
-        site_names_list_on = site_names.split(',')
-
     filter_this_bvc = False
     if request.method == 'POST':
-        form = FilteredBvcForm(request.POST, error_class=ErrorBox, dept_names_list=all_dept_names,
-                               dept_names_list_on=dept_names, region_names_list=all_region_names,
-                               region_names_list_on=region_names, site_names_list=all_site_names,
-                               site_names_list_on=site_names)
+        form = FilteredBvcForm(request.POST, error_class=ErrorBox,
+                               dept_names_list=all_dept_names,
+                               region_names_list=all_region_names,
+                               site_names_list=all_site_names)
         if form.is_valid():
-            # raise Exception('Form Is Valid:',form)
             csf = form.cleaned_data
             if len(all_dept_names) > len(csf['filter_dept_names']) \
                     or len(all_region_names) > len(csf['filter_region_names']) \
                     or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
+
             print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
                 csf['filter_dept_names'])
-            for filter_dept_name in csf['filter_dept_names']:
-                filter_dept_names += filter_dept_name + ','
 
-            for filter_region_name in csf['filter_region_names']:
-                filter_region_names += filter_region_name + ','
+            filter_dept_names = ','.join(csf['filter_dept_names'])
+            filter_region_names = ','.join(csf['filter_region_names'])
+            filter_site_names = ','.join(csf['filter_site_names'])
 
-            for filter_site_name in csf['filter_site_names']:
-                filter_site_names += filter_site_name + ','
             print >> sys.stderr, "Filter this bvc:", filter_this_bvc
-            return HttpResponseRedirect('/bvc/%s/dept=%s/region=%s/site=%s' % (
-                survey_id, filter_dept_names.rstrip(","), filter_region_names.rstrip(","),
-                filter_site_names.rstrip(",")))
+
+            return HttpResponseRedirect(reverse('bvc', kwargs={'survey_id': survey_id,
+                                                               'dept_names': filter_dept_names,
+                                                               'region_names': filter_region_names,
+                                                               'site_names': filter_site_names}))
         else:
             raise Exception('Form Is Not Valid:', form)
     else:
@@ -1056,10 +1037,9 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                           'team_count': team_index,
                           'num_iterations': num_iterations,
                           'dept_names': dept_names, 'region_names': region_names, 'site_names': site_names,
-                          'form': FilteredBvcForm(dept_names_list=all_dept_names, dept_names_list_on=dept_names_list_on,
+                          'form': FilteredBvcForm(dept_names_list=all_dept_names,
                                                   region_names_list=all_region_names,
-                                                  region_names_list_on=region_names_list_on,
-                                                  site_names_list=all_site_names, site_names_list_on=site_names_list_on)
+                                                  site_names_list=all_site_names)
                       })
 
 
