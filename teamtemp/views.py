@@ -132,17 +132,17 @@ def authenticated_user(request, survey):
     if survey is None:
         raise Exception('Must supply a survey object')
 
+    if responses.is_admin_for_survey(request, survey.id):
+        return True
+
     # Retrieve User Token - if user does not exist return false
     try:
-        user, _ = get_or_create_user(request)
+        user = get_user(request)
     except User.DoesNotExist:
         return False
 
-    if survey.creator.id == user.id:
+    if user and survey.creator.id == user.id:
         responses.add_admin_for_survey(request, survey.id)
-        return True
-
-    if responses.is_admin_for_survey(request, survey.id):
         return True
 
     return False
@@ -322,6 +322,7 @@ def admin_view(request, survey_id, team_name=''):
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
+    form = None
     if request.method == 'POST':
         form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -332,7 +333,9 @@ def admin_view(request, survey_id, team_name=''):
                 return HttpResponseRedirect('/admin/%s' % survey_id)
 
     if not authenticated_user(request, survey):
-        return render(request, 'password.html', {'form': ResultsPasswordForm()})
+        if form is None:
+            form = ResultsPasswordForm()
+        return render(request, 'password.html', {'form': form})
 
     survey_type = survey.survey_type
     if team_name != '':
@@ -453,10 +456,14 @@ def reset_view(request, survey_id):
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
+    result = "\n"
     if authenticated_user(request, survey):
-        archive_survey(request, survey)
+        if archive_survey(request, survey):
+            result = "ok\n"
+        else:
+            result = "failed\n"
 
-    return HttpResponseRedirect('/admin/%s' % survey_id)
+    return HttpResponseRedirect('/admin/%s' % survey_id, content=result, content_type='text/plain')
 
 
 def cron_view(request, pin):
@@ -467,7 +474,7 @@ def cron_view(request, pin):
     if pin == cron_pin:
         auto_archive_surveys(request)
         prune_word_cloud_cache(request)
-        return HttpResponse('ok', content_type='text/plain')
+        return HttpResponse("ok\n", content_type='text/plain')
     else:
         print >> sys.stderr, "Cron 404: pin = " + pin + " expected = " + cron_pin
         raise Http404
@@ -562,7 +569,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     survey.full_clean()
     survey.save()
 
-    return
+    return True
 
 
 def filter_view(request, survey_id):

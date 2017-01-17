@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.hashers import make_password
+from django.urls import reverse
 
 from teamtemp.responses.models import *
 
@@ -25,6 +26,9 @@ class WordCloudImageAdmin(admin.ModelAdmin):
     readonly_fields = ("id", "creation_date", "image_url", "word_list", "word_hash")
     search_fields = ("id", "word_hash")
 
+    def view_on_site(self, obj):
+        return obj.image_url
+
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ("id", "creation_date")
@@ -45,6 +49,9 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
             obj.password = make_password(password)
         super(TeamTemperatureAdmin, self).save_model(request, obj, form, change)
 
+    def view_on_site(self, obj):
+        return reverse('admin', kwargs={'survey_id': obj.id})
+
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, _responder_id, "team_name", "score", "word", "response_date")
@@ -60,6 +67,12 @@ class TeamResponseHistoryAdmin(admin.ModelAdmin):
     raw_id_fields = ("request",)
     search_fields = ("team_name", "request__id")
 
+    def view_on_site(self, obj):
+        if obj.team_name == 'Average':
+            return reverse('bvc', kwargs={'survey_id': obj.request.id, 'archive_id': obj.id})
+
+        return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': (obj.team_name), 'archive_id': obj.id})
+
 
 class TeamsAdmin(admin.ModelAdmin):
     list_display = (
@@ -67,6 +80,9 @@ class TeamsAdmin(admin.ModelAdmin):
     readonly_fields = ("id", "creation_date", "modified_date")
     raw_id_fields = ("request",)
     search_fields = ("team_name", "request__id")
+
+    def view_on_site(self, obj):
+        return reverse('admin', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name})
 
 
 admin.site.register(WordCloudImage, WordCloudImageAdmin)
