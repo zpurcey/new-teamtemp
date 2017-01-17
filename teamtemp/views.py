@@ -317,9 +317,8 @@ def submit_view(request, survey_id, team_name=''):
                                          'id': survey_id})
 
 
-@login_required
 def user_view(request):
-    user = get_user(request)
+    user = get_or_create_user(request)
     if not user:
         raise Http404
 
