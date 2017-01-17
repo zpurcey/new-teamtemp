@@ -355,23 +355,16 @@ def admin_view(request, survey_id, team_name=''):
         return render(request, 'password.html', {'form': form})
 
     survey_type = survey.survey_type
+
     if team_name != '':
-        team_found = survey.teams.filter(team_name=team_name).count()
-        if team_found == 0 and survey_type != 'DEPT-REGION-SITE':
-            team_details = Teams(request=survey, team_name=team_name)
-            team_details.full_clean()
-            team_details.save()
+        team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
         results = survey.temperature_responses.filter(team_name=team_name, archived=False)
-    else:
-        results = survey.temperature_responses.filter(archived=False)
-
-    survey_teams = survey.teams.all()
-
-    if team_name != '':
         stats, _ = survey.team_stats(team_name=team_name)
     else:
+        results = survey.temperature_responses.filter(archived=False)
         stats, _ = survey.stats()
 
+    survey_teams = survey.teams.all()
     next_archive_date = None
     if survey.archive_schedule > 0:
         survey.fill_next_archive_date()
@@ -379,8 +372,9 @@ def admin_view(request, survey_id, team_name=''):
 
     return render(request, 'results.html',
                   {'id': survey_id, 'stats': stats,
-                   'results': results, 'team_name': team_name,
-                   'pretty_team_name': team_name.replace("_", " "), 'survey_teams': survey_teams,
+                   'results': results, 'team_name': team_name, 
+                   'pretty_team_name': team.pretty_team_name(),  
+                   'survey_teams': survey_teams,
                    'archive_schedule': survey.archive_schedule,
                    'next_archive_date': next_archive_date
                    })
