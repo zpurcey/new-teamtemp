@@ -482,7 +482,7 @@ def reset_view(request, survey_id):
             result = "failed\n"
 
     return HttpResponseRedirect(
-        reverse('admin', content=result, content_type='text/plain', kwargs={'survey_id': survey_id}))
+        reverse('admin', kwargs={'survey_id': survey_id}), content=result, content_type='text/plain')
 
 
 def cron_view(request, pin):
