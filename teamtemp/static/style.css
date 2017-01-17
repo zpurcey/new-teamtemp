@@ -22,6 +22,10 @@ body {
   background-color: orangered;
 }
 
+div.help-block {
+  color: black;
+}
+
 .wordcloud {
   border: 0 solid #036;
   height: 7in;

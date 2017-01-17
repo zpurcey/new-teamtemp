@@ -12,7 +12,6 @@
         <h1>Enter the new team name</h1>
         <form method="post">
           {% csrf_token %}
-          {{ form.team_name.errors }}
           <div class="field">
             <div class="row">
               <div class="col-md-6">
@@ -25,7 +24,6 @@
           {% if survey.survey_type == 'DEPT-REGION-SITE' %}
           <!-- If survey configured to collect department region and site details -->
 
-          {{ form.dept_name.errors }}
           <div class="field">
             <div class="row">
               <div class="col-md-6">
@@ -34,7 +32,6 @@
             </div>
           </div>
 
-          {{ form.region_name.errors }}
           <div class="field">
             <div class="row">
               <div class="col-md-6">
@@ -43,7 +40,6 @@
             </div>
           </div>
 
-          {{ form.site_name.errors }}
           <div class="field">
             <div class="row">
               <div class="col-md-6">
