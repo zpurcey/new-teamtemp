@@ -360,9 +360,11 @@ def admin_view(request, survey_id, team_name=''):
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
         results = survey.temperature_responses.filter(team_name=team_name, archived=False)
         stats, _ = survey.team_stats(team_name=team_name)
+        pretty_team_name = team.pretty_team_name()
     else:
         results = survey.temperature_responses.filter(archived=False)
         stats, _ = survey.stats()
+        pretty_team_name = ''
 
     survey_teams = survey.teams.all()
     next_archive_date = None
@@ -373,7 +375,7 @@ def admin_view(request, survey_id, team_name=''):
     return render(request, 'results.html',
                   {'id': survey_id, 'stats': stats,
                    'results': results, 'team_name': team_name, 
-                   'pretty_team_name': team.pretty_team_name(),  
+                   'pretty_team_name': pretty_team_name,  
                    'survey_teams': survey_teams,
                    'archive_schedule': survey.archive_schedule,
                    'next_archive_date': next_archive_date
