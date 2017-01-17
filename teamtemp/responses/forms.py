@@ -127,13 +127,20 @@ class AddTeamForm(forms.ModelForm):
     region_name = forms.CharField(max_length=64)
 
     def __init__(self, *args, **kwargs):
-        dept_names_list = kwargs.pop('dept_names_list')
-        region_names_list = kwargs.pop('region_names_list')
-        site_names_list = kwargs.pop('site_names_list')
+        dept_name_choices = [(x, x) for x in kwargs.pop('dept_names_list')]
+        dept_name_choices.append( ('', '-') )
+
+        region_name_choices = [(x, x) for x in kwargs.pop('region_names_list')]
+        region_name_choices.append( ('', '-') )
+
+        site_name_choices = [(x, x) for x in kwargs.pop('site_names_list')]
+        site_name_choices.append( ('', '-') )
+
         super(AddTeamForm, self).__init__(*args, **kwargs)
-        self.fields['dept_name'] = forms.ChoiceField(choices=[(x, x) for x in dept_names_list], required=False)
-        self.fields['region_name'] = forms.ChoiceField(choices=[(x, x) for x in region_names_list], required=False)
-        self.fields['site_name'] = forms.ChoiceField(choices=[(x, x) for x in site_names_list], required=False)
+
+        self.fields['dept_name'] = forms.ChoiceField(choices=dept_name_choices, initial='', required=False)
+        self.fields['region_name'] = forms.ChoiceField(choices=region_name_choices, initial='', required=False)
+        self.fields['site_name'] = forms.ChoiceField(choices=site_name_choices, initial='', required=False)
 
     def clean_team_name(self):
         team_name = re.sub(r' +', '_', self.cleaned_data['team_name'].strip())
