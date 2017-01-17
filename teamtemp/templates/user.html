@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}User {{ user.id }}{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h1 align="center">User {{ user.id }}</h1>
+    <br><br>
+
+    <table class="table  ">
+        <tr>
+            <th style="text-align: right; vertical-align: middle; width: 10%;">Id</th>
+            <td style="vertical-align: middle;">{{ user.id }}</td>
+        </tr>
+        <tr>
+            <th style="text-align: right; vertical-align: middle;">Created</th>
+            <td style="vertical-align: middle;">{{ user.creation_date }}</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+    <table class="table  ">
+        <tr>
+            <th nowrap style="width: 10%;">Admin for surveys:</th>
+            <td colspan="2" >&nbsp;</td>
+        </tr>
+        {% for survey in admin_surveys %}
+        <tr>
+            <th style="text-align: right; vertical-align: middle">{{ survey.id }}</th>
+            <td style="vertical-align: middle">
+                <div class="btn-group" role="group" aria-label="nav">
+                    <a href="{% url 'admin' survey_id=survey.id %}" class="btn btn-info" role="button">ADMIN</a>
+                    <a href="{% url 'bvc' survey_id=survey.id %}" class="btn btn-primary" role="button">BVC</a>
+                </div>
+            </td>
+            <td>
+            {% for team in survey.teams.all %}
+                <div class="btn-group" role="group" aria-label="nav">
+                    <a href="{% url 'submit' survey_id=survey.id team_name=team.team_name %}" class="btn btn-default" role="button">
+                        {{ team.pretty_team_name }}
+                    </a>
+                    <a href="{% url 'admin' survey_id=survey.id team_name=team.team_name %}" class="btn btn-info" role="button">ADMIN</a>
+                    <a href="{% url 'bvc' survey_id=survey.id team_name=team.team_name %}" class="btn btn-primary" role="button">BVC</a>
+                    &nbsp;
+                </div>
+            {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

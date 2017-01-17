@@ -9,7 +9,7 @@ from rest_framework import routers
 
 from teamtemp.views import TeamResponseHistoryViewSet, TeamTemperatureViewSet, TeamsViewSet, TemperatureResponseViewSet, \
     UserViewSet, WordCloudImageViewSet, admin_view, bvc_view, cron_view, filter_view, health_check_view, home_view, \
-    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view
+    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view
 
 router = routers.DefaultRouter()
 router.register(r'word_cloud_images', WordCloudImageViewSet)
@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^$', home_view, name='home'),
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
+    url(r'^user/?$', user_view, name='admin_list'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})$', admin_view, name='admin'),
     url(r'^set/(?P<survey_id>[0-9a-zA-Z]{8})$', set_view, name='set'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', admin_view, name='admin'),

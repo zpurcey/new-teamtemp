@@ -9,6 +9,7 @@ from urlparse import urlparse
 import gviz_api
 import unirest
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.http import Http404, HttpResponse
@@ -23,7 +24,6 @@ from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvc
 from responses.serializers import *
 from teamtemp import responses, utils
 from teamtemp.headers import header
-from teamtemp.responses import create_userid, get_userid
 from teamtemp.responses.models import *
 
 
@@ -315,6 +315,21 @@ def submit_view(request, survey_id, team_name=''):
                                          'word_question_title': word_question_title,
                                          'team_name': team_name, 'pretty_team_name': team_name.replace("_", " "),
                                          'id': survey_id})
+
+
+@login_required
+def user_view(request):
+    user = get_user(request)
+    if not user:
+        raise Http404
+
+    admin_survey_ids = responses.get_admin_for_surveys(request)
+    if len(admin_survey_ids) > 0:
+        admin_surveys = TeamTemperature.objects.filter(id__in=admin_survey_ids)
+    else:
+        admin_surveys = set()
+
+    return render(request, 'user.html', {'user': user, 'admin_surveys': admin_surveys})
 
 
 def admin_view(request, survey_id, team_name=''):
@@ -1095,13 +1110,13 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
 
 
 def get_user(request):
-    userid = get_userid(request)
+    userid = responses.get_userid(request)
     if userid:
         return User.objects.get(id=userid)
 
 
 def get_or_create_user(request):
-    userid = get_userid(request)
+    userid = responses.get_userid(request)
 
     if userid:
         return User.objects.get_or_create(id=userid)
@@ -1110,7 +1125,7 @@ def get_or_create_user(request):
         tries = 5
         while user is None and tries >= 0:
             tries -= 1
-            userid = create_userid(request)
+            userid = responses.create_userid(request)
             user = User.objects.create(id=userid)
             if user:
                 return user, True

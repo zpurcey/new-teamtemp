@@ -201,3 +201,7 @@ REST_FRAMEWORK = {
     ],
     'PAGE_SIZE': 10
 }
+
+LOGIN_URL = "/djadmin/login/"
+LOGOUT_URL = "/djadmin/logout/"
+
