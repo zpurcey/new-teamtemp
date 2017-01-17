@@ -60,6 +60,9 @@ class TemperatureResponseAdmin(admin.ModelAdmin):
     raw_id_fields = ("responder", "request")
     search_fields = ("team_name", "request__id")
 
+    def view_on_site(self, obj):
+        return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name})
+
 
 class TeamResponseHistoryAdmin(admin.ModelAdmin):
     list_display = ("id", _request_id, "team_name", "average_score", "responder_count", "archive_date")
@@ -71,7 +74,7 @@ class TeamResponseHistoryAdmin(admin.ModelAdmin):
         if obj.team_name == 'Average':
             return reverse('bvc', kwargs={'survey_id': obj.request.id, 'archive_id': obj.id})
 
-        return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': (obj.team_name), 'archive_id': obj.id})
+        return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name, 'archive_id': obj.id})
 
 
 class TeamsAdmin(admin.ModelAdmin):

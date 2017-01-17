@@ -364,8 +364,6 @@ def admin_view(request, survey_id, team_name=''):
         stats, _ = survey.stats()
         pretty_team_name = ''
 
-    print >> sys.stderr, "stats = %s" % str(stats)
-
     survey_teams = survey.teams.all()
     next_archive_date = None
     if survey.archive_schedule > 0:
