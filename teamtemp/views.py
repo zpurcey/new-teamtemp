@@ -318,7 +318,7 @@ def submit_view(request, survey_id, team_name=''):
 
 
 def user_view(request):
-    user = get_or_create_user(request)
+    user, _ = get_or_create_user(request)
     if not user:
         raise Http404
 
