@@ -354,17 +354,17 @@ def admin_view(request, survey_id, team_name=''):
             form = ResultsPasswordForm()
         return render(request, 'password.html', {'form': form})
 
-    survey_type = survey.survey_type
-
     if team_name != '':
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
         results = survey.temperature_responses.filter(team_name=team_name, archived=False)
-        stats, _ = survey.team_stats(team_name=team_name)
+        stats, _ = survey.team_stats(team_name_list=[team_name])
         pretty_team_name = team.pretty_team_name()
     else:
         results = survey.temperature_responses.filter(archived=False)
         stats, _ = survey.stats()
         pretty_team_name = ''
+
+    print >> sys.stderr, "stats = %s" % str(stats)
 
     survey_teams = survey.teams.all()
     next_archive_date = None
@@ -546,7 +546,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     average_word_list = ""
 
     for team in teams:
-        team_stats, team_response_objects = survey.team_stats([team['team_name']])
+        team_stats, team_response_objects = survey.team_stats(team_name_list=[team['team_name']])
 
         word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
 
@@ -885,7 +885,7 @@ def cached_word_cloud(word_list):
     return word_cloudurl
 
 
-def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
+def generate_bvc_stats(survey_id_list, team_name_list, archive_date, num_iterations):
     # Generate Stats for Team Temp Average for gauge and wordcloud - look here for Gauge and Word Cloud
     # BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
 
@@ -895,18 +895,18 @@ def generate_bvc_stats(survey_id_list, team_name, archive_date, num_iterations):
     survey_filter = {'id__in': survey_id_list}
 
     for survey in TeamTemperature.objects.filter(**survey_filter):
-        if team_name != [''] and archive_date == '':
-            stats, _ = survey.team_stats(team_name=team_name)
-        elif team_name == [''] and archive_date != '':
+        if team_name_list != [''] and archive_date == '':
+            stats, _ = survey.team_stats(team_name_list=team_name_list)
+        elif team_name_list == [''] and archive_date != '':
             stats, _ = survey.archive_stats(archive_date=archive_date)
-        elif team_name != [''] and archive_date != '':
-            stats, _ = survey.archive_team_stats(team_name=team_name, archive_date=archive_date)
+        elif team_name_list != [''] and archive_date != '':
+            stats, _ = survey.archive_team_stats(team_name_list=team_name_list, archive_date=archive_date)
         else:
             stats, _ = survey.stats()
 
         # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
         if int(float(num_iterations)) > 0:
-            multi_stats = calc_multi_iteration_average(team_name, survey, int(float(num_iterations)), survey.default_tz)
+            multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)), survey.default_tz)
             if multi_stats:
                 stats = multi_stats
 

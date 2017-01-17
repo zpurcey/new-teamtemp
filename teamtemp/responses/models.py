@@ -68,21 +68,21 @@ class TeamTemperature(models.Model):
     def stats(self):
         return _stats_for(self.temperature_responses.filter(archived=False))
 
-    def team_stats(self, team_name):
-        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, archived=False))
+    def team_stats(self, team_name_list):
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name_list, archived=False))
 
     def archive_stats(self, archive_date):
         return _stats_for(self.temperature_responses.filter(archived=True, archive_date=archive_date))
 
-    def archive_team_stats(self, team_name, archive_date):
+    def archive_team_stats(self, team_name_list, archive_date):
         return _stats_for(
-            self.temperature_responses.filter(team_name__in=team_name, archive_date=archive_date, archived=True))
+            self.temperature_responses.filter(team_name__in=team_name_list, archive_date=archive_date, archived=True))
 
     def accumulated_stats(self, start_date, end_date):
         return _stats_for(self.temperature_responses.filter(response_date__gte=end_date, response_date__lte=start_date))
 
-    def accumulated_team_stats(self, team_name, start_date, end_date):
-        return _stats_for(self.temperature_responses.filter(team_name__in=team_name, response_date__gte=end_date,
+    def accumulated_team_stats(self, team_name_list, start_date, end_date):
+        return _stats_for(self.temperature_responses.filter(team_name__in=team_name_list, response_date__gte=end_date,
                                                             response_date__lte=start_date))
 
     def fill_next_archive_date(self, overwrite=False):
