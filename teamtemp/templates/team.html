@@ -22,9 +22,7 @@
           </div>
 
 
-          {% if survey_type != 'DEPT-REGION-SITE' %}
-            <div style="display: none;">
-          {% endif %}
+          {% if survey.survey_type == 'DEPT-REGION-SITE' %}
           <!-- If survey configured to collect department region and site details -->
 
           {{ form.dept_name.errors }}
@@ -53,15 +51,12 @@
               </div>
             </div>
           </div>
-
-          {% if survey_type != 'DEPT-REGION-SITE' %}
-            </div><br>
           {% endif %}
+
           {% buttons %}
             {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
           {% endbuttons %}
         </form>
-        {{ team_name }} {{ dept_name }} {{ region_name }} {{ site_name }}
       </div>
     </div>
   </div>

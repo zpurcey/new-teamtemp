@@ -3,18 +3,15 @@ import json
 import os
 import sys
 import urllib
-from datetime import timedelta
 from urlparse import urlparse
 
 import gviz_api
 import unirest
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
-from django.utils import timezone
 from django.views.static import serve as serve_static
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
@@ -196,12 +193,11 @@ def set_view(request, survey_id):
             if srf['current_team_name'] != '':
                 rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"),
                                                 srf['new_team_name'].replace(" ", "_"), survey.id)
-                print >> sys.stderr, "Team Name Updated: " + str(rows_changed) + " From: '" + srf[
-                    'current_team_name'] + "' To: '" + srf['new_team_name'] + "'"
+                thanks += "Team Name Updated: From: '" + srf['current_team_name'] + "' To: '" + srf[
+                    'new_team_name'] + "'. " + str(rows_changed) + " records updated. "
+
             if srf['censored_word'] != '':
                 rows_changed = censor_word(srf['censored_word'], survey.id)
-                print >> sys.stderr, "Word removed:  " + str(rows_changed) + " word removed: " + srf[
-                    'censored_word']
                 thanks += "Word removed: " + str(rows_changed) + " responses updated. "
 
             survey.full_clean()
@@ -226,9 +222,12 @@ def censor_word(censored_word, survey_id):
     num_rows = response_set.count()
     response_set.update(**data)
 
+    print >> sys.stderr, "Word removed:  " + str(num_rows) + " word removed: " + censored_word
+
     return num_rows
 
 
+@transaction.atomic
 def change_team_name(team_name, new_team_name, survey_id):
     response_objects = TemperatureResponse.objects.filter(request=survey_id, team_name=team_name)
     history_objects = TeamResponseHistory.objects.filter(request=survey_id, team_name=team_name)
@@ -246,6 +245,8 @@ def change_team_name(team_name, new_team_name, survey_id):
         response_objects.delete()
         history_objects.delete()
         team_objects.delete()
+
+    print >> sys.stderr, "Team Name Updated: %d From: '%s' To: '%s'" % (num_rows, team_name, new_team_name)
 
     return num_rows
 
@@ -459,7 +460,8 @@ def save_url(url, directory, basename):
             print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename)
             return None
         except urllib.ContentTooShortError as exc:
-            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (str(exc), url, filename)
+            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (
+            str(exc), url, filename)
             return None
 
     return return_url
@@ -623,69 +625,55 @@ def filter_view(request, survey_id):
                                     site_names_list=site_names_list)})
 
 
-def team_view(request, survey_id, team_name=''):
+def team_view(request, survey_id, team_name=None):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
-    if team_name != '':
+    if team_name is not None:
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
     # if valid session token or valid password render results page
 
-    survey_settings_id = None
-    survey_type = survey.survey_type
-    dept_names = survey.dept_names
-    region_names = survey.region_names
-    site_names = survey.site_names
-    dept_names_list = dept_names.split(',')
-    region_names_list = region_names.split(',')
-    site_names_list = site_names.split(',')
+    dept_names_list = survey.dept_names.split(',')
+    region_names_list = survey.region_names.split(',')
+    site_names_list = survey.site_names.split(',')
 
     if request.method == 'POST':
         form = AddTeamForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list,
                            region_names_list=region_names_list, site_names_list=site_names_list)
         if form.is_valid():
             csf = form.cleaned_data
-            team_name = csf['team_name'].replace(" ", "_")
+            new_team_name = csf['team_name'].replace(" ", "_")
             dept_name = csf['dept_name']
             region_name = csf['region_name']
             site_name = csf['site_name']
-            team_found = survey.teams.filter(team_name=team_name).count()
-            print >> sys.stderr, "team_found: " + str(team_found)
-            if team_found == 0 and not team:
-                team_details = Teams(id=None,
-                                     request=survey,
-                                     team_name=team_name,
-                                     dept_name=dept_name,
-                                     region_name=region_name,
-                                     site_name=site_name)
-                team_details.full_clean()
-                team_details.save()
-            elif team:
-                # print >>sys.stderr,"creating with team.id: " + str(team.id)
-                team.team_name = team_name
-                team.dept_name = dept_name
-                team.region_name = region_name
-                team.site_name = site_name
+
+            if survey.teams.filter(team_name=new_team_name).count() > 0:
+                raise Exception("Team name '%s' already exists for this survey" % new_team_name)
+
+            with transaction.atomic():
+                if team:
+                    if new_team_name != team.name:
+                        rows_changed = change_team_name(team.name, new_team_name, survey.id)
+
+                    team.dept_name = dept_name
+                    team.region_name = region_name
+                    team.site_name = site_name
+                else:
+                    team = Teams(id=None,
+                                 request=survey,
+                                 team_name=new_team_name,
+                                 dept_name=dept_name,
+                                 region_name=region_name,
+                                 site_name=site_name)
+
                 team.full_clean()
                 team.save()
 
             return HttpResponseRedirect('/admin/%s' % survey_id)
     else:
-        if team_name != '':
-            try:
-                previous = Teams.objects.get(request_id=survey_id, team_name=team_name)
-                survey_settings_id = previous.id
-            except Teams.DoesNotExist:
-                previous = None
-                survey_settings_id = None
-        else:
-            previous = None
-            survey_settings_id = None
-
-        form = AddTeamForm(instance=previous, dept_names_list=dept_names_list, region_names_list=region_names_list,
+        form = AddTeamForm(instance=team, dept_names_list=dept_names_list, region_names_list=region_names_list,
                            site_names_list=site_names_list)
 
-    return render(request, 'team.html',
-                  {'form': form, 'survey_type': survey_type, 'survey_settings_id': survey_settings_id})
+    return render(request, 'team.html', {'form': form, 'survey': survey})
 
 
 def populate_chart_data_structures(survey_type_title, teams, team_history, tz='UTC'):
