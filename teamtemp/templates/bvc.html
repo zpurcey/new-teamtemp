@@ -73,8 +73,13 @@
           <a href="{% url 'admin' survey_id=bvc_data.survey_id %}" class="btn btn-info"
              role="button">ADMIN</a>
           {% if bvc_data.team_name != '' or bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-            <a href="{% url 'bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL
-              TEAMS</a>
+            {% if bvc_data.archive_id == '' %}
+              <a href="{% url 'bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL
+                TEAMS</a>
+            {% else %}
+              <a href="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=bvc_data.archive_id %}" class="btn btn-primary" role="button">ALL
+                TEAMS</a>
+            {% endif %}
           {% endif %}
           {% if bvc_data.team_name == '' and bvc_data.archive_id == '' %}
             {% for team in bvc_data.survey_teams_filtered %}
