@@ -8,7 +8,7 @@
     <h1 align="center">User {{ user.id }}</h1>
     <br><br>
 
-    <table class="table  ">
+    <table class="table table-striped">
         <tr>
             <th style="text-align: right; vertical-align: middle; width: 10%;">Id</th>
             <td style="vertical-align: middle;">{{ user.id }}</td>
@@ -17,34 +17,32 @@
             <th style="text-align: right; vertical-align: middle;">Created</th>
             <td style="vertical-align: middle;">{{ user.creation_date }}</td>
         </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td>&nbsp;</td>
-        </tr>
     </table>
-    <table class="table  ">
+    <br><br>
+
+    <table class="table table-striped">
         <tr>
-            <th nowrap style="width: 10%;">Admin for surveys:</th>
-            <td colspan="2" >&nbsp;</td>
+            <th nowrap style="width: 10%;">Admin for:</th>
+            <td nowrap style="width: 20%;">&nbsp;</td>
+            <td>&nbsp;</td>
         </tr>
         {% for survey in admin_surveys %}
         <tr>
-            <th style="text-align: right; vertical-align: middle">{{ survey.id }}</th>
-            <td style="vertical-align: middle">
+            <th style="text-align: right; padding: 14px 8px;">{{ survey.id }}</th>
+            <td>
                 <div class="btn-group" role="group" aria-label="nav">
                     <a href="{% url 'admin' survey_id=survey.id %}" class="btn btn-info" role="button">ADMIN</a>
                     <a href="{% url 'bvc' survey_id=survey.id %}" class="btn btn-primary" role="button">BVC</a>
                 </div>
             </td>
-            <td>
+            <td style="padding: 0">
             {% for team in survey.teams.all %}
-                <div class="btn-group" role="group" aria-label="nav">
+                <div class="btn-group" role="group" aria-label="nav" style="padding: 8px;">
                     <a href="{% url 'submit' survey_id=survey.id team_name=team.team_name %}" class="btn btn-default" role="button">
                         {{ team.pretty_team_name }}
                     </a>
                     <a href="{% url 'admin' survey_id=survey.id team_name=team.team_name %}" class="btn btn-info" role="button">ADMIN</a>
                     <a href="{% url 'bvc' survey_id=survey.id team_name=team.team_name %}" class="btn btn-primary" role="button">BVC</a>
-                    &nbsp;
                 </div>
             {% endfor %}
             </td>
