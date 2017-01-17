@@ -630,7 +630,6 @@ def team_view(request, survey_id, team_name=None):
     team = None
     if team_name is not None:
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
-    # if valid session token or valid password render results page
 
     dept_names_list = survey.dept_names.split(',')
     region_names_list = survey.region_names.split(',')
@@ -646,29 +645,34 @@ def team_view(request, survey_id, team_name=None):
             region_name = csf['region_name']
             site_name = csf['site_name']
 
-            if survey.teams.filter(team_name=new_team_name).count() > 0:
-                raise Exception("Team name '%s' already exists for this survey" % new_team_name)
+            existing_teams = survey.teams.filter(team_name=new_team_name)
+            if team:
+                existing_teams = existing_teams.exclude(id=team.id)
 
-            with transaction.atomic():
-                if team:
-                    if new_team_name != team.team_name:
-                        rows_changed = change_team_name(team.team_name, new_team_name, survey.id)
+            if existing_teams.count() > 0:
+                form.add_error('team_name', "Team name '%s' already exists for this survey" % new_team_name)
+            else:
+                with transaction.atomic():
+                    if team:
+                        if new_team_name != team.team_name:
+                            rows_changed = change_team_name(team.team_name, new_team_name, survey.id)
 
-                    team.dept_name = dept_name
-                    team.region_name = region_name
-                    team.site_name = site_name
-                else:
-                    team = Teams(id=None,
-                                 request=survey,
-                                 team_name=new_team_name,
-                                 dept_name=dept_name,
-                                 region_name=region_name,
-                                 site_name=site_name)
+                        team.team_name = new_team_name
+                        team.dept_name = dept_name
+                        team.region_name = region_name
+                        team.site_name = site_name
+                    else:
+                        team = Teams(id=None,
+                                     request=survey,
+                                     team_name=new_team_name,
+                                     dept_name=dept_name,
+                                     region_name=region_name,
+                                     site_name=site_name)
 
-                team.full_clean()
-                team.save()
+                    team.full_clean()
+                    team.save()
 
-            return HttpResponseRedirect('/admin/%s' % survey_id)
+                return HttpResponseRedirect('/admin/%s' % survey_id)
     else:
         form = AddTeamForm(instance=team, dept_names_list=dept_names_list, region_names_list=region_names_list,
                            site_names_list=site_names_list)
