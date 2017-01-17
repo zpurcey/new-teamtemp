@@ -986,6 +986,10 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     all_region_names = set()
     all_site_names = set()
 
+    filter_dept_names = ''
+    filter_region_names = ''
+    filter_site_names = ''
+
     for survey_team in bvc_data['survey_teams']:
         teams = survey.teams.filter(team_name=survey_team.team_name).values('dept_name', 'region_name', 'site_name')
         for team in teams:
@@ -1000,12 +1004,16 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     if len(all_site_names) < 2:
         all_site_names = []
 
+    dept_names_list_on = all_dept_names if dept_names == '' else dept_names.split(',')
+    region_names_list_on = all_region_names if region_names == '' else region_names.split(',')
+    site_names_list_on = all_site_names if site_names == '' else site_names.split(',')
+
     filter_this_bvc = False
     if request.method == 'POST':
         form = FilteredBvcForm(request.POST, error_class=ErrorBox,
-                               dept_names_list=all_dept_names,
-                               region_names_list=all_region_names,
-                               site_names_list=all_site_names)
+                               dept_names_list=sorted(all_dept_names),
+                               region_names_list=sorted(all_region_names),
+                               site_names_list=sorted(all_site_names))
         if form.is_valid():
             csf = form.cleaned_data
             if len(all_dept_names) > len(csf['filter_dept_names']) \
@@ -1037,10 +1045,13 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                           'team_count': team_index,
                           'num_iterations': num_iterations,
                           'dept_names': dept_names, 'region_names': region_names, 'site_names': site_names,
-                          'form': FilteredBvcForm(dept_names_list=all_dept_names,
-                                                  region_names_list=all_region_names,
-                                                  site_names_list=all_site_names)
-                      })
+                          'form': FilteredBvcForm(dept_names_list=sorted(all_dept_names),
+                                                  region_names_list=sorted(all_region_names),
+                                                  site_names_list=sorted(all_site_names),
+                                                  dept_names_list_on=sorted(dept_names_list_on),
+                                                  region_names_list_on=sorted(region_names_list_on),
+                                                  site_names_list_on=sorted(site_names_list_on))
+        })
 
 
 def get_user(request):
