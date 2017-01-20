@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import urllib
+import wget
 from urlparse import urlparse
 
 import gviz_api
@@ -451,7 +452,7 @@ def save_url(url, directory, basename):
 
     if not os.path.exists(filename):
         try:
-            urllib.urlretrieve(url, filename)
+            wget.download(url, out=filename)
         except IOError as exc:
             print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename)
             return None
