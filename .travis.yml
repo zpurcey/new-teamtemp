@@ -1,0 +1,17 @@
+language: python
+env:
+  global:
+    - DATABASE_URL="sqlite:///:memory"
+    - DJANGO_SETTINGS_MODULE=teamtemp.settings.dev
+install:
+  - pip install -U pip setuptools wheel coveralls
+  - pip install -r requirements/dev.txt
+  - pip install -U codeclimate-test-reporter
+  - python manage.py collectstatic --no-input
+script:
+  - coverage run manage.py test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  - coveralls
+  - codeclimate-test-reporter
+  - pip list -o

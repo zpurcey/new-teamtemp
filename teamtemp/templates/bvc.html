@@ -1,256 +1,271 @@
 {% extends "base.html" %}
 
-{% block title %}Results{% endblock %}
+{% load bootstrap3 %}
+
+{% block title %}Results {{ bvc_data.survey_id }} {{ bvc_data.team_name }}{% endblock %}
+
+{% block bootstrap3_extra_script %}
+  <script type='text/javascript' src="//www.google.com/jsapi"></script>
+  <script type='text/javascript'>
+
+    google.load('visualization', '1', {packages: ['gauge', 'annotationchart', 'corechart']});
+    google.setOnLoadCallback(drawGaugeChart);
+    function drawGaugeChart() {
+
+      <!-- Team Temp Gauge -->
+      var avg = 0;
+      if ( {{bvc_data.stats.count}} > 0 ) {
+        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) )
+      }
+
+      var gauge_data = google.visualization.arrayToDataTable([
+        ['Label', 'Value'],
+        ['', 0]
+      ]);
+
+      var gauge_options = {
+        width: 400, height: 400,
+        redFrom: 0, redTo: 2.5,
+        yellowFrom: 2.5, yellowTo: 5,
+        greenFrom: 7.5, greenTo: 10,
+        max: 10,
+        minorTicks: 2,
+        majorTicks: ['0', '2.5', '5', '7.5', '10']
+      };
+
+      var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_chart'));
+      gaugeChart.draw(gauge_data, gauge_options);
+
+      setTimeout(function () {
+        var gauge_data = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['', avg]
+        ]);
+        gaugeChart.draw(gauge_data, gauge_options);
+      }, 200);
+
+      <!-- Historical Charts -->
+      <!-- Historical Chart Data -->
+      {% if json_historical_data != None %}
+        var historical_data = new google.visualization.DataTable({{ json_historical_data|safe }}, 0.5);
+
+        <!-- Historical Combo Chart (Bar and Average Line) -->
+        var combo_table = new google.visualization.ComboChart(document.getElementById('table_div_jscode'));
+        combo_table.draw(historical_data, {{ historical_options|safe }});
+
+        {% if team_count < 6 %}
+          <!-- Historical Annotated Chart -->
+          var annotation_table = new google.visualization.AnnotationChart(document.getElementById('table_div_json'));
+          annotation_table.draw(historical_data, {{ historical_options|safe }});
+        {% endif %}
+      {% endif %}
+    }
+  </script>
+{% endblock %}
 
 {% block body %}
 
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
-{% load bootstrap_themes %}
-{% bootstrap_styles theme='scafolding' type='less' %}
-{# bootstrap_styles theme='united' type='less' #}
-{# bootstrap_styles theme='cosmo' type='css' #}
-{# bootstrap_styles theme='default' type='min.css' #}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
-
-    <script type='text/javascript' src="http://www.google.com/jsapi"></script>
-    <script type='text/javascript'>
-
-        google.load('visualization', '1', {packages:['gauge','annotationchart','corechart']});
-        google.setOnLoadCallback(drawGuageChart);
-        function drawGuageChart() {
-            
-        <!-- Team Temp Guage -->
-            var avg = 0;
-            if( {{bvc_data.stats.count}} > 0){
-                avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) );
-            }
-
-            var guage_data = google.visualization.arrayToDataTable([
-                ['Label', 'Value'],
-                ['', 0 ],
-            ]);
-
-            var guage_options = {
-                width: 800, height: 440,
-                redFrom: 0, redTo: 2.5,
-                yellowFrom:2.5, yellowTo: 5,
-                greenFrom:7.5, greenTo:10,
-                max:10,
-                minorTicks: 2,
-                majorTicks: ['0','2.5','5','7.5','10']
-            };
-
-            var guageChart = new google.visualization.Gauge(document.getElementById('guage_chart'));
-            guageChart.draw(guage_data, guage_options);
-
-            setTimeout(function(){
-                var guage_data = google.visualization.arrayToDataTable([
-                ['Label', 'Value'],
-                ['',avg],
-                ]);
-                guageChart.draw(guage_data, guage_options);
-                }, 200);
-
-        <!-- Historical Charts -->
-            <!-- Historical Chart Data -->
-            {% if json_historical_data != None %}
-                var historical_data = new google.visualization.DataTable({{ json_historical_data|safe }}, 0.5);
-                
-                <!-- Historical Combo Chart (Bar and Average Line) -->
-                var combo_table = new google.visualization.ComboChart(document.getElementById('table_div_jscode'));
-                combo_table.draw(historical_data,{{ historical_options|safe }});
-
-                {% if team_count < 6 %}
-                    <!-- Historical Annotated Chart -->
-                    var annotation_table = new google.visualization.AnnotationChart(document.getElementById('table_div_json'));
-                    annotation_table.draw(historical_data,{{ historical_options|safe }});
-                {% endif %}
-            {% endif %}
-        }
-    </script>
-
-<div class="container" align="center">
+  <div class="container" align="center">
     <div class="row">
-        <div class="no-print">
-            <BR>
-            <div class="btn-group" role="group" aria-label="nav">
-            <a href="{% url 'teamtemp.views.admin' survey_id=bvc_data.survey_id %}" class="btn btn-info" role="button">ADMIN</a>
-            {% if bvc_data.team_name != '' or bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                <a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL TEAMS</a>
-            {% endif %}
-            {% if bvc_data.team_name == '' and bvc_data.archive_id == '' %}
-                {% for team in bvc_data.survey_teams_filtered %}
-                    <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
-                {% endfor %}
-            {% endif %}
-            {% if bvc_data.team_name == '' and bvc_data.archive_id != '' %}
-                {% for team in bvc_data.survey_teams_filtered %}
-                    <a href="{% url 'teamtemp.views.bvc' survey_id=team.request.id team_name=team.team_name archive_id=bvc_data.archive_id %}" class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
-                {% endfor %}
-            {% endif %}
-
-            </div>
-        </div>
-
-        {% if bvc_data.team_name == '' and bvc_data.archive_id == '' and bvc_data.survey_type == 'DEPT-REGION-SITE' %}
-
-            <!-- Filter BVC by Dept, Region, Site -->
-
-            <form method="post">
-                {% csrf_token %}
-                <div class="no-print">
-                <BR>
-                <table cellpadding="2">
-                    <tr>
-                    <td valign="top">
-                        {% if form.filter_dept_names.value %}
-                            {{ form.filter_dept_names.errors }}
-                            <div class="btn btn-default text-left">
-                                {{ form.filter_dept_names }}
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td valign="top">
-                        {% if form.filter_region_names.value %}
-                            {{ form.filter_region_names.errors }}
-                            <div class="btn btn-default text-left">
-                                {{ form.filter_region_names }}
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td valign="top">
-                        {% if form.filter_site_names.value %}
-                            {{ form.filter_site_names.errors }}
-                            <div class="btn btn-default text-left">
-                                {{ form.filter_site_names }}
-                            </div>
-                        {% endif %}
-                    </td>
-
-                    <td valign="top">
-                        {% if form.filter_site_names.value or form.filter_region_names.value or form.filter_dept_names.value %}
-                            {% buttons %}
-                                <button type="submit" class="btn btn-default">
-                                    {% bootstrap_icon "glyphicon glyphicon-filter" %} <b>FILTER BVC</b>
-                                </button>
-                            {% endbuttons %}
-                        {% endif %}
-                    </td>
-                    </tr>
-                </table>
-                </div>
-            </form>
-        {% endif %}
-
-
-        {% if bvc_data.archived_dates.count > 0 %}
-            <div class="no-print">
-              <BR>
-                    Select an archived BVC from the list:
-                    <BR>
-
-                    <select class="btn btn-default" id="ArchivedBVCSelector">
-                        {% if bvc_data.team_name != '' %}
-                            <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Survey</option>
-                        {% else %}
-                            {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">Current Survey</option>
-                            {% else %}
-                                <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Survey</option>
-                            {% endif %}
-                        {% endif %}
-                        
-                        <script>
-                            document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
-                        </script>
-
-                        {% for date in bvc_data.archived_dates %}
-                            {% if bvc_data.team_name == '' %}
-                                {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">{{ date.archive_date|date:"M. d, Y" }}</option>
-                                {% else %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
-                                {% endif %}
-                            {% else %}
-                                    <option value="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">{{ date.archive_date|date:"M. d, Y" }}</option>
-                            {% endif %}
-
-                            {% if date.id|slugify == bvc_data.archive_id %}
-                                <script>
-                                    document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
-                                </script>
-                            {% endif %}
-
-                        {% endfor %}
-
-                    </select>
-
-                    <script>
-                        document.getElementById("ArchivedBVCSelector").onchange = function() {
-                            window.location.href = this.value;
-                        };
-                    </script>
-            </div>
-
-        {% endif %}
-    </div><div class="row">
-
-
-
-
-
-    <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
-
-    {% if bvc_data.archived %}
-        <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
-    {% else %}
-        <h2 align="center">{% now () %}</h2>
-
-        <div class="no-print">
-            {% if num_iterations != '0' %}
-                {% if bvc_data.team_name == '' %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
-                {% else %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current Results + {{ num_iterations }} Previous Iterations</a></h6>
-                {% endif %}
+      <div class="no-print">
+        <BR>
+        <div class="btn-group" role="group" aria-label="nav">
+          <a href="{% url 'admin' survey_id=bvc_data.survey_id %}" class="btn btn-info"
+             role="button">ADMIN</a>
+          {% if bvc_data.team_name != '' or bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
+            {% if bvc_data.archive_id == '' %}
+              <a href="{% url 'bvc' survey_id=bvc_data.survey_id %}" class="btn btn-primary" role="button">ALL
+                TEAMS</a>
             {% else %}
-                {% if bvc_data.team_name == '' %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current Results</a></h6>
-                {% else %}
-                    <h6 align="center"><a href="{% url 'teamtemp.views.bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current Results</a></h6>
-                {% endif %}
+              <a href="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=bvc_data.archive_id %}" class="btn btn-primary" role="button">ALL
+                TEAMS</a>
             {% endif %}
+          {% endif %}
+          {% if bvc_data.team_name == '' and bvc_data.archive_id == '' %}
+            {% for team in bvc_data.survey_teams_filtered %}
+              <a href="{% url 'bvc' survey_id=team.request.id team_name=team.team_name %}"
+                 class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
+            {% endfor %}
+          {% endif %}
+          {% if bvc_data.team_name == '' and bvc_data.archive_id != '' %}
+            {% for team in bvc_data.survey_teams_filtered %}
+              <a
+                href="{% url 'bvc' survey_id=team.request.id team_name=team.team_name archive_id=bvc_data.archive_id %}"
+                class="btn btn-primary" role="button">{{ team.pretty_team_name }}</a>
+            {% endfor %}
+          {% endif %}
+
         </div>
-    {% endif %}
+      </div>
 
-    <!-- Display Team Temp Guage -->
-    <div class="centreguage" id='guage_chart'>
+      {% if bvc_data.team_name == '' and bvc_data.archive_id == '' and bvc_data.survey_type == 'DEPT-REGION-SITE' %}
+
+        <!-- Filter BVC by Dept, Region, Site -->
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="no-print">
+            <BR>
+            <table cellpadding="2">
+              <tr>
+                <td valign="top">
+                  {% if form.filter_dept_names.value %}
+                    {{ form.filter_dept_names.errors }}
+                    <div class="btn btn-default text-left">
+                      {{ form.filter_dept_names }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td valign="top">
+                  {% if form.filter_region_names.value %}
+                    {{ form.filter_region_names.errors }}
+                    <div class="btn btn-default text-left">
+                      {{ form.filter_region_names }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td valign="top">
+                  {% if form.filter_site_names.value %}
+                    {{ form.filter_site_names.errors }}
+                    <div class="btn btn-default text-left">
+                      {{ form.filter_site_names }}
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td valign="top">
+                  {% if form.filter_site_names.value or form.filter_region_names.value or form.filter_dept_names.value %}
+                    {% buttons %}
+                      <button type="submit" class="btn btn-default">
+                        {% bootstrap_icon "glyphicon glyphicon-filter" %} <b>FILTER BVC</b>
+                      </button>
+                    {% endbuttons %}
+                  {% endif %}
+                </td>
+              </tr>
+            </table>
+          </div>
+        </form>
+      {% endif %}
+
+
+      {% if bvc_data.archived_dates.count > 0 %}
+        <div class="no-print">
+          <BR>
+          Select an archived BVC from the list:
+          <BR>
+
+          <select class="btn btn-default" id="ArchivedBVCSelector">
+            {% if bvc_data.team_name != '' %}
+              <option value="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">
+                Current Survey
+              </option>
+            {% else %}
+              {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
+                <option
+                  value="{% url 'bvc' survey_id=bvc_data.survey_id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">
+                  Current Survey
+                </option>
+              {% else %}
+                <option value="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Survey</option>
+              {% endif %}
+            {% endif %}
+
+            <script>
+              document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
+            </script>
+
+            {% for date in bvc_data.archived_dates %}
+              {% if bvc_data.team_name == '' %}
+                {% if bvc_data.dept_names != '' or bvc_data.region_names != '' or bvc_data.site_names != '' %}
+                  <option
+                    value="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=date.id dept_names=bvc_data.dept_names region_names=bvc_data.region_names site_names=bvc_data.site_names %}">
+                    {{ date.archive_date|date:"M. d, Y" }}</option>
+                {% else %}
+                  <option value="{% url 'bvc' survey_id=bvc_data.survey_id archive_id=date.id %}">
+                    {{ date.archive_date|date:"M. d, Y" }}</option>
+                {% endif %}
+              {% else %}
+                <option
+                  value="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name archive_id=date.id %}">
+                  {{ date.archive_date|date:"M. d, Y" }}</option>
+              {% endif %}
+
+              {% if date.id|slugify == bvc_data.archive_id %}
+                <script>
+                  document.getElementById("ArchivedBVCSelector").selectedIndex = document.getElementById("ArchivedBVCSelector").length - 1;
+                </script>
+              {% endif %}
+
+            {% endfor %}
+
+          </select>
+
+          <script>
+            document.getElementById("ArchivedBVCSelector").onchange = function () {
+              window.location.href = this.value;
+            };
+          </script>
+        </div>
+
+      {% endif %}
     </div>
+    <div class="row">
+      <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
 
-    <h3 align="center">{{ bvc_data.stats.count }} Responses:</h3>
+      <div class="col-md-6">
+        {% if bvc_data.archived %}
+          <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
+        {% else %}
+          <h2 align="center">{% now () %}</h2>
 
-    <div class="centrewordcloud">
+          <div class="no-print">
+            {% if num_iterations != '0' %}
+              {% if bvc_data.team_name == '' %}
+                <h6 align="center"><a href="{% url 'bvc' survey_id=bvc_data.survey_id %}">Current Results
+                  + {{ num_iterations }} Previous Iterations</a></h6>
+              {% else %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name %}">Current
+                  Results + {{ num_iterations }} Previous Iterations</a></h6>
+              {% endif %}
+            {% else %}
+              {% if bvc_data.team_name == '' %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id num_iterations='2' %}">Current
+                  Results</a></h6>
+              {% else %}
+                <h6 align="center"><a
+                  href="{% url 'bvc' survey_id=bvc_data.survey_id team_name=bvc_data.team_name num_iterations='2' %}">Current
+                  Results</a></h6>
+              {% endif %}
+            {% endif %}
+          </div>
+        {% endif %}
 
-    {% if bvc_data.word_cloudurl != "" %}
-        <img src=/{{ bvc_data.word_cloudurl }} alt="word cloud">
-    {% endif %}
+        <!-- Display Team Temp Gauge -->
+        <div class="centregauge" id='gauge_chart'> </div>
+      </div>
+      <div class="col-md-6">
+        <h3 align="center">{{ bvc_data.stats.count }} Responses:</h3>
 
+        <div class="centrewordcloud">
+          {% if bvc_data.word_cloudurl %}
+            <img src="{{ bvc_data.word_cloudurl }}" alt="word cloud">
+          {% endif %}
+        </div>
+      </div>
     </div>
-
-    <!-- History Trend Graphs -->
-    <h1 align="center">{{ bvc_data.pretty_team_name }}</h1><P>
-    <h1 align="center">Historical {{ bvc_data.survey_type_title }}</h1>
-    <h2 align="center">{% now () %}</h2>
-    <p>
-    <div class="centreguage" id="table_div_jscode" style='width: 8in; height: 4in;'></div>
-    <BR><BR><BR><BR><BR><BR><BR>
-    <div class="centreguage" id="table_div_json" style='width: 8in; height: 4in;'></div>
-</div></div>
+    <div class="row">
+      <!-- History Trend Graphs -->
+      <h1 align="center">{{ bvc_data.pretty_team_name }}</h1>
+      <P>
+      <h1 align="center">Historical {{ bvc_data.survey_type_title }}</h1>
+      <h2 align="center">{% now () %}</h2>
+      <p>
+      <div class="centregauge" id="table_div_jscode" style="width: 100%"></div>
+      <BR><BR><BR><BR><BR><BR><BR>
+      <div class="centregauge" id="table_div_json" style="width: 100%"></div>
+    </div>
+  </div>
 {% endblock %}

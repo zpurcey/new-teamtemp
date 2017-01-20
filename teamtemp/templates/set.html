@@ -1,96 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Team Temperature{% endblock %}
+{% block title %}Settings {{ survey.id }}{% endblock %}
 
 {% block body %}
 
-{% if thanks %}
-<div class="info box">{{ thanks }}</div>
-<BR><BR>
-{% endif %}
+  <div class="container">
 
-<div class="info box">
-    <a href="{% url 'teamtemp.views.admin' survey_id=survey_settings_id %}">ADMIN</a>
-</div>
-<BR><BR>
-
-<h1>Team Temperature</h1>
-<h2>Survey Settings</h2>
-<form method="post">
-    {% csrf_token %}
-    {% if response_id %}
-    <input type="hidden" name="id" value="{{ response_id }}"/>
+    {% if thanks %}
+      <div class="info box">{{ thanks }}</div>
+      <BR><BR>
     {% endif %}
-    
-    {{ form.survey_type.errors }}
-    <div class="field">
-        <label for="id_survey_type">Survey Type:</label><br/>
-        {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey or DEPT-REGION-SITE - aggregate results across Departments, Regions and Sites or office locations)
-    </div>
-    
-    {{ form.max_word_count.errors }}
-    <div class="field">
-        <label for="id_max_word_count">Max Word Count:</label><br/>
-        {{ form.max_word_count }} (Number of words accepted along with team temperature submission - Default: 1)
-    </div>
-    
-    {{ form.dept_names.errors }}
-    <div class="field">
-        <label for="id_dept_names">Department Names:</label><br/>
-        {{ form.dept_names }} (Comma separated list of department names for new teams when Survey Type is DEPT-REGION-SITE)
-    </div>
 
-    {{ form.region_names.errors }}
-    <div class="field">
-        <label for="id_region_names">Region Names:</label><br/>
-        {{ form.region_names }} (Comma separated list of region names for new teams when Survey Type is DEPT-REGION-SITE)
-    </div>
+    <div class="row">
+      <div class="col-md-12"><br>
+        <BR>
+        <div class="btn-group no-print" role="group" aria-label="nav">
+          <a href="{% url 'admin' survey_id=survey.id %}" class="btn btn-info" role="button">ADMIN</a>
+        </div>
 
-    {{ form.site_names.errors }}
-    <div class="field">
-        <label for="id_site_names">Site Names:</label><br/>
-        {{ form.site_names }} (Comma separated list of Site names for new teams when Survey Type is DEPT-REGION-SITE)
-    </div>
+        <BR><BR>
 
-    {{ form.archive_schedule.errors }}
-    <div class="field">
-        <label for="id_archive_schedule">Archive Interval:</label><br/>
-        {{ form.archive_schedule }} (Number of days. 0 to disable automated archive.)
-    </div>
-    
-    {{ form.password.errors }}
-    <div class="field">
-        <label for="id_password">Change Survey Password:</label><br/>
-        {{ form.password }} (Leave blank to retain existing password)
-    </div>
-    
-    <h3>Team Name Change</h3>
-    {% for team in survey_teams %}
-        {{ team.pretty_team_name }} <BR>
-    {% endfor %}
-    <BR>
-    {{ form.current_team_name.errors }}
-    <div class="field">
-        <label for="current_team_name">Current team name:</label><br/>
-        {{ form.current_team_name }} (Check for trailing spaces if name change fails)
-    </div>
-    {{ form.new_team_name.errors }}
-    <div class="field">
-        <label for="new_team_name">New team name:</label><br/>
-        {{ form.new_team_name }} (Blank will delete all team records)
-    </div>
-    {{ form.censored_word.errors }}
-    <div class="field">
-        <label for="censored_word">Censor Word:</label><br/>
-        {{ form.censored_word }} (ALL occurences will be removed from this survey, ensure correct caps)
-    </div>
-    
-    {{ form.default_tz.errors }}
-    <div class="field">
-        <label for="id_default_tz">Default Timezone:</label><br/>
-        {{ form.default_tz }} (pytz.all_timezones)
-    </div>
+        <h1>Team Temperature</h1>
+        <h2>Survey Settings</h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="id" value="{{ survey.id }}"/>
 
-    <input type="submit" value="Submit"/>
-</form>
+          {{ form.survey_type.errors }}
+          <div class="field">
+            <label for="id_survey_type">Survey Type:</label><br/>
+            {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey or
+            DEPT-REGION-SITE - aggregate results across Departments, Regions and Sites or office locations)
+          </div>
+
+          {{ form.max_word_count.errors }}
+          <div class="field">
+            <label for="id_max_word_count">Max Word Count:</label><br/>
+            {{ form.max_word_count }} (Number of words accepted along with team temperature submission - Default: 1)
+          </div>
+
+          {% if survey.survey_type == 'DEPT-REGION-SITE' %}
+              {{ form.dept_names.errors }}
+              <div class="field">
+                <label for="id_dept_names">Department Names:</label><br/>
+                {{ form.dept_names }} (Comma separated list of department names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
+
+              {{ form.region_names.errors }}
+              <div class="field">
+                <label for="id_region_names">Region Names:</label><br/>
+                {{ form.region_names }} (Comma separated list of region names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
+
+              {{ form.site_names.errors }}
+              <div class="field">
+                <label for="id_site_names">Site Names:</label><br/>
+                {{ form.site_names }} (Comma separated list of Site names for new teams when Survey Type is
+                DEPT-REGION-SITE)
+              </div>
+          {% endif %}
+
+          {{ form.archive_schedule.errors }}
+          <div class="field">
+            <label for="id_archive_schedule">Archive Interval:</label><br/>
+            {{ form.archive_schedule }} (Number of days. 0 to disable automated archive.)
+          </div>
+
+          {{ form.next_archive_date.errors }}
+          <div class="field">
+            <label for="id_next_archive_date">Next Archive Date:</label><br/>
+            {{ form.next_archive_date }} (Date of next automated archive.)
+          </div>
+
+          {{ form.password.errors }}
+          <div class="field">
+            <label for="id_password">Change Survey Password:</label><br/>
+            {{ form.password }} (Leave blank to retain existing password)
+          </div>
+
+          <h3>Team Name Change</h3>
+          {% for team in survey_teams %}
+            {{ team.team_name }}<BR>
+          {% endfor %}
+          <BR>
+          {{ form.current_team_name.errors }}
+          <div class="field">
+            <label for="current_team_name">Current team name:</label><br/>
+            {{ form.current_team_name }} (Check for trailing spaces if name change fails)
+          </div>
+          {{ form.new_team_name.errors }}
+          <div class="field">
+            <label for="new_team_name">New team name:</label><br/>
+            {{ form.new_team_name }} (Blank will delete all team records)
+          </div>
+          {{ form.censored_word.errors }}
+          <div class="field">
+            <label for="censored_word">Censor Word:</label><br/>
+            {{ form.censored_word }} (ALL occurences will be removed from this survey)
+          </div>
+
+          {{ form.default_tz.errors }}
+          <div class="field">
+            <label for="id_default_tz">Default Timezone:</label><br/>
+            {{ form.default_tz }} (pytz.all_timezones)
+          </div>
+
+          <input type="submit" value="Submit"/>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}

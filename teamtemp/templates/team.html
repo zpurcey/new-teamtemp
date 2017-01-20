@@ -1,72 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Team Temperature{% endblock %}
+{% load bootstrap3 %}
+
+{% block title %}Create Team{% endblock %}
 
 {% block body %}
 
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-{# Load CSS and JavaScript #}
-{% bootstrap_css %}
-{% bootstrap_javascript %}
-{% load bootstrap_themes %}
-{% bootstrap_styles theme='scafolding' type='less' %}
-{# bootstrap_styles theme='united' type='less' #}
-{# bootstrap_styles theme='cosmo' type='css' #}
-{# bootstrap_styles theme='default' type='min.css' #}
-
-{# Display django.contrib.messages as Bootstrap alerts #}
-{% bootstrap_messages %}
-
-
-<div class="container">
+  <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <h1>Enter the new team name</h1>
-            <form method="post">
-              {% csrf_token %}
-              {{ form.team_name.errors }}
-              <div class="field">
-                <div class="row"><div class="col-md-6">
+      <div class="col-md-8 col-md-offset-2">
+        <h1>Enter the new team name</h1>
+        <form method="post">
+          {% csrf_token %}
+          <div class="field">
+            <div class="row">
+              <div class="col-md-6">
                 {% bootstrap_field form.team_name layout='vertical' size='sm' %}
-                </div></div>
               </div>
+            </div>
+          </div>
 
 
-                {% if survey_type != 'DEPT-REGION-SITE' %}
-                    <div style="display: none;">
-                {% endif %}
-                <!-- If survey configured to collect department region and site details -->
+          {% if survey.survey_type == 'DEPT-REGION-SITE' %}
+          <!-- If survey configured to collect department region and site details -->
 
-                {{ form.dept_name.errors }}
-                <div class="field">
-                    <div class="row"><div class="col-md-6">
-                    {% bootstrap_field form.dept_name layout='vertical' size='sm' %}
-                    </div></div>
-                </div>
-                
-                {{ form.region_name.errors }}
-                <div class="field">
-                    <div class="row"><div class="col-md-6">
-                    {% bootstrap_field form.region_name layout='vertical' size='sm' %}
-                    </div></div>
-                </div>
-                
-                {{ form.site_name.errors }}
-                <div class="field">
-                    <div class="row"><div class="col-md-6">
-                    {% bootstrap_field form.site_name layout='vertical' size='sm' %}
-                    </div></div>
-                </div>
+          <div class="field">
+            <div class="row">
+              <div class="col-md-6">
+                {% bootstrap_field form.dept_name layout='vertical' size='sm' %}
+              </div>
+            </div>
+          </div>
 
-                {% if survey_type != 'DEPT-REGION-SITE'%}
-                    </div><br>
-                {% endif %}
-                {% buttons class="btn btn-primary" submit='Create' %}{% endbuttons %}
-            </form>
-            {{ team_name }} {{ dept_name }} {{ region_name }} {{ site_name }}
-        </div>
+          <div class="field">
+            <div class="row">
+              <div class="col-md-6">
+                {% bootstrap_field form.region_name layout='vertical' size='sm' %}
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="row">
+              <div class="col-md-6">
+                {% bootstrap_field form.site_name layout='vertical' size='sm' %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% buttons %}
+            {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+          {% endbuttons %}
+        </form>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}
