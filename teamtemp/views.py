@@ -25,15 +25,11 @@ from teamtemp.responses.models import *
 try:
     # For Python 3.0 and later
     from urllib.request import urlretrieve, ContentTooShortError
+    from urilib import parse as urlparse
 except ImportError:
     # Fall back to Python 2's urllib2
     from urllib import urlretrieve, ContentTooShortError
-
-
-try:
     from urlparse import urlparse
-except ImportError:
-    from urilib import parse as urlparse
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
