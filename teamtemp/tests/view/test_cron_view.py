@@ -18,7 +18,7 @@ class CronViewTestCases(TestCase):
         settings.CRON_PIN = '1234567812345678'
         url = reverse('cron', kwargs={'pin': '1234567812345678'})
 
-        response = TemperatureResponseFactory()
+        response = TemperatureResponseFactory(request__archive_schedule=7)
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
