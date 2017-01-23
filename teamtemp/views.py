@@ -602,13 +602,17 @@ def archive_survey(_, survey, archive_date=timezone.now()):
 @ie_edge()
 def team_view(request, survey_id, team_name=None):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
+    if not authenticated_user(request, survey):
+        return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
+
     team = None
     if team_name is not None:
         team = get_object_or_404(Teams, request_id=survey_id, team_name=team_name)
 
-    dept_names_list = survey.dept_names.split(',')
-    region_names_list = survey.region_names.split(',')
-    site_names_list = survey.site_names.split(',')
+    dept_names_list = survey.dept_names.split(',') if survey.dept_names else []
+    region_names_list = survey.region_names.split(',') if survey.region_names else []
+    site_names_list = survey.site_names.split(',') if survey.site_names else []
 
     if request.method == 'POST':
         form = AddTeamForm(request.POST, error_class=ErrorBox, dept_names_list=dept_names_list,
