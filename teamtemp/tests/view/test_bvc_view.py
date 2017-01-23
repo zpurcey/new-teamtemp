@@ -1,13 +1,16 @@
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, TeamFactory
+from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, TeamFactory, TeamResponseHistoryFactory
 
 class BvcViewTestCases(TestCase):
     def setUp(self):
         self.teamtemp = TeamTemperatureFactory()
         self.team = TeamFactory(request=self.teamtemp)
         self.response = TemperatureResponseFactory(request=self.teamtemp, team_name=self.team.team_name)
+
+        TeamResponseHistoryFactory(request=self.teamtemp, team_name=self.team.team_name)
+        TeamResponseHistoryFactory(request=self.teamtemp, team_name='Average')
 
     def test_bvc_view(self):
         response = self.client.get(reverse('bvc', kwargs={'survey_id': self.teamtemp.id}))
