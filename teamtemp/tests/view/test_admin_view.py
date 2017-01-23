@@ -27,17 +27,10 @@ class AdminViewTestCases(TestCase):
         response = self.client.get(reverse('admin', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
         self._assert_password_form(response)
 
-    def test_admin_set_view(self):
-        response = self.client.get(reverse('set', kwargs={'survey_id': self.teamtemp.id}), follow=True)
-        self._assert_redirects(response)
-
-    def test_admin_reset_view(self):
-        response = self.client.get(reverse('reset', kwargs={'survey_id': self.teamtemp.id}), follow=True)
-        self._assert_redirects(response)
-
-    def test_admin_new_team_view(self):
-        response = self.client.get(reverse('team', kwargs={'survey_id': self.teamtemp.id}), follow=True)
-        self._assert_redirects(response)
+    def test_admin_per_survey_views(self):
+        for view in ['set', 'reset', 'team']:
+            response = self.client.get(reverse(view, kwargs={'survey_id': self.teamtemp.id}), follow=True)
+            self._assert_redirects(response)
 
     def test_admin_existing_team_view(self):
         response = self.client.get(reverse('team', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}), follow=True)
