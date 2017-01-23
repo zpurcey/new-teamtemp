@@ -1,9 +1,8 @@
 import errno
-import json
-import os
 import sys
 
 import gviz_api
+import os
 import requests
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
@@ -382,8 +381,8 @@ def admin_view(request, survey_id, team_name=''):
 
     return render(request, 'results.html',
                   {'id': survey_id, 'stats': stats,
-                   'results': results, 'team_name': team_name, 
-                   'pretty_team_name': pretty_team_name,  
+                   'results': results, 'team_name': team_name,
+                   'pretty_team_name': pretty_team_name,
                    'survey_teams': survey_teams,
                    'archive_schedule': survey.archive_schedule,
                    'next_archive_date': next_archive_date
@@ -403,16 +402,17 @@ def generate_wordcloud(word_list, word_hash):
             rotate = "TRUE"
         print >> sys.stderr, "Start Word Cloud Generation: [%s] %s" % (word_hash, word_list)
         response = requests.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
-                                headers={"Word-Cloud-Key": word_cloud_key},
-                                json={"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
-                                     "fixed_asp": fixed_asp, "rotate": rotate},
-                                timeout=timeout
-                                )
+                                 headers={"Word-Cloud-Key": word_cloud_key},
+                                 json={"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
+                                       "fixed_asp": fixed_asp, "rotate": rotate},
+                                 timeout=timeout
+                                 )
         if response.status_code == 200:
             print >> sys.stderr, "Finish Word Cloud Generation: [%s]" % (word_hash)
             return save_url(response.json()['url'], 'wordcloud_images', word_hash)
         else:
-            print >> sys.stderr, "Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response.__dict__))
+            print >> sys.stderr, "Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (
+                word_hash, response.status_code, str(response.__dict__))
 
     return None
 
@@ -919,7 +919,8 @@ def generate_bvc_stats(survey_id_list, team_name_list, archive_date, num_iterati
 
         # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
         if int(float(num_iterations)) > 0:
-            multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)), survey.default_tz)
+            multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)),
+                                                       survey.default_tz)
             if multi_stats:
                 stats = multi_stats
 
@@ -1061,7 +1062,7 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                                                   dept_names_list_on=sorted(dept_names_list_on),
                                                   region_names_list_on=sorted(region_names_list_on),
                                                   site_names_list_on=sorted(site_names_list_on))
-        })
+                      })
 
 
 def get_user(request):
