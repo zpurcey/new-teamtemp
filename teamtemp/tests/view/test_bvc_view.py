@@ -10,6 +10,7 @@ class BvcViewTestCases(TestCase):
         self.response = TemperatureResponseFactory(request=self.teamtemp, team_name=self.team.team_name)
 
         TeamResponseHistoryFactory(request=self.teamtemp, team_name=self.team.team_name)
+        TeamResponseHistoryFactory(request=self.teamtemp, team_name=self.team.team_name)
         TeamResponseHistoryFactory(request=self.teamtemp, team_name='Average')
 
     def test_bvc_no_team_view(self):
