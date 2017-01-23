@@ -11,11 +11,11 @@ class AdminViewTestCases(TestCase):
         self.team = TeamFactory(request=self.teamtemp)
         self.admin_url = reverse('admin', kwargs={'survey_id': self.teamtemp.id})
 
-    def _assert_password_form(self, response)
+    def _assert_password_form(self, response):
         self.assertContains(response, 'Enter the admin password')
         self.assertTemplateUsed(response, 'password.html')
 
-    def _assert_redirects(self, response)
+    def _assert_redirects(self, response):
         self.assertRedirects(response, self.admin_url)
         self._assert_password_form(response)
 
