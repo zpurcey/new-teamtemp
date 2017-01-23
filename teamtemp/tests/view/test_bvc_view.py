@@ -12,7 +12,7 @@ class BvcViewTestCases(TestCase):
         TeamResponseHistoryFactory(request=self.teamtemp, team_name=self.team.team_name)
         TeamResponseHistoryFactory(request=self.teamtemp, team_name='Average')
 
-    def test_bvc_view(self):
+    def test_bvc_no_team_view(self):
         response = self.client.get(reverse('bvc', kwargs={'survey_id': self.teamtemp.id}))
         self.assertTemplateUsed(response, 'bvc.html')
         self.assertEqual(response.status_code, 200)
