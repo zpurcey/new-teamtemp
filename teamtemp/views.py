@@ -109,7 +109,7 @@ def home_view(request, survey_type='TEAMTEMP'):
         if form.is_valid():
             csf = form.cleaned_data
             survey_id = utils.random_string(8)
-            user, created = get_or_create_user(request)
+            user = get_or_create_user(request)
             dept_names = csf['dept_names']
             region_names = csf['region_names']
             site_names = csf['site_names']
@@ -142,11 +142,7 @@ def authenticated_user(request, survey):
     if responses.is_admin_for_survey(request, survey.id):
         return True
 
-    # Retrieve User Token - if user does not exist return false
-    try:
-        user = get_user(request)
-    except User.DoesNotExist:
-        return False
+    user = get_user(request)
 
     if user and survey.creator.id == user.id:
         responses.add_admin_for_survey(request, survey.id)
@@ -264,7 +260,7 @@ def change_team_name(team_name, new_team_name, survey_id):
 
 @ie_edge()
 def submit_view(request, survey_id, team_name=''):
-    user, created = get_or_create_user(request)
+    user = get_or_create_user(request)
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
@@ -334,7 +330,7 @@ def submit_view(request, survey_id, team_name=''):
 @no_cache()
 @ie_edge()
 def user_view(request):
-    user, _ = get_or_create_user(request)
+    user = get_or_create_user(request)
     if not user:
         raise Http404
 
@@ -1071,22 +1067,28 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
 def get_user(request):
     userid = responses.get_userid(request)
     if userid:
-        return User.objects.get(id=userid)
+        try:
+            return User.objects.get(id=userid)
+        except User.DoesNotExist:
+            pass
+
+    return None
 
 
 def get_or_create_user(request):
     userid = responses.get_userid(request)
 
     if userid:
-        return User.objects.get_or_create(id=userid)
+        user, _ = User.objects.get_or_create(id=userid)
+        return user
     else:
         user = None
         tries = 5
-        while user is None and tries >= 0:
+        while not user and tries >= 0:
             tries -= 1
             userid = responses.create_userid(request)
             user = User.objects.create(id=userid)
             if user:
-                return user, True
+                return user
 
     raise Exception("Can't create unique user")
