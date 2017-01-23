@@ -330,9 +330,9 @@ def submit_view(request, survey_id, team_name=''):
 @no_cache()
 @ie_edge()
 def user_view(request):
-    user = get_or_create_user(request)
+    user = get_user(request)
     if not user:
-        raise Http404
+        raise Http404('No valid user found in your browser session.')
 
     admin_survey_ids = responses.get_admin_for_surveys(request)
     if len(admin_survey_ids) > 0:
