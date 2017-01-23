@@ -82,6 +82,7 @@ class TeamsViewSet(viewsets.ModelViewSet):
     order_fields = ('team_name',)
 
 
+@header('Cache-Control', 'no-cache')
 def health_check_view(_):
     return HttpResponse('ok', content_type='text/plain')
 
@@ -100,6 +101,7 @@ def utc_timestamp():
     return "[%s UTC]" % str(timezone.localtime(timezone.now(), timezone=timezone.utc))
 
 
+@x_ua_compatible('IE=edge')
 def home_view(request, survey_type='TEAMTEMP'):
     timezone.activate(timezone.utc)
     if request.method == 'POST':
@@ -153,6 +155,7 @@ def authenticated_user(request, survey):
     return False
 
 
+@x_ua_compatible('IE=edge')
 def set_view(request, survey_id):
     thanks = ""
     rows_changed = 0
@@ -259,6 +262,7 @@ def change_team_name(team_name, new_team_name, survey_id):
     return num_rows
 
 
+@x_ua_compatible('IE=edge')
 def submit_view(request, survey_id, team_name=''):
     user, created = get_or_create_user(request)
 
@@ -327,6 +331,8 @@ def submit_view(request, survey_id, team_name=''):
                                          'id': survey_id})
 
 
+@header('Cache-Control', 'no-cache')
+@x_ua_compatible('IE=edge')
 def user_view(request):
     user, _ = get_or_create_user(request)
     if not user:
@@ -341,6 +347,7 @@ def user_view(request):
     return render(request, 'user.html', {'user': user, 'admin_surveys': admin_surveys})
 
 
+@x_ua_compatible('IE=edge')
 def admin_view(request, survey_id, team_name=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
@@ -472,6 +479,8 @@ def save_url(url, directory, basename):
     return return_url
 
 
+@header('Cache-Control', 'no-cache')
+@x_ua_compatible('IE=edge')
 def reset_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
@@ -488,6 +497,7 @@ def reset_view(request, survey_id):
         reverse('admin', kwargs={'survey_id': survey_id}), content=result, content_type='text/plain')
 
 
+@header('Cache-Control', 'no-cache')
 def cron_view(request, pin):
     cron_pin = '0000'
     if settings.CRON_PIN:
@@ -594,6 +604,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     return True
 
 
+@x_ua_compatible('IE=edge')
 def team_view(request, survey_id, team_name=None):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
     team = None
@@ -956,6 +967,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
     return None
 
 
+@x_ua_compatible('IE=edge')
 def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', add_survey_ids=None,
              region_names='', site_names='', dept_names=''):
     survey_ids = request.GET.get('add_survey_ids', add_survey_ids)
