@@ -27,7 +27,7 @@ class AdminViewTestCases(TestCase):
         self.assertContains(response, 'Enter the admin password')
         self.assertTemplateUsed(response, 'password.html')
 
-    def test_admin_set_view(self):
+    def test_admin_reset_view(self):
         response = self.client.get(reverse('reset', kwargs={'survey_id': self.teamtemp.id}), follow=True)
         self.assertRedirects(response, self.admin_url)
         self.assertContains(response, 'Enter the admin password')
