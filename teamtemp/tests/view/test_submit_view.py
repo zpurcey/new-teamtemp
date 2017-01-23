@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TeamFactory
 
+
 class SubmitViewTestCases(TestCase):
     def setUp(self):
         self.teamtemp = TeamTemperatureFactory()
