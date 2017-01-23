@@ -12,11 +12,9 @@ class UserTestCases(TestCase):
         self.assertEqual(str(user), "%s: %s" % (user.id, user.creation_date))
 
     def test_uniq_user_ids(self):
-        user1 = UserFactory()
-        user2 = UserFactory()
-        self.assertNotEqual(user1.id, user2.id)
+        self.assertNotEqual(UserFactory().id, UserFactory().id)
 
     def test_duplicate_user_ids(self):
         with self.assertRaises(ValidationError):
-            _ = UserFactory(id='bob')
-            _ = UserFactory(id='bob')
+            UserFactory(id='bob')
+            UserFactory(id='bob')
