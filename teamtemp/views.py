@@ -486,15 +486,10 @@ def reset_view(request, survey_id):
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    result = "\n"
     if authenticated_user(request, survey):
-        if archive_survey(request, survey):
-            result = "ok\n"
-        else:
-            result = "failed\n"
+        archive_survey(request, survey)
 
-    return HttpResponseRedirect(
-        reverse('admin', kwargs={'survey_id': survey_id}), content=result, content_type='text/plain')
+    return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
 
 @no_cache()
