@@ -2,11 +2,9 @@ import errno
 import json
 import os
 import sys
-import urllib
-from urlparse import urlparse
 
 import gviz_api
-import unirest
+import requests
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
@@ -23,6 +21,15 @@ from responses.serializers import *
 from teamtemp import responses, utils
 from teamtemp.headers import header
 from teamtemp.responses.models import *
+
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlretrieve, ContentTooShortError
+    from urilib import parse as urlparse
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib import urlretrieve, ContentTooShortError
+    from urlparse import urlparse
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -384,7 +391,6 @@ def generate_wordcloud(word_list, word_hash):
     word_cloud_key = os.environ.get('XMASHAPEKEY')
     if word_cloud_key is not None:
         timeout = 25
-        unirest.timeout(timeout)
         word_list = word_list.lower()
         fixed_asp = "FALSE"
         rotate = "FALSE"
@@ -393,14 +399,17 @@ def generate_wordcloud(word_list, word_hash):
             fixed_asp = "TRUE"
             rotate = "TRUE"
         print >> sys.stderr, "Start Word Cloud Generation: [%s] %s" % (word_hash, word_list)
-        response = unirest.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
-                                headers={"Content-Type": "application/json", "Word-Cloud-Key": word_cloud_key},
-                                params=json.dumps({"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
-                                                   "fixed_asp": fixed_asp, "rotate": rotate})
+        response = requests.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
+                                headers={"Word-Cloud-Key": word_cloud_key},
+                                json={"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
+                                     "fixed_asp": fixed_asp, "rotate": rotate},
+                                timeout=timeout
                                 )
-        print >> sys.stderr, "Finish Word Cloud Generation: [%s] response_code=%d" % (word_hash, response.code)
-        if response.code == 200:
-            return save_url(response.body['url'], 'wordcloud_images', word_hash)
+        if response.status_code == 200:
+            print >> sys.stderr, "Finish Word Cloud Generation: [%s]" % (word_hash)
+            return save_url(response.json()['url'], 'wordcloud_images', word_hash)
+        else:
+            print >> sys.stderr, "Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response.__dict__))
 
     return None
 
@@ -451,11 +460,11 @@ def save_url(url, directory, basename):
 
     if not os.path.exists(filename):
         try:
-            urllib.urlretrieve(url, filename)
+            urlretrieve(url, filename)
         except IOError as exc:
             print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename)
             return None
-        except urllib.ContentTooShortError as exc:
+        except ContentTooShortError as exc:
             print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (
                 str(exc), url, filename)
             return None
