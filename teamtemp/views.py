@@ -409,9 +409,11 @@ def generate_wordcloud(word_list, word_hash):
                                      "fixed_asp": fixed_asp, "rotate": rotate},
                                 timeout=timeout
                                 )
-        print >> sys.stderr, "Finish Word Cloud Generation: [%s] status_code=%d" % (word_hash, response.status_code)
         if response.status_code == 200:
+            print >> sys.stderr, "Finish Word Cloud Generation: [%s]" % (word_hash)
             return save_url(response.json()['url'], 'wordcloud_images', word_hash)
+        else:
+            print >> sys.stderr, "Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response))
 
     return None
 
