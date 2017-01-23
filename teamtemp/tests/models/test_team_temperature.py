@@ -1,5 +1,4 @@
 import re
-
 from django.forms import ValidationError
 from django.test import TestCase
 

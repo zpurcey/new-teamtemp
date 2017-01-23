@@ -3,7 +3,9 @@ from django.test import TestCase
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TeamFactory
 
+
 # No admin auth yet, so all admin functions should render the password form
+
 
 class AdminViewTestCases(TestCase):
     def setUp(self):
@@ -24,7 +26,8 @@ class AdminViewTestCases(TestCase):
         self._assert_password_form(response)
 
     def test_admin_team_view(self):
-        response = self.client.get(reverse('admin', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
+        response = self.client.get(
+            reverse('admin', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
         self._assert_password_form(response)
 
     def test_admin_per_survey_views(self):
@@ -33,5 +36,6 @@ class AdminViewTestCases(TestCase):
             self._assert_redirects(response)
 
     def test_admin_existing_team_view(self):
-        response = self.client.get(reverse('team', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}), follow=True)
+        response = self.client.get(
+            reverse('team', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}), follow=True)
         self._assert_redirects(response)

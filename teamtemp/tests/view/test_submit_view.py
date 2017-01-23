@@ -10,6 +10,7 @@ class SubmitViewTestCases(TestCase):
         self.team = TeamFactory(request=self.teamtemp)
 
     def test_submit_response_view(self):
-        response = self.client.get(reverse('submit', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
+        response = self.client.get(
+            reverse('submit', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
         self.assertTemplateUsed(response, 'form.html')
         self.assertEqual(response.status_code, 200)

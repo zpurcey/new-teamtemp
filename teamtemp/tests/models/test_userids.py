@@ -1,9 +1,8 @@
-from django.forms import ValidationError
-from django.test import TestCase, RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import TestCase, RequestFactory
 
 from teamtemp import responses
-from teamtemp.responses import USER_ID_KEY, ADMIN_KEY
+from teamtemp.responses import USER_ID_KEY
 
 
 class UserIdTestCases(TestCase):
@@ -16,13 +15,12 @@ class UserIdTestCases(TestCase):
         middleware.process_request(self.request)
         self.request.session.save()
 
-
     def test_get_user_id(self):
         user_id = 'kjhsdafA'
 
-        self.request.session = { USER_ID_KEY: user_id }
+        self.request.session = {USER_ID_KEY: user_id}
 
-        self.assertEqual(responses.get_userid(self.request), user_id )
+        self.assertEqual(responses.get_userid(self.request), user_id)
 
     def test_set_user_id(self):
         user_id = 'Aasdfa'
