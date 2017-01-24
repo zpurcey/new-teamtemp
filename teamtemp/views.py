@@ -825,14 +825,17 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
         else:
             team_filter = survey_filter
             # print >>sys.stderr,"team_filter:",team_filter,dept_name, region_name, site_name
-    bvc_data['team_history'] = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
-    bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct()
-    bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
+
+    team_history = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
+
+    bvc_data['team_history'] = team_history
+    bvc_data['teams'] = team_history.values('team_name').distinct()
+    bvc_data['num_rows'] = team_history.count()
     bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
 
     tempresponse_filter = dict({'archived': False}, **team_filter)
     if archive_id != '':
-        archive_set = TemperatureResponse.objects.filter(request__in=survey_id_list, id=archive_id).values(
+        archive_set = survey.temperature_responses.filter(id=archive_id).values(
             'archive_date')
         tempresponse_filter = dict({'archived': True}, **team_filter)
         if archive_set:
