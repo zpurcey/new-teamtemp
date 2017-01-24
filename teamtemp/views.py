@@ -832,12 +832,9 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
 
     tempresponse_filter = dict({'archived': False}, **team_filter)
     if archive_id != '':
-        archive_set = TemperatureResponse.objects.filter(request__in=survey_id_list, id=archive_id).values(
-            'archive_date')
-        tempresponse_filter = dict({'archived': True}, **team_filter)
-        if archive_set:
-            bvc_data['stats_date'] = archive_set[0]['archive_date']
-            tempresponse_filter = dict({'archive_date': bvc_data['stats_date']}, **tempresponse_filter)
+        archive = survey.temperature_team_history_response.filter(id=archive_id)
+        bvc_data['stats_date'] = archive.archive_date
+        tempresponse_filter = dict({'archived': True, 'archive_date': archive.archive_date}, **team_filter)
 
     results = TemperatureResponse.objects.filter(**tempresponse_filter)
 
