@@ -832,7 +832,7 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
 
     tempresponse_filter = dict({'archived': False}, **team_filter)
     if archive_id != '':
-        archive = TeamResponseHistory.objects.get(id=archive_id)
+        archive = survey.temperature_team_history_response.filter(id=archive_id)
         bvc_data['stats_date'] = archive.archive_date
         tempresponse_filter = dict({'archived': True, 'archive_date': archive.archive_date}, **team_filter)
 
