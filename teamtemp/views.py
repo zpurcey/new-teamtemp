@@ -5,6 +5,7 @@ import gviz_api
 import os
 import requests
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.http import Http404, HttpResponse
@@ -12,6 +13,7 @@ from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from django.urls import reverse
 from django.views.static import serve as serve_static
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import filters, viewsets
 
 from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvcForm, ResultsPasswordForm, \
@@ -128,6 +130,8 @@ def home_view(request, survey_type='TEAMTEMP'):
 
             responses.add_admin_for_survey(request, survey.id)
 
+            messages.success(request, 'Survey %s created.' % survey.id)
+
             return HttpResponseRedirect(reverse('team', kwargs={'survey_id': survey_id}))
     else:
         form = CreateSurveyForm()
@@ -152,7 +156,6 @@ def authenticated_user(request, survey):
 
 @ie_edge()
 def set_view(request, survey_id):
-    thanks = ""
     rows_changed = 0
 
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
@@ -168,57 +171,54 @@ def set_view(request, survey_id):
             srf = form.cleaned_data
             if srf['password'] != '':
                 survey.password = make_password(srf['password'])
-                thanks = "Password Updated. "
+                messages.success(request, 'Password Updated.')
             if srf['archive_schedule'] != survey.archive_schedule:
                 survey.archive_schedule = srf['archive_schedule']
-                thanks += "Schedule Updated. "
+                messages.success(request, 'Schedule Updated.')
                 survey.fill_next_archive_date(overwrite=True)
-                thanks += "Next Archive Date Updated to %s. " % survey.next_archive_date
+                messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date)
             elif srf['next_archive_date'] != survey.next_archive_date:
                 survey.next_archive_date = srf['next_archive_date']
-                thanks += "Next Archive Date Updated to %s. " % survey.next_archive_date
+                messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date)
             if srf['survey_type'] != survey.survey_type:
                 survey.survey_type = srf['survey_type']
-                thanks += "Survey Type Updated. "
+                messages.success(request, 'Survey Type Updated.')
             if srf['dept_names'] != survey.dept_names:
                 survey.dept_names = srf['dept_names']
-                thanks += "Dept Names Updated. "
+                messages.success(request, 'Dept Names Updated.')
             if srf['region_names'] != survey.region_names:
                 survey.region_names = srf['region_names']
-                thanks += "Region Names Updated. "
+                messages.success(request, 'Region Names Updated.')
             if srf['site_names'] != survey.site_names:
                 survey.site_names = srf['site_names']
-                thanks += "Site Names Updated. "
+                messages.success(request, 'Site Names Updated.')
             if srf['default_tz'] != survey.default_tz:
                 survey.default_tz = srf['default_tz']
-                thanks += "Default Timezone Updated. "
+                messages.success(request, 'Default Timezone Updated.')
             if srf['max_word_count'] != survey.max_word_count:
                 survey.max_word_count = srf['max_word_count']
-                thanks += "Max Word Count Updated. "
+                messages.success(request, 'Max Word Count Updated.')
 
             if srf['current_team_name'] != '':
-                rows_changed = change_team_name(srf['current_team_name'].replace(" ", "_"),
-                                                srf['new_team_name'].replace(" ", "_"), survey.id)
-                thanks += "Team Name Updated: From: '" + srf['current_team_name'] + "' To: '" + srf[
-                    'new_team_name'] + "'. " + str(rows_changed) + " records updated. "
+                current_team_name = srf['current_team_name'].replace(" ", "_")
+                new_team_name = srf['new_team_name'].replace(" ", "_")
+
+                rows_changed = change_team_name(current_team_name, new_team_name, survey.id)
+                messages.success(request, 'Team Name Updated: from "%s" to "%s". %d records %s.' % (
+                                 current_team_name, new_team_name, rows_changed, 'updated' if new_team_name else 'deleted'))
 
             if srf['censored_word'] != '':
                 rows_changed = censor_word(srf['censored_word'], survey.id)
-                thanks += "Word removed: " + str(rows_changed) + " responses updated. "
+                messages.success(request, 'Word removed: %d responses updated.' % rows_changed)
 
             survey.full_clean()
             survey.save()
 
-            if srf['current_team_name'] != '' and srf['new_team_name'] != '':
-                thanks += "Team Name Change Processed: " + str(rows_changed) + " rows updated. "
-            if srf['current_team_name'] != '' and srf['new_team_name'] == '':
-                thanks += "Team Name Change Processed: " + str(rows_changed) + " rows deleted. "
+            return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
     else:
         form = SurveySettingsForm(instance=survey)
 
-    return render(request, 'set.html', {'form': form, 'thanks': thanks,
-                                        'survey': survey,
-                                        'survey_teams': survey_teams})
+    return render(request, 'set.html', {'form': form, 'survey': survey, 'survey_teams': survey_teams})
 
 
 def censor_word(censored_word, survey_id):
@@ -282,7 +282,6 @@ def submit_view(request, survey_id, team_name=''):
         except TemperatureResponse.DoesNotExist:
             pass
 
-    thanks = ""
     if request.method == 'POST':
         form = SurveyResponseForm(request.POST, error_class=ErrorBox, max_word_count=survey.max_word_count)
 
@@ -300,8 +299,8 @@ def submit_view(request, survey_id, team_name=''):
             response.full_clean()
             response.save()
 
-            thanks = "Thank you for submitting your answers. You can " \
-                     "amend them now or later using this browser only if you need to."
+            messages.success(request, 'Thank you for submitting your answers. You can ' \
+                             'amend them now or later using this browser only if you need to.')
     else:
         form = SurveyResponseForm(instance=response, max_word_count=survey.max_word_count)
 
@@ -316,7 +315,7 @@ def submit_view(request, survey_id, team_name=''):
         temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
         word_question_title = 'Please suggest one word to describe how you are feeling about the team and service:'
 
-    return render(request, 'form.html', {'form': form, 'thanks': thanks,
+    return render(request, 'form.html', {'form': form,
                                          'response_id': response.id if response else None,
                                          'survey_type_title': survey_type_title,
                                          'temp_question_title': temp_question_title,
@@ -483,7 +482,11 @@ def reset_view(request, survey_id):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
     if authenticated_user(request, survey):
-        archive_survey(request, survey)
+        if archive_survey(request, survey):
+            messages.success(request, 'Survey archived successfully.')
+        else:
+            messages.error(request, 'Survey archive failed.')
+
 
     return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
@@ -631,11 +634,18 @@ def team_view(request, survey_id, team_name=None):
                     if team:
                         if new_team_name != team.team_name:
                             rows_changed = change_team_name(team.team_name, new_team_name, survey.id)
+                            messages.success(request, 'Team Name Updated: from "%s" to "%s". %d records updated.' % (
+                                             current_team_name, new_team_name, rows_changed))
 
                         team.team_name = new_team_name
                         team.dept_name = dept_name
                         team.region_name = region_name
                         team.site_name = site_name
+
+                        team.full_clean()
+                        team.save()
+
+                        messages.success(request, 'Team updated.')
                     else:
                         team = Teams(id=None,
                                      request=survey,
@@ -644,8 +654,10 @@ def team_view(request, survey_id, team_name=None):
                                      region_name=region_name,
                                      site_name=site_name)
 
-                    team.full_clean()
-                    team.save()
+                        team.full_clean()
+                        team.save()
+
+                        messages.success(request, 'Team created.')
 
                 return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
     else:
