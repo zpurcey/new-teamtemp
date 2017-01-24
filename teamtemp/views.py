@@ -635,7 +635,7 @@ def team_view(request, survey_id, team_name=None):
                         if new_team_name != team.team_name:
                             rows_changed = change_team_name(team.team_name, new_team_name, survey.id)
                             messages.success(request, 'Team Name Updated: from "%s" to "%s". %d records updated.' % (
-                                             current_team_name, new_team_name, rows_changed))
+                                             team.team_name, new_team_name, rows_changed))
 
                         team.team_name = new_team_name
                         team.dept_name = dept_name
