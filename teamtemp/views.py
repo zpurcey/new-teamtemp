@@ -706,27 +706,31 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
             elif row['archive_date'] != archive_date:
                 # TODO can it recalculate the average here for adhoc filtering
                 if num_scores > 0:
-                    average_score = score_sum / num_scores
-                    row['Average'] = (float(average_score),
-                                      str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
+                    average_score = float(score_sum / num_scores)
+                    row['Average'] = (average_score,
+                                      "%.2f (%d Response%s)" % (average_score, responder_sum,
+                                                                's' if responder_sum > 1 else ''))
                     score_sum = 0
                     num_scores = 0
                     responder_sum = 0
                 history_chart_data.append(row)
                 row = {'archive_date': archive_date}
 
+            average_score = float(survey_summary.average_score)
+            responder_count = survey_summary.responder_count
+
             # Accumulate for average calc
-            score_sum += survey_summary.average_score
+            score_sum += average_score
             num_scores += 1
-            responder_sum += survey_summary.responder_count
+            responder_sum += responder_count
 
-            row[survey_summary.team_name] = (float(survey_summary.average_score),
-                                             str("%.2f" % float(survey_summary.average_score)) + " (" + str(
-                                                 survey_summary.responder_count) + " Responses)")
+            row[survey_summary.team_name] = (average_score,
+                                             "%.2f (%d Response%s)" % (average_score, responder_count,
+                                                                       's' if responder_count > 1 else ''))
 
-    average_score = score_sum / num_scores
-    row['Average'] = (
-        float(average_score), str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
+    average_score = float(score_sum / num_scores)
+    row['Average'] = (average_score, "%.2f (%d Response%s)" % (average_score, responder_sum,
+                                     's' if responder_sum > 1 else ''))
 
     history_chart_data.append(row)
 
