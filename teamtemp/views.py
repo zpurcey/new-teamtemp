@@ -163,7 +163,7 @@ def set_view(request, survey_id):
     if not authenticated_user(request, survey):
         return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
-    survey_teams = survey.teams.all()
+    survey_teams = survey.teams.all().order_by('team_name')
 
     if request.method == 'POST':
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
@@ -372,7 +372,7 @@ def admin_view(request, survey_id, team_name=''):
         stats, _ = survey.stats()
         pretty_team_name = ''
 
-    survey_teams = survey.teams.all()
+    survey_teams = survey.teams.all().order_by('team_name')
     next_archive_date = None
     if survey.archive_schedule > 0:
         survey.fill_next_archive_date()
@@ -700,9 +700,10 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     responder_sum = 0
     for survey_summary in team_history:
         if survey_summary.team_name != 'Average':
+            archive_date = timezone.localtime(survey_summary.archive_date)
             if row is None:
-                row = {'archive_date': timezone.localtime(survey_summary.archive_date)}
-            elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
+                row = {'archive_date': archive_date}
+            elif row['archive_date'] != archive_date:
                 # TODO can it recalculate the average here for adhoc filtering
                 if num_scores > 0:
                     average_score = score_sum / num_scores
@@ -712,7 +713,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                     num_scores = 0
                     responder_sum = 0
                 history_chart_data.append(row)
-                row = {'archive_date': timezone.localtime(survey_summary.archive_date)}
+                row = {'archive_date': archive_date}
 
             # Accumulate for average calc
             score_sum += survey_summary.average_score
@@ -772,7 +773,7 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
 
     bvc_data = {
         'stats_date': '',
-        'survey_teams': survey.teams.all(),
+        'survey_teams': survey.teams.all().order_by('team_name'),
         'archived': False,
         'archive_date': None,
         'archive_id': archive_id,
@@ -816,7 +817,7 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
         # print >>sys.stderr,"dept_filter:",dept_filter
 
         if dept_filter != survey_filter:
-            filtered_teams = Teams.objects.filter(**dept_filter).values('team_name')
+            filtered_teams = Teams.objects.filter(**dept_filter).values('team_name').order_by('team_name')
             filtered_team_list = []
             for team in filtered_teams:
                 filtered_team_list.append(team['team_name'])
@@ -826,9 +827,9 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
             team_filter = survey_filter
             # print >>sys.stderr,"team_filter:",team_filter,dept_name, region_name, site_name
     bvc_data['team_history'] = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
-    bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct()
+    bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct().order_by('team_name')
     bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
-    bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
+    bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter).order_by('team_name')
 
     tempresponse_filter = dict({'archived': False}, **team_filter)
     if archive_id != '':

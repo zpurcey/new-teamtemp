@@ -69,15 +69,6 @@ ul {
   display: none;
 }
 
-.google-visualization-tooltip {
-  top: -125px !important;
-  left: 200px !important;
-  margin: 500px 0 0 0 !important;
-  text-align: center !important;
-  padding: 2px !important;
-  font: 12px sans-serif !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
+.google-visualization-tooltip-item {
+  white-space: nowrap;
 }
