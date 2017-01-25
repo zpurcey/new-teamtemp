@@ -690,8 +690,8 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     # Add average heading if not already added for adhoc filtering
     if team_index > 1:
         average_index = team_index
-    history_chart_schema.update({'Average': ("number", 'Average')})
-    history_chart_columns += 'Average',
+        history_chart_schema.update({'Average': ("number", 'Average')})
+        history_chart_columns += 'Average',
 
     history_chart_data = []
     row = None
@@ -825,12 +825,9 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
         else:
             team_filter = survey_filter
             # print >>sys.stderr,"team_filter:",team_filter,dept_name, region_name, site_name
-
-    team_history = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
-
-    bvc_data['team_history'] = team_history
-    bvc_data['teams'] = team_history.values('team_name').distinct()
-    bvc_data['num_rows'] = team_history.count()
+    bvc_data['team_history'] = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
+    bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct()
+    bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
     bvc_data['survey_teams_filtered'] = Teams.objects.filter(**team_filter)
 
     tempresponse_filter = dict({'archived': False}, **team_filter)
@@ -905,34 +902,29 @@ def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations):
     # Generate Stats for Team Temp Average for gauge and wordcloud - look here for Gauge and Word Cloud
     # BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
 
-    survey_count = 0
     agg_stats = {'count': 0, 'average': 0.00, 'words': []}
 
-    survey_filter = {'id': survey.id}
+    if team_name_list != [''] and archive_date == '':
+        stats, _ = survey.team_stats(team_name_list=team_name_list)
+    elif team_name_list == [''] and archive_date != '':
+        stats, _ = survey.archive_stats(archive_date=archive_date)
+    elif team_name_list != [''] and archive_date != '':
+        stats, _ = survey.archive_team_stats(team_name_list=team_name_list, archive_date=archive_date)
+    else:
+        stats, _ = survey.stats()
 
-    for survey in TeamTemperature.objects.filter(**survey_filter):
-        if team_name_list != [''] and archive_date == '':
-            stats, _ = survey.team_stats(team_name_list=team_name_list)
-        elif team_name_list == [''] and archive_date != '':
-            stats, _ = survey.archive_stats(archive_date=archive_date)
-        elif team_name_list != [''] and archive_date != '':
-            stats, _ = survey.archive_team_stats(team_name_list=team_name_list, archive_date=archive_date)
-        else:
-            stats, _ = survey.stats()
+    # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
+    if int(float(num_iterations)) > 0:
+        multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)),
+                                                   survey.default_tz)
+        if multi_stats:
+            stats = multi_stats
 
-        # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
-        if int(float(num_iterations)) > 0:
-            multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)),
-                                                       survey.default_tz)
-            if multi_stats:
-                stats = multi_stats
+    agg_stats['count'] = stats['count']
 
-        survey_count += 1
-        agg_stats['count'] = agg_stats['count'] + stats['count']
-
-        if stats['average']['score__avg']:
-            agg_stats['average'] = (agg_stats['average'] + stats['average']['score__avg']) / survey_count
-        agg_stats['words'] += list(stats['words'])
+    if stats['average']['score__avg']:
+        agg_stats['average'] = stats['average']['score__avg']
+    agg_stats['words'] = list(stats['words'])
 
     return agg_stats
 
@@ -981,7 +973,6 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     # Populate data for BVC including previously archived BVC
     bvc_data = populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_names, region_names,
                                  site_names)
-    bvc_data['survey_id'] = survey_id
 
     # If there is history to chart generate all data required for historical charts
     if bvc_data['num_rows'] > 0:

@@ -248,6 +248,7 @@
         </div>
       </div>
     </div>
+    {% if bvc_data.num_rows > 0 %}
     <div class="row">
       <!-- History Trend Graphs -->
       <h1 align="center">{{ bvc_data.pretty_team_name }}</h1>
@@ -259,5 +260,6 @@
       <BR><BR><BR><BR><BR><BR><BR>
       <div class="centregauge" id="table_div_json" style="width: 100%"></div>
     </div>
+    {% endif %}
   </div>
 {% endblock %}
