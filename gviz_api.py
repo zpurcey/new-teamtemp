@@ -25,25 +25,21 @@ Google Visualization API.
 """
 from __future__ import division
 
-from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from future.utils import string_types
-from builtins import str
-from builtins import object
+from builtins import object, str
 from past.utils import old_div
-__author__ = "Amit Weinstein, Misha Seltzer, Jacob Baskin"
+from past.builtins import cmp
 
 import cgi
 import io
 import csv
 import datetime
-try:
-  import json
-except ImportError:
-  import simplejson as json
-import types
-import six
+import json
+
+__author__ = "Amit Weinstein, Misha Seltzer, Jacob Baskin"
+
 
 
 class DataTableException(Exception):
