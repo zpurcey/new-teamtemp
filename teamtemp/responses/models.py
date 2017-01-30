@@ -21,7 +21,7 @@ class WordCloudImage(models.Model):
 
     def clean(self):
         self.word_list = self.word_list.lower().strip()
-        self.word_hash = hashlib.sha1(self.word_list).hexdigest()
+        self.word_hash = hashlib.sha1(self.word_list.encode('utf-8')).hexdigest()
 
 
 class User(models.Model):
