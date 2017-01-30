@@ -175,7 +175,7 @@ TEMPLATES = [
 
 # Settings for django-bootstrap3
 BOOTSTRAP3 = {
-    'javascript_in_head': True,
+    # 'javascript_in_head': True,
 }
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
