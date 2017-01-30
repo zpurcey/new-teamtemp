@@ -1,8 +1,7 @@
-from __future__ import division
-from future import standard_library, print_function
+from __future__ import division, print_function
+from future import standard_library
 standard_library.install_aliases()
-from builtins import str
-from builtins import range
+from builtins import range, str
 from past.utils import old_div
 import errno
 import json
@@ -231,7 +230,7 @@ def censor_word(censored_word, survey_id):
     num_rows = response_set.count()
     response_set.update(**data)
 
-    print("Word removed:  " + str(num_rows) + " word removed: " + censored_word, file=sys.stderr)
+    print("Word removed '%s': %d rows updated" % (censored_word, num_rows), file=sys.stderr)
 
     return num_rows
 
@@ -466,8 +465,7 @@ def save_url(url, directory, basename):
             print("Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename), file=sys.stderr)
             return None
         except ContentTooShortError as exc:
-            print("Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (, file=sys.stderr)
-                str(exc), url, filename)
+            print("Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (str(exc), url, filename), file=sys.stderr)
             return None
 
     return return_url
@@ -530,8 +528,8 @@ def auto_archive_surveys(request):
     for team_temp in team_temperatures:
         team_temp.fill_next_archive_date()
 
-        print("auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (, file=sys.stderr)
-            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date))
+        print("auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
+            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date)), file=sys.stderr)
 
         if now_date >= team_temp.next_archive_date:
             archive_survey(request, team_temp, archive_date=now)
@@ -860,7 +858,7 @@ def cached_word_cloud(word_list):
     if words == "":
         return None
 
-    word_hash = hashlib.sha1(words).hexdigest()
+    word_hash = hashlib.sha1(words.encode('utf-8')).hexdigest()
 
     # most recent word cloud first
     word_cloud_objects = WordCloudImage.objects.filter(word_hash=word_hash).order_by('-id')
