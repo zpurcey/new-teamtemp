@@ -21,9 +21,9 @@ from django.views.static import serve as serve_static
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 
-from responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvcForm, ResultsPasswordForm, \
+from .responses.forms import AddTeamForm, CreateSurveyForm, ErrorBox, FilteredBvcForm, ResultsPasswordForm, \
     SurveyResponseForm, SurveySettingsForm
-from responses.serializers import *
+from .responses.serializers import *
 from teamtemp import responses, utils
 from teamtemp.headers import header
 from teamtemp.responses.models import *
