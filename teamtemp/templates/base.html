@@ -12,7 +12,7 @@
 
 {% block bootstrap3_content %}
 {# Display django.contrib.messages as Bootstrap alerts #}
-{% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
+{% autoescape off %}<div class="container">{% bootstrap_messages %}</div>{% endautoescape %}
 {% block body %}{% endblock %}
 {% block footer %}
   <div class="footer no-print"><p><br><br><a href="{% url "about" %}">About this site</a></p></div>{% endblock %}

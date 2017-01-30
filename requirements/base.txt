@@ -14,8 +14,8 @@ gunicorn==19.6.0
 py-bcrypt==0.4
 psycopg2==2.6.2
 pytz==2016.10
-requests==2.12.5
+requests==2.13.0
 static==1.1.1
-whitenoise==3.2.3
+whitenoise==3.3.0
 urllib3[secure]==1.20
 future==0.16.0

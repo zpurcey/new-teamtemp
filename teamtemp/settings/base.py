@@ -190,7 +190,7 @@ CSP_SCRIPT_SRC = (
 CSP_CONNECT_SRC = ("'self'",)
 CSP_STYLE_SRC = (
     '*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "'self'",)
-CSP_IMG_SRC = ("'self'", 'data:', 'blob:',)
+CSP_IMG_SRC = ("'self'", 'data:', 'blob:', 'gg.google.com',)
 CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
 
 REST_FRAMEWORK = {

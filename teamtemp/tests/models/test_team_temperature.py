@@ -1,6 +1,5 @@
 from builtins import str
 import re
-
 from django.forms import ValidationError
 from django.test import TestCase
 
@@ -31,9 +30,7 @@ class TeamTemperatureTestCases(TestCase):
         self.assertEqual(teamtemp.survey_type, 'CUSTOMERFEEDBACK')
 
     def test_uniq_teamtemp_ids(self):
-        teamtemp1 = TeamTemperatureFactory()
-        teamtemp2 = TeamTemperatureFactory()
-        self.assertNotEqual(teamtemp1.id, teamtemp2.id)
+        self.assertNotEqual(TeamTemperatureFactory().id, TeamTemperatureFactory().id)
 
     def test_multiple_surveys_for_user(self):
         user = UserFactory()
@@ -45,5 +42,5 @@ class TeamTemperatureTestCases(TestCase):
 
     def test_duplicate_teamtemp_ids(self):
         with self.assertRaises(ValidationError):
-            _ = TeamTemperatureFactory(id='bob')
-            _ = TeamTemperatureFactory(id='bob')
+            TeamTemperatureFactory(id='bob')
+            TeamTemperatureFactory(id='bob')
