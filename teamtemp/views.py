@@ -1,5 +1,5 @@
 from __future__ import division
-from future import standard_library
+from future import standard_library, print_function
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
@@ -231,7 +231,7 @@ def censor_word(censored_word, survey_id):
     num_rows = response_set.count()
     response_set.update(**data)
 
-    print >> sys.stderr, "Word removed:  " + str(num_rows) + " word removed: " + censored_word
+    print("Word removed:  " + str(num_rows) + " word removed: " + censored_word, file=sys.stderr)
 
     return num_rows
 
@@ -255,7 +255,7 @@ def change_team_name(team_name, new_team_name, survey_id):
         history_objects.delete()
         team_objects.delete()
 
-    print >> sys.stderr, "Team Name Updated: %d From: '%s' To: '%s'" % (num_rows, team_name, new_team_name)
+    print("Team Name Updated: %d From: '%s' To: '%s'" % (num_rows, team_name, new_team_name), file=sys.stderr)
 
     return num_rows
 
@@ -399,7 +399,7 @@ def generate_wordcloud(word_list, word_hash):
         if word_count < 20:
             fixed_asp = "TRUE"
             rotate = "TRUE"
-        print >> sys.stderr, "Start Word Cloud Generation: [%s] %s" % (word_hash, word_list)
+        print("Start Word Cloud Generation: [%s] %s" % (word_hash, word_list), file=sys.stderr)
         response = requests.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                 headers={"Word-Cloud-Key": word_cloud_key},
                                 json={"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
@@ -407,10 +407,10 @@ def generate_wordcloud(word_list, word_hash):
                                 timeout=timeout
                                 )
         if response.status_code == 200:
-            print >> sys.stderr, "Finish Word Cloud Generation: [%s]" % (word_hash)
+            print("Finish Word Cloud Generation: [%s]" % (word_hash), file=sys.stderr)
             return save_url(response.json()['url'], 'wordcloud_images', word_hash)
         else:
-            print >> sys.stderr, "Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response.__dict__))
+            print("Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response.__dict__)), file=sys.stderr)
 
     return None
 
@@ -457,16 +457,16 @@ def save_url(url, directory, basename):
     return_url = media_url(url, directory, basename)
     filename = media_file(url, directory, basename)
 
-    print >> sys.stderr, "Saving Word Cloud: %s as %s" % (url, filename)
+    print("Saving Word Cloud: %s as %s" % (url, filename), file=sys.stderr)
 
     if not os.path.exists(filename):
         try:
             urlretrieve(url, filename)
         except IOError as exc:
-            print >> sys.stderr, "Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename)
+            print("Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename), file=sys.stderr)
             return None
         except ContentTooShortError as exc:
-            print >> sys.stderr, "Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (
+            print("Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (, file=sys.stderr)
                 str(exc), url, filename)
             return None
 
@@ -499,13 +499,13 @@ def cron_view(request, pin):
         prune_word_cloud_cache(request)
         return HttpResponse("ok\n", content_type='text/plain')
     else:
-        print >> sys.stderr, "Cron 404: pin = " + pin + " expected = " + cron_pin
+        print("Cron 404: pin = " + pin + " expected = " + cron_pin, file=sys.stderr)
         raise Http404
 
 
 def prune_word_cloud_cache(_):
     timezone.activate(timezone.utc)
-    print >> sys.stderr, "prune_word_cloud_cache: Start at " + utc_timestamp()
+    print("prune_word_cloud_cache: Start at " + utc_timestamp(), file=sys.stderr)
 
     yesterday = timezone.now() + timedelta(days=-1)
 
@@ -515,12 +515,12 @@ def prune_word_cloud_cache(_):
         if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
             word_cloud.delete()
 
-    print >> sys.stderr, "prune_word_cloud_cache: Stop at " + utc_timestamp()
+    print("prune_word_cloud_cache: Stop at " + utc_timestamp(), file=sys.stderr)
 
 
 def auto_archive_surveys(request):
     timezone.activate(timezone.utc)
-    print >> sys.stderr, "auto_archive_surveys: Start at " + utc_timestamp()
+    print("auto_archive_surveys: Start at " + utc_timestamp(), file=sys.stderr)
 
     team_temperatures = TeamTemperature.objects.filter(archive_schedule__gt=0)
 
@@ -530,20 +530,20 @@ def auto_archive_surveys(request):
     for team_temp in team_temperatures:
         team_temp.fill_next_archive_date()
 
-        print >> sys.stderr, "auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
+        print("auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (, file=sys.stderr)
             team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date))
 
         if now_date >= team_temp.next_archive_date:
             archive_survey(request, team_temp, archive_date=now)
 
-    print >> sys.stderr, "auto_archive_surveys: Stop at " + utc_timestamp()
+    print("auto_archive_surveys: Stop at " + utc_timestamp(), file=sys.stderr)
 
 
 @transaction.atomic
 def archive_survey(_, survey, archive_date=timezone.now()):
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    print >> sys.stderr, "Archiving %s: Archive Date %s UTC" % (survey.id, str(archive_date))
+    print("Archiving %s: Archive Date %s UTC" % (survey.id, str(archive_date)), file=sys.stderr)
 
     # Save Survey Summary for all survey teams
     teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
@@ -587,7 +587,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     survey.advance_next_archive_date()
     survey.archive_date = archive_date
 
-    print >> sys.stderr, "Archiving %s: Next Archive Date %s" % (survey.id, survey.next_archive_date)
+    print("Archiving %s: Next Archive Date %s" % (survey.id, survey.next_archive_date), file=sys.stderr)
 
     survey.full_clean()
     survey.save()
@@ -770,7 +770,6 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
         'site_names': site_name,
         'survey_type': survey_type
     }
-    # print >>sys.stderr,"dept_names",bvc_data['dept_names'],"end"
 
     bvc_teams_list = [team_name]
 
@@ -794,21 +793,17 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
         else:
             region_filter = survey_filter
 
-        # print >>sys.stderr,"region_filter:",region_filter
-
         if site_name != '':
             site_name_list = site_name.split(',')
             site_filter = dict({'site_name__in': site_name_list}, **region_filter)
         else:
             site_filter = region_filter
-        # print >>sys.stderr,"site_filter:",site_filter
 
         if dept_name != '':
             dept_name_list = dept_name.split(',')
             dept_filter = dict({'dept_name__in': dept_name_list}, **site_filter)
         else:
             dept_filter = site_filter
-        # print >>sys.stderr,"dept_filter:",dept_filter
 
         if dept_filter != survey_filter:
             filtered_teams = Teams.objects.filter(**dept_filter).values('team_name')
@@ -819,7 +814,7 @@ def populate_bvc_data(survey_id_list, team_name, archive_id, num_iterations, dep
             bvc_teams_list = filtered_team_list
         else:
             team_filter = survey_filter
-            # print >>sys.stderr,"team_filter:",team_filter,dept_name, region_name, site_name
+
     bvc_data['team_history'] = TeamResponseHistory.objects.filter(**team_filter).order_by('archive_date')
     bvc_data['teams'] = TeamResponseHistory.objects.filter(**team_filter).values('team_name').distinct()
     bvc_data['num_rows'] = TeamResponseHistory.objects.filter(**team_filter).count()
@@ -875,10 +870,10 @@ def cached_word_cloud(word_list):
         filename = media_file(word_cloud_image.image_url, 'wordcloud_images')
 
         if os.path.isfile(filename):
-            print >> sys.stderr, "Cached Word Cloud: " + filename + " found"
+            print("Cached Word Cloud: " + filename + " found", file=sys.stderr)
             return word_cloud_image.image_url
         else:
-            print >> sys.stderr, "Cached Word Cloud: " + filename + " not found"
+            print("Cached Word Cloud: " + filename + " not found", file=sys.stderr)
             # Most recent word cloud has been deleted: remove all for this word list from db and then regenerate
             word_cloud_objects.delete()
 
@@ -1025,14 +1020,13 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                     or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
 
-            print >> sys.stderr, "len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(
-                csf['filter_dept_names'])
+            print("len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(csf['filter_dept_names']), file=sys.stderr)
 
             filter_dept_names = ','.join(csf['filter_dept_names'])
             filter_region_names = ','.join(csf['filter_region_names'])
             filter_site_names = ','.join(csf['filter_site_names'])
 
-            print >> sys.stderr, "Filter this bvc:", filter_this_bvc
+            print("Filter this bvc:", filter_this_bvc, file=sys.stderr)
 
             return HttpResponseRedirect(reverse('bvc', kwargs={'survey_id': survey_id,
                                                                'dept_names': filter_dept_names,
