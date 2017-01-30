@@ -1,5 +1,7 @@
 from __future__ import division, print_function
+
 from future import standard_library
+
 standard_library.install_aliases()
 from builtins import range, str
 from past.utils import old_div
@@ -402,7 +404,8 @@ def generate_wordcloud(word_list, word_hash):
         print("Start Word Cloud Generation: [%s] %s" % (word_hash, word_list), file=sys.stderr)
         response = requests.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                  headers={"Word-Cloud-Key": word_cloud_key},
-                                 json={"textblock": word_list, "height": 500, "width": 600, "s_fit": "TRUE",
+                                 json={"textblock": word_list, "height": settings.WORDCLOUD.HEIGHT,
+                                       "width": settings.WORDCLOUD.WIDTH, "s_fit": "TRUE",
                                        "fixed_asp": fixed_asp, "rotate": rotate},
                                  timeout=timeout
                                  )
@@ -851,25 +854,28 @@ def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='
 
     bvc_data['stats'] = generate_bvc_stats(survey, bvc_teams_list, bvc_data['stats_date'], num_iterations)
 
+    bvc_data['word_list'] = ''
+
+    if bvc_data['stats']['words']:
+        words = ""
+        word_count = 0
+
+        # we want these to include and count duplicates
+        for word in bvc_data['stats']['words']:
+            for i in range(0, word['id__count']):
+                words += word['word'] + " "
+                word_count += 1
+
+        bvc_data['word_list'] = words.lower().strip()
+
     return bvc_data
 
 
 def cached_word_cloud(word_list):
-    words = ""
-    word_count = 0
-
-    # we want these to include and count duplicates
-    for word in word_list:
-        for i in range(0, word['id__count']):
-            words += word['word'] + " "
-            word_count += 1
-
-    words = words.lower().strip()
-
-    if words == "":
+    if not word_list:
         return None
 
-    word_hash = hashlib.sha1(words.encode('utf-8')).hexdigest()
+    word_hash = hashlib.sha1(word_list.encode('utf-8')).hexdigest()
 
     # most recent word cloud first
     word_cloud_objects = WordCloudImage.objects.filter(word_hash=word_hash).order_by('-id')
@@ -886,10 +892,10 @@ def cached_word_cloud(word_list):
             # Most recent word cloud has been deleted: remove all for this word list from db and then regenerate
             word_cloud_objects.delete()
 
-    word_cloudurl = generate_wordcloud(words, word_hash)
+    word_cloudurl = generate_wordcloud(word_list, word_hash)
 
     if word_cloudurl:
-        word_cloud = WordCloudImage(word_list=words, word_hash=word_hash,
+        word_cloud = WordCloudImage(word_list=word_list, word_hash=word_hash,
                                     image_url=word_cloudurl)
         word_cloud.full_clean()
         word_cloud.save()
@@ -979,8 +985,10 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
             bvc_data['survey_type_title'], bvc_data['teams'], bvc_data['team_history'], survey.default_tz)
 
     # Cached word cloud
-    if bvc_data['stats']['words']:
-        bvc_data['word_cloudurl'] = cached_word_cloud(bvc_data['stats']['words'])
+    if bvc_data['word_list']:
+        bvc_data['word_cloud_url'] = cached_word_cloud(bvc_data['word_list'])
+        bvc_data['word_cloud_width'] = settings.WORDCLOUD_WIDTH
+        bvc_data['word_cloud_height'] = settings.WORDCLOUD_HEIGHT
 
     all_dept_names = set()
     all_region_names = set()

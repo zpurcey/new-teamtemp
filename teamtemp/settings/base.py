@@ -205,3 +205,6 @@ REST_FRAMEWORK = {
 LOGIN_URL = "/djadmin/login/"
 LOGOUT_URL = "/djadmin/logout/"
 
+WORDCLOUD_HEIGHT = 500
+WORDCLOUD_WIDTH = 600
+
