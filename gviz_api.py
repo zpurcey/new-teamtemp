@@ -226,7 +226,7 @@ class DataTable(object):
           (len(value) == 3 and not isinstance(value[2], dict))):
         raise DataTableException("Wrong format for value and formatting - %s." %
                                  str(value))
-      if not isinstance(value[1], string_types + (types.NoneType,)):
+      if value[1] is not None and not isinstance(value[1], string_types):
         raise DataTableException("Formatted value is not string, given %s." %
                                  type(value[1]))
       js_value = DataTable.CoerceValue(value[0], value_type)
