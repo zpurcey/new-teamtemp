@@ -24,4 +24,6 @@ ratings:
   - "**.module"
   - "**.py"
 exclude_paths:
-- teamtemp/responses/migrations/
+- "teamtemp/responses/migrations/"
+- "gviz_api.py"
+
