@@ -1,7 +1,7 @@
 from builtins import object
 from rest_framework import serializers
 
-from models import TeamResponseHistory, TeamTemperature, Teams, TemperatureResponse, User, WordCloudImage
+from .models import TeamResponseHistory, TeamTemperature, Teams, TemperatureResponse, User, WordCloudImage
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
