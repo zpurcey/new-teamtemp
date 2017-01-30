@@ -23,11 +23,18 @@ JSON, JSON response, JavaScript, CSV, and HTML table.
 See http://code.google.com/apis/visualization/ for documentation on the
 Google Visualization API.
 """
+from __future__ import division
 
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from past.utils import old_div
 __author__ = "Amit Weinstein, Misha Seltzer, Jacob Baskin"
 
 import cgi
-import cStringIO
+import io
 import csv
 import datetime
 try:
@@ -60,7 +67,7 @@ class DataTableJSONEncoder(json.JSONEncoder):
       else:
         return "Date(%d,%d,%d,%d,%d,%d,%d)" % (
             o.year, o.month - 1, o.day, o.hour, o.minute, o.second,
-            o.microsecond / 1000)
+            old_div(o.microsecond, 1000))
     elif isinstance(o, datetime.date):
       return "Date(%d,%d,%d)" % (o.year, o.month - 1, o.day)
     elif isinstance(o, datetime.time):
@@ -230,12 +237,12 @@ class DataTable(object):
       return bool(value)
 
     elif value_type == "number":
-      if isinstance(value, (int, long, float)):
+      if isinstance(value, (int, int, float)):
         return value
       raise DataTableException("Wrong type %s when expected number" % t_value)
 
     elif value_type == "string":
-      if isinstance(value, unicode):
+      if isinstance(value, str):
         return value
       else:
         return str(value).decode("utf-8")
@@ -286,7 +293,7 @@ class DataTable(object):
                                                    value.hour,
                                                    value.minute,
                                                    value.second,
-                                                   value.microsecond / 1000)
+                                                   old_div(value.microsecond, 1000))
     elif isinstance(value, datetime.date):
       return "new Date(%d,%d,%d)" % (value.year, value.month - 1, value.day)
     else:
@@ -300,7 +307,7 @@ class DataTable(object):
                             datetime.date,
                             datetime.time)):
       return str(value)
-    elif isinstance(value, unicode):
+    elif isinstance(value, str):
       return value
     elif isinstance(value, bool):
       return str(value).lower()
@@ -495,9 +502,9 @@ class DataTable(object):
     # dictionary).
     # NOTE: this way of differentiating might create ambiguity. See docs.
     if (len(table_description) != 1 or
-        (isinstance(table_description.keys()[0], types.StringTypes) and
-         isinstance(table_description.values()[0], tuple) and
-         len(table_description.values()[0]) < 4)):
+        (isinstance(list(table_description.keys())[0], types.StringTypes) and
+         isinstance(list(table_description.values())[0], tuple) and
+         len(list(table_description.values())[0]) < 4)):
       # This is the most inner dictionary. Parsing types.
       columns = []
       # We sort the items, equivalent to sort the keys since they are unique
@@ -513,11 +520,11 @@ class DataTable(object):
         columns.append(parsed_col)
       return columns
     # This is an outer dictionary, must have at most one key.
-    parsed_col = DataTable.ColumnTypeParser(table_description.keys()[0])
+    parsed_col = DataTable.ColumnTypeParser(list(table_description.keys())[0])
     parsed_col["depth"] = depth
     parsed_col["container"] = "dict"
     return ([parsed_col] +
-            DataTable.TableDescriptionParser(table_description.values()[0],
+            DataTable.TableDescriptionParser(list(table_description.values())[0],
                                              depth=depth + 1))
 
   @property
@@ -626,7 +633,7 @@ class DataTable(object):
       return
 
     # We have a dictionary in an inner depth level.
-    if not data.keys():
+    if not list(data.keys()):
       # In case this is an empty dictionary, we add a record with the columns
       # filled only until this point.
       self.__data.append(prev_col_values)
@@ -860,7 +867,7 @@ class DataTable(object):
       DataTableException: The data does not match the type.
     """
 
-    csv_buffer = cStringIO.StringIO()
+    csv_buffer = io.StringIO()
     writer = csv.writer(csv_buffer, delimiter=separator)
 
     if columns_order is None:
