@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from rest_framework import status
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TeamFactory
 
@@ -13,4 +14,4 @@ class SubmitViewTestCases(TestCase):
         response = self.client.get(
             reverse('submit', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name}))
         self.assertTemplateUsed(response, 'form.html')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
