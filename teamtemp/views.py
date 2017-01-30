@@ -995,9 +995,9 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     all_site_names = set()
 
     for team in bvc_data['survey_teams']:
-        all_dept_names.add(team.dept_name)
-        all_region_names.add(team.region_name)
-        all_site_names.add(team.site_name)
+        all_dept_names.add(team.dept_name or '')
+        all_region_names.add(team.region_name or '')
+        all_site_names.add(team.site_name or '')
 
     if len(all_dept_names) < 2:
         all_dept_names = []
