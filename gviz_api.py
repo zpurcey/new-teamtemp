@@ -28,6 +28,7 @@ from __future__ import division
 from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
+from future.utils import string_types
 from builtins import str
 from builtins import object
 from past.utils import old_div
@@ -42,6 +43,7 @@ try:
 except ImportError:
   import simplejson as json
 import types
+import six
 
 
 class DataTableException(Exception):
@@ -224,7 +226,7 @@ class DataTable(object):
           (len(value) == 3 and not isinstance(value[2], dict))):
         raise DataTableException("Wrong format for value and formatting - %s." %
                                  str(value))
-      if not isinstance(value[1], types.StringTypes + (types.NoneType,)):
+      if not isinstance(value[1], string_types + (types.NoneType,)):
         raise DataTableException("Formatted value is not string, given %s." %
                                  type(value[1]))
       js_value = DataTable.CoerceValue(value[0], value_type)
@@ -340,17 +342,17 @@ class DataTable(object):
     if not description:
       raise DataTableException("Description error: empty description given")
 
-    if not isinstance(description, (types.StringTypes, tuple)):
+    if not isinstance(description, (string_types, tuple)):
       raise DataTableException("Description error: expected either string or "
                                "tuple, got %s." % type(description))
 
-    if isinstance(description, types.StringTypes):
+    if isinstance(description, string_types):
       description = (description,)
 
     # According to the tuple's length, we fill the keys
     # We verify everything is of type string
     for elem in description[:3]:
-      if not isinstance(elem, types.StringTypes):
+      if not isinstance(elem, string_types):
         raise DataTableException("Description error: expected tuple of "
                                  "strings, current element of type %s." %
                                  type(elem))
@@ -467,7 +469,7 @@ class DataTable(object):
       -- second 'b' is the label, and {} is the custom properties field.
     """
     # For the recursion step, we check for a scalar object (string or tuple)
-    if isinstance(table_description, (types.StringTypes, tuple)):
+    if isinstance(table_description, (string_types, tuple)):
       parsed_col = DataTable.ColumnTypeParser(table_description)
       parsed_col["depth"] = depth
       parsed_col["container"] = "scalar"
@@ -502,7 +504,7 @@ class DataTable(object):
     # dictionary).
     # NOTE: this way of differentiating might create ambiguity. See docs.
     if (len(table_description) != 1 or
-        (isinstance(list(table_description.keys())[0], types.StringTypes) and
+        (isinstance(list(table_description.keys())[0], string_types) and
          isinstance(list(table_description.values())[0], tuple) and
          len(list(table_description.values())[0]) < 4)):
       # This is the most inner dictionary. Parsing types.
@@ -666,12 +668,12 @@ class DataTable(object):
       return self.__data
 
     proper_sort_keys = []
-    if isinstance(order_by, types.StringTypes) or (
+    if isinstance(order_by, string_types) or (
         isinstance(order_by, tuple) and len(order_by) == 2 and
         order_by[1].lower() in ["asc", "desc"]):
       order_by = (order_by,)
     for key in order_by:
-      if isinstance(key, types.StringTypes):
+      if isinstance(key, string_types):
         proper_sort_keys.append((key, 1))
       elif (isinstance(key, (list, tuple)) and len(key) == 2 and
             key[1].lower() in ("asc", "desc")):

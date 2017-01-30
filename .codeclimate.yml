@@ -26,4 +26,3 @@ ratings:
 exclude_paths:
 - "teamtemp/responses/migrations/"
 - "gviz_api.py"
-
