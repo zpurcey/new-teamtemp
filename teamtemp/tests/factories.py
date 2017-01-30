@@ -81,4 +81,4 @@ class WordCloudImageFactory(CleanModelFactory):
 
     @factory.lazy_attribute
     def word_hash(self):
-        return hashlib.sha1(self.word_list).hexdigest()
+        return hashlib.sha1(self.word_list.encode('utf-8')).hexdigest()
