@@ -12,3 +12,4 @@ class HealthcheckViewTestCases(TestCase):
         self.assertEqual(response['Content-Type'], 'text/plain')
         self.assertTemplateNotUsed(response, 'index.html')
         self.assertEqual(response.content, six.b('ok'))
+        self.assertContains(response, 'ok')

@@ -1,14 +1,16 @@
-from builtins import str, object
-from future.utils import python_2_unicode_compatible
+from __future__ import unicode_literals
 
 import hashlib
+from datetime import timedelta
 
 import pytz
-from datetime import timedelta
+from builtins import object
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class WordCloudImage(models.Model):
     id = models.AutoField(primary_key=True)
     word_hash = models.CharField(max_length=40, db_index=True)
@@ -17,19 +19,20 @@ class WordCloudImage(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"{}: {} {} {} {}".format(self.id, self.creation_date, self.word_hash, self.word_list, self.image_url)
+        return "{}: {} {} {} {}".format(self.id, self.creation_date, self.word_hash, self.word_list, self.image_url)
 
     def clean(self):
         self.word_list = self.word_list.lower().strip()
         self.word_hash = hashlib.sha1(self.word_list.encode('utf-8')).hexdigest()
 
 
+@python_2_unicode_compatible
 class User(models.Model):
     id = models.CharField(max_length=32, primary_key=True)
     creation_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return u"{}: {}".format(self.id, self.creation_date)
+        return "{}: {}".format(self.id, self.creation_date)
 
 
 def _stats_for(query_set):
@@ -40,6 +43,7 @@ def _stats_for(query_set):
            }, query_set
 
 
+@python_2_unicode_compatible
 class TeamTemperature(models.Model):
     TEAM_TEMP = 'TEAMTEMP'
     DEPT_REGION_SITE = 'DEPT-REGION-SITE'
@@ -112,12 +116,13 @@ class TeamTemperature(models.Model):
         return self.next_archive_date
 
     def __str__(self):
-        return u"{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
-                                                        self.creation_date, self.archive_schedule, self.archive_date,
-                                                        self.survey_type, self.region_names, self.region_names,
-                                                        self.site_names, self.default_tz)
+        return "{}: {} {} {} {} {} {} {} {} {}".format(self.id, self.creator.id,
+                                                       self.creation_date, self.archive_schedule, self.archive_date,
+                                                       self.survey_type, self.region_names, self.region_names,
+                                                       self.site_names, self.default_tz)
 
 
+@python_2_unicode_compatible
 class TemperatureResponse(models.Model):
     # class Meta:
     #     unique_together = ("request", "responder", "team_name", "archive_date")
@@ -133,16 +138,17 @@ class TemperatureResponse(models.Model):
     archive_date = models.DateTimeField(blank=True, null=True, db_index=True)
 
     def __str__(self):
-        return u"{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id,
-                                                     self.responder.id,
-                                                     self.score, self.word, self.team_name,
-                                                     self.archived, self.response_date,
-                                                     self.archive_date)
+        return "{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id,
+                                                    self.responder.id,
+                                                    self.score, self.word, self.team_name,
+                                                    self.archived, self.response_date,
+                                                    self.archive_date)
 
     def clean(self):
         self.word = self.word.lower().strip()
 
 
+@python_2_unicode_compatible
 class TeamResponseHistory(models.Model):
     class Meta(object):
         verbose_name_plural = "Team response histories"
@@ -156,15 +162,16 @@ class TeamResponseHistory(models.Model):
     archive_date = models.DateTimeField(db_index=True)
 
     def __str__(self):
-        return u"{}: {} {} {} {} {} {}".format(self.id, self.request.id,
-                                               self.average_score,
-                                               self.word_list, self.responder_count,
-                                               self.team_name, self.archive_date)
+        return "{}: {} {} {} {} {} {}".format(self.id, self.request.id,
+                                              self.average_score,
+                                              self.word_list, self.responder_count,
+                                              self.team_name, self.archive_date)
 
     def clean(self):
         self.word_list = self.word_list.lower().strip()
 
 
+@python_2_unicode_compatible
 class Teams(models.Model):
     class Meta(object):
         verbose_name = "Team"
@@ -184,5 +191,5 @@ class Teams(models.Model):
         return self.team_name.replace('_', ' ')
 
     def __str__(self):
-        return u"{}: {} {} {} {} {}".format(self.id, self.request.id,
-                                            self.team_name, self.dept_name, self.site_name, self.region_name)
+        return "{}: {} {} {} {} {}".format(self.id, self.request.id,
+                                           self.team_name, self.dept_name, self.site_name, self.region_name)
