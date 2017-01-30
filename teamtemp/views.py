@@ -760,7 +760,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     return historical_options, json_history_chart_table, team_index
 
 
-def populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_name='', region_name='', site_name=''):
+def populate_bvc_data(survey, team_name, archive_id, num_iterations=0, dept_name='', region_name='', site_name=''):
     # in: survey_id, team_name and archive_id
     # out:
     #    populate bvc_data['archived_dates']       For Drop Down List
@@ -903,7 +903,7 @@ def cached_word_cloud(word_list):
     return word_cloudurl
 
 
-def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations):
+def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations=0):
     # Generate Stats for Team Temp Average for gauge and wordcloud - look here for Gauge and Word Cloud
     # BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
 
@@ -919,11 +919,9 @@ def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations):
         stats, _ = survey.stats()
 
     # Calculate and average and word cloud over multiple iterations (changes date range but same survey id):
-    if int(float(num_iterations)) > 0:
-        multi_stats = calc_multi_iteration_average(team_name_list, survey, int(float(num_iterations)),
-                                                   survey.default_tz)
-        if multi_stats:
-            stats = multi_stats
+    multi_stats = calc_multi_iteration_average(team_name_list, survey, num_iterations, survey.default_tz)
+    if multi_stats:
+        stats = multi_stats
 
     agg_stats['count'] = stats['count']
 
@@ -964,7 +962,7 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
 
 
 @ie_edge()
-def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0',region_names='', site_names='', dept_names=''):
+def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', region_names='', site_names='', dept_names=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
@@ -976,7 +974,7 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     historical_options = {}
 
     # Populate data for BVC including previously archived BVC
-    bvc_data = populate_bvc_data(survey, team_name, archive_id, num_iterations, dept_names, region_names,
+    bvc_data = populate_bvc_data(survey, team_name, archive_id, int(float(num_iterations)), dept_names, region_names,
                                  site_names)
 
     # If there is history to chart generate all data required for historical charts
