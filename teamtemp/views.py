@@ -404,8 +404,8 @@ def generate_wordcloud(word_list, word_hash):
         print("Start Word Cloud Generation: [%s] %s" % (word_hash, word_list), file=sys.stderr)
         response = requests.post("https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
                                  headers={"Word-Cloud-Key": word_cloud_key},
-                                 json={"textblock": word_list, "height": settings.WORDCLOUD.HEIGHT,
-                                       "width": settings.WORDCLOUD.WIDTH, "s_fit": "TRUE",
+                                 json={"textblock": word_list, "height": settings.WORDCLOUD_HEIGHT,
+                                       "width": settings.WORDCLOUD_WIDTH, "s_fit": "TRUE",
                                        "fixed_asp": fixed_asp, "rotate": rotate},
                                  timeout=timeout
                                  )
