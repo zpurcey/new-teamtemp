@@ -1,3 +1,9 @@
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import errno
 import json
 import os
@@ -22,14 +28,9 @@ from teamtemp import responses, utils
 from teamtemp.headers import header
 from teamtemp.responses.models import *
 
-try:
-    # For Python 3.0 and later
-    from urllib.request import urlretrieve, ContentTooShortError
-    from urilib import parse as urlparse
-except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib import urlretrieve, ContentTooShortError
-    from urlparse import urlparse
+from urllib.request import urlretrieve
+from urllib.error import ContentTooShortError
+from urllib.parse import urlparse
 
 
 class WordCloudImageViewSet(viewsets.ModelViewSet):
@@ -555,7 +556,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     for team in teams:
         team_stats, team_response_objects = survey.team_stats(team_name_list=[team['team_name']])
 
-        word_list = " ".join(map(lambda word: word['word'], team_stats['words']))
+        word_list = " ".join([word['word'] for word in team_stats['words']])
 
         average_word_list += word_list + " "
 
@@ -576,7 +577,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     # Save Survey Summary as AGGREGATE AVERAGE for all teams
     if average_count > 0:
         history = TeamResponseHistory(request=survey,
-                                      average_score=("%.5f" % float(average_total / float(average_count))),
+                                      average_score=("%.5f" % float(old_div(average_total, float(average_count)))),
                                       word_list=average_word_list.strip(),
                                       responder_count=average_responder_total,
                                       team_name='Average',
@@ -687,7 +688,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
             elif row['archive_date'] != timezone.localtime(survey_summary.archive_date):
                 # TODO can it recalculate the average here for adhoc filtering
                 if num_scores > 0:
-                    average_score = score_sum / num_scores
+                    average_score = old_div(score_sum, num_scores)
                     row['Average'] = (float(average_score),
                                       str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
                     score_sum = 0
@@ -705,7 +706,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                                              str("%.2f" % float(survey_summary.average_score)) + " (" + str(
                                                  survey_summary.responder_count) + " Responses)")
 
-    average_score = score_sum / num_scores
+    average_score = old_div(score_sum, num_scores)
     row['Average'] = (
         float(average_score), str("%.2f" % float(average_score)) + " (" + str(responder_sum) + " Responses)")
 
@@ -921,7 +922,7 @@ def generate_bvc_stats(survey_id_list, team_name_list, archive_date, num_iterati
         agg_stats['count'] = agg_stats['count'] + stats['count']
 
         if stats['average']['score__avg']:
-            agg_stats['average'] = (agg_stats['average'] + stats['average']['score__avg']) / survey_count
+            agg_stats['average'] = old_div((agg_stats['average'] + stats['average']['score__avg']), survey_count)
         agg_stats['words'] += list(stats['words'])
 
     return agg_stats

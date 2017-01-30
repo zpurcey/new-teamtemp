@@ -1,3 +1,4 @@
+from builtins import object
 import hashlib
 
 import pytz
@@ -141,7 +142,7 @@ class TemperatureResponse(models.Model):
 
 
 class TeamResponseHistory(models.Model):
-    class Meta:
+    class Meta(object):
         verbose_name_plural = "Team response histories"
 
     id = models.AutoField(primary_key=True)
@@ -163,7 +164,7 @@ class TeamResponseHistory(models.Model):
 
 
 class Teams(models.Model):
-    class Meta:
+    class Meta(object):
         verbose_name = "Team"
         verbose_name_plural = "Teams"
         unique_together = ("request", "team_name")

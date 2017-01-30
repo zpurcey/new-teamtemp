@@ -1,3 +1,4 @@
+from builtins import str
 import re
 
 from django.forms import ValidationError

@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 from decimal import Decimal
 
 from django.test import TestCase
@@ -24,5 +27,5 @@ class TeamResponseHistoryTestCases(TestCase):
         self.assertEqual(teamtemp.team_response_histories.count(), 2)
 
     def test_response_history_float(self):
-        response_history = TeamResponseHistoryFactory(average_score=("%.5f" % float(1 / float(3))))
+        response_history = TeamResponseHistoryFactory(average_score=("%.5f" % float(old_div(1, float(3)))))
         self.assertEqual(response_history.average_score, Decimal("0.33333"))

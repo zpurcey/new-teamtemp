@@ -1,3 +1,4 @@
+from builtins import object
 import hashlib
 import random
 import string
@@ -17,7 +18,7 @@ fake = Faker()
 
 
 class UserFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = User
         django_get_or_create = ('id',)
 
@@ -25,7 +26,7 @@ class UserFactory(CleanModelFactory):
 
 
 class TeamTemperatureFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = TeamTemperature
         django_get_or_create = ('id',)
 
@@ -35,7 +36,7 @@ class TeamTemperatureFactory(CleanModelFactory):
 
 
 class TeamFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = Teams
         django_get_or_create = ('team_name',)
 
@@ -44,7 +45,7 @@ class TeamFactory(CleanModelFactory):
 
 
 class TemperatureResponseFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = TemperatureResponse
 
     request = factory.SubFactory(TeamTemperatureFactory)
@@ -56,7 +57,7 @@ class TemperatureResponseFactory(CleanModelFactory):
 
 
 class TeamResponseHistoryFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = TeamResponseHistory
 
     request = factory.SubFactory(TeamTemperatureFactory)
@@ -71,7 +72,7 @@ class TeamResponseHistoryFactory(CleanModelFactory):
 
 
 class WordCloudImageFactory(CleanModelFactory):
-    class Meta:
+    class Meta(object):
         model = WordCloudImage
 
     word_list = ' '.join(fake.words(nb=random.randint(1, 25)))

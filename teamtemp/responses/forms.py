@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 import re
 
 import pytz
@@ -119,7 +121,7 @@ class FilteredBvcForm(forms.Form):
 
 
 class AddTeamForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = Teams
         fields = ['team_name', 'dept_name', 'region_name', 'site_name']
 
@@ -183,7 +185,7 @@ class AddTeamForm(forms.ModelForm):
 
 
 class SurveyResponseForm(forms.ModelForm):
-    class Meta:
+    class Meta(object):
         model = TemperatureResponse
         fields = ['score', 'word']
 
@@ -236,7 +238,7 @@ class SurveySettingsForm(forms.ModelForm):
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
     next_archive_date = forms.DateField(widget=forms.DateInput(), required=False)
 
-    class Meta:
+    class Meta(object):
         model = TeamTemperature
         fields = ['archive_schedule', 'survey_type', 'dept_names', 'region_names', 'site_names', 'default_tz',
                   'max_word_count', 'next_archive_date']

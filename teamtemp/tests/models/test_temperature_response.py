@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import itertools
 
 from django.test import TestCase
@@ -43,9 +46,9 @@ class TemperatureResponseTestCases(TestCase):
         stats, query_set = teamtemp.stats()
 
         self.assertEqual(stats['count'], 3)
-        self.assertEqual(stats['average']['score__avg'], float(response1.score + response2.score + response3.score) / 3)
+        self.assertEqual(stats['average']['score__avg'], old_div(float(response1.score + response2.score + response3.score), 3))
 
-        words = map(lambda x: [x['word']] * x['id__count'], stats['words'])
+        words = [[x['word']] * x['id__count'] for x in stats['words']]
         flat_words = sorted(itertools.chain(*words))
 
         self.assertEqual(flat_words, sorted([response1.word, response2.word, response3.word]))
