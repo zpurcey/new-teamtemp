@@ -528,16 +528,18 @@ def auto_archive_surveys(request):
 
     team_temperatures = TeamTemperature.objects.filter(archive_schedule__gt=0)
 
-    now = timezone.now()
-    now_date = timezone.localtime(now).date()
-
     for team_temp in team_temperatures:
+        now = timezone.now()
+        now_date = timezone.localtime(now, timezone=pytz.timezone(team_temp.default_tz)).date()
+
         team_temp.fill_next_archive_date()
 
-        print("auto_archive_surveys: Survey %s: Comparing %s >= %s == %s" % (
-            team_temp.id, now_date, team_temp.next_archive_date, (now_date >= team_temp.next_archive_date)), file=sys.stderr)
+        is_archive_day = now_date >= team_temp.next_archive_date
 
-        if now_date >= team_temp.next_archive_date:
+        print("auto_archive_surveys: Survey %s: Comparing %s >= %s == %s (Timezone: %s)" % (
+            team_temp.id, now_date, team_temp.next_archive_date, is_archive_day, team_temp.default_tz), file=sys.stderr)
+
+        if is_archive_day:
             archive_survey(request, team_temp, archive_date=now)
 
     print("auto_archive_surveys: Stop at " + utc_timestamp(), file=sys.stderr)
