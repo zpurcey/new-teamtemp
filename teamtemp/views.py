@@ -147,7 +147,7 @@ def authenticated_user(request, survey):
     if responses.is_admin_for_survey(request, survey.id):
         return True
 
-    user = get_user(request)
+    user = get_or_create_user(request)
 
     if user and survey.creator.id == user.id:
         responses.add_admin_for_survey(request, survey.id)
@@ -330,7 +330,7 @@ def submit_view(request, survey_id, team_name=''):
 @no_cache()
 @ie_edge()
 def user_view(request):
-    user = get_user(request)
+    user = get_or_create_user(request)
 
     admin_survey_ids = responses.get_admin_for_surveys(request)
     if len(admin_survey_ids) > 0:

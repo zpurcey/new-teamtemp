@@ -6,7 +6,7 @@
 
 <div class="container">
     {% if user %}
-    <h1 align="center">User {{ user.id }}</h1>
+    <h1 align="center">User{% if user %} {{ user.id }}{% endif %}</h1>
     <br><br>
 
     <table class="table table-striped">
