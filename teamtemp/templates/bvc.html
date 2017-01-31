@@ -54,7 +54,7 @@
         var combo_table = new google.visualization.ComboChart(document.getElementById('table_div_jscode'));
         combo_table.draw(historical_data, {{ historical_options|safe }});
 
-        {% if team_count < 6 %}
+        {% if bvc_data.team_name == '' and team_count < 6 %}
           <!-- Historical Annotated Chart -->
           var annotation_table = new google.visualization.AnnotationChart(document.getElementById('table_div_json'));
           annotation_table.draw(historical_data, {{ historical_options|safe }});
