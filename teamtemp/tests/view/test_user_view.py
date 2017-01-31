@@ -11,7 +11,7 @@ class UserViewTestCases(TestCase):
     def test_user_missing_view(self):
         response = self.client.get(reverse('user'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTemplateNotUsed(response, 'user.html')
+        self.assertTemplateUsed(response, 'user.html')
 
     def test_user_not_in_db_view(self):
         session = self.client.session
@@ -20,7 +20,7 @@ class UserViewTestCases(TestCase):
 
         response = self.client.get(reverse('user'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTemplateNotUsed(response, 'user.html')
+        self.assertTemplateUsed(response, 'user.html')
 
     def test_user_found_view(self):
         user = UserFactory()
