@@ -228,7 +228,7 @@ class ResultsPasswordForm(forms.Form):
 
 
 class SurveySettingsForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(), max_length=256, required=False)
+    password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-survey-password'}), max_length=256, required=False)
     new_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     censored_word = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
@@ -236,7 +236,7 @@ class SurveySettingsForm(forms.ModelForm):
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
-    next_archive_date = forms.DateField(widget=forms.DateInput(), required=False)
+    next_archive_date = forms.DateField(widget=forms.DateInput({'autocomplete': 'next-archive-date'}), required=False)
 
     class Meta(object):
         model = TeamTemperature
