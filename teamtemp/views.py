@@ -590,7 +590,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
                                       archive_date=archive_date)
         history.save()
 
-    survey.advance_next_archive_date(now_date=archive_date)
+    survey.advance_next_archive_date(now_date=timezone.localtime(archive_date, timezone=pytz.timezone(survey.default_tz)).date())
     survey.archive_date = archive_date
 
     print("Archiving %s: Next Archive Date %s" % (survey.id, survey.next_archive_date), file=sys.stderr)
