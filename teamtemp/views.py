@@ -302,7 +302,7 @@ def submit_view(request, survey_id, team_name=''):
             response.save()
 
             messages.success(request, 'Thank you for submitting your answers. You can ' \
-                             'amend them now or later using this browser only if you need to.')
+                                      'amend them now or later using this browser only if you need to.')
     else:
         form = SurveyResponseForm(instance=response, max_word_count=survey.max_word_count)
 
@@ -469,7 +469,8 @@ def save_url(url, directory, basename):
             print("Failed Saving Word Cloud: IOError:%s %s as %s" % (str(exc), url, filename), file=sys.stderr)
             return None
         except ContentTooShortError as exc:
-            print("Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (str(exc), url, filename), file=sys.stderr)
+            print("Failed Saving Word Cloud: ContentTooShortError:%s %s as %s" % (str(exc), url, filename),
+                  file=sys.stderr)
             return None
 
     return return_url
@@ -487,7 +488,6 @@ def reset_view(request, survey_id):
             messages.success(request, 'Survey archived successfully.')
         else:
             messages.error(request, 'Survey archive failed.')
-
 
     return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
 
@@ -590,7 +590,7 @@ def archive_survey(_, survey, archive_date=timezone.now()):
                                       archive_date=archive_date)
         history.save()
 
-    survey.advance_next_archive_date()
+    survey.advance_next_archive_date(now_date=archive_date)
     survey.archive_date = archive_date
 
     print("Archiving %s: Next Archive Date %s" % (survey.id, survey.next_archive_date), file=sys.stderr)
@@ -733,7 +733,7 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
 
     average_score = float(old_div(score_sum, num_scores))
     row['Average'] = (average_score, "%.2f (%d Response%s)" % (average_score, responder_sum,
-                                     's' if responder_sum > 1 else ''))
+                                                               's' if responder_sum > 1 else ''))
 
     history_chart_data.append(row)
 
@@ -964,7 +964,8 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
 
 
 @ie_edge()
-def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', region_names='', site_names='', dept_names=''):
+def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', region_names='', site_names='',
+             dept_names=''):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
@@ -1023,7 +1024,8 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                     or len(all_site_names) > len(csf['filter_site_names']):
                 filter_this_bvc = True
 
-            print("len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']", len(csf['filter_dept_names']), file=sys.stderr)
+            print("len(all_dept_names)", len(all_dept_names), "len(csf['filter_dept_names']",
+                  len(csf['filter_dept_names']), file=sys.stderr)
 
             filter_dept_names = ','.join(csf['filter_dept_names'])
             filter_region_names = ','.join(csf['filter_region_names'])

@@ -98,19 +98,20 @@ class TeamTemperature(models.Model):
                 if self.archive_date is not None:
                     self.next_archive_date = (self.archive_date + timedelta(days=self.archive_schedule)).date()
                 else:
-                    self.next_archive_date = timezone.now().date()
+                    self.next_archive_date = timezone.localtime(timezone.now(), timezone=pytz.timezone(self.default_tz)).date()
         elif overwrite:
             self.next_archive_date = None
 
         return self.next_archive_date
 
-    def advance_next_archive_date(self):
-        if self.archive_schedule > 0:
-            if self.next_archive_date is None:
-                self.fill_next_archive_date()
+    def advance_next_archive_date(self, now_date=None):
+        self.fill_next_archive_date()
 
-            now = timezone.now().date()
-            while self.next_archive_date < now:
+        if self.archive_schedule > 0:
+            if not now_date:
+                now_date = timezone.localtime(timezone.now(), timezone=pytz.timezone(self.default_tz)).date()
+
+            while self.next_archive_date <= now_date:
                 self.next_archive_date = self.next_archive_date + timedelta(days=self.archive_schedule)
 
         return self.next_archive_date
