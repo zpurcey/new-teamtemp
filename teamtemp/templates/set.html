@@ -17,7 +17,7 @@
 
         <h1>Team Temperature</h1>
         <h2>Survey Settings</h2>
-        <form method="post">
+        <form method="post" autocomplete="off">
           {% csrf_token %}
           <input type="hidden" name="id" value="{{ survey.id }}"/>
 
@@ -101,7 +101,7 @@
             <label for="id_default_tz">Default Timezone:</label><br/>
             {{ form.default_tz }} (pytz.all_timezones)
           </div>
-
+          <br><br>
           <input type="submit" value="Submit"/>
         </form>
       </div>
