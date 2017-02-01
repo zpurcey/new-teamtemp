@@ -239,6 +239,8 @@ class SurveySettingsForm(forms.ModelForm):
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
     next_archive_date = forms.DateField(widget=DatePickerInput(format="%Y-%m-%d",
+                                                               options={'autoclose': True, 'startDate': '-1d',
+                                                                        'todayBtn': True, 'todayHighlight': True },
                                                                attrs={'autocomplete': 'next-archive-date'}),
                                         required=False)
 

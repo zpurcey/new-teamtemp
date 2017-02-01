@@ -158,9 +158,9 @@ def authenticated_user(request, survey):
 
 @ie_edge()
 def set_view(request, survey_id):
-    rows_changed = 0
-
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
+
+    timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
     if not authenticated_user(request, survey):
         return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
@@ -176,12 +176,13 @@ def set_view(request, survey_id):
                 messages.success(request, 'Password Updated.')
             if srf['archive_schedule'] != survey.archive_schedule:
                 survey.archive_schedule = srf['archive_schedule']
-                messages.success(request, 'Schedule Updated.')
-                survey.fill_next_archive_date(overwrite=True)
-                messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date)
-            elif srf['next_archive_date'] != survey.next_archive_date:
+                messages.success(request, 'Archive Schedule Updated.')
+                if not srf['next_archive_date'] or srf['next_archive_date'] == survey.next_archive_date:
+                    survey.fill_next_archive_date(overwrite=True)
+                    messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date.strftime("%A %d %B %Y"))
+            if srf['next_archive_date'] != survey.next_archive_date:
                 survey.next_archive_date = srf['next_archive_date']
-                messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date)
+                messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date.strftime("%A %d %B %Y"))
             if srf['survey_type'] != survey.survey_type:
                 survey.survey_type = srf['survey_type']
                 messages.success(request, 'Survey Type Updated.')
