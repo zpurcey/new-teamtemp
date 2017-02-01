@@ -18,25 +18,27 @@
         <h2>Submit your {{ survey_type_title }}</h2>
         <form method="post">
           {% csrf_token %}
+
           {% if response_id %}
             <input type="hidden" name="id" value="{{ response_id }}"/>
           {% endif %}
 
           {% bootstrap_form_errors form type='non_fields' %}
+
           {{ temp_question_title }}
           <div class="row">
             <div class="col-md-6">
               {% bootstrap_field form.score layout='vertical' size='sm' %}
             </div>
           </div>
-          <div class="row">
-          </div>
+
           {{ word_question_title }}
           <div class="row">
             <div class="col-md-6">
               {% bootstrap_field form.word layout='vertical' size='sm' %}
             </div>
           </div>
+
           {% buttons %}
             {% bootstrap_button "Submit" button_type="submit" button_class="btn-primary" %}
           {% endbuttons %}

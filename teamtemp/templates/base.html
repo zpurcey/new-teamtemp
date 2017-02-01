@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static "style.css" %}">
   <link rel="shortcut icon" href="{% static "favicon.ico" %}" type="image/x-icon">
   <link rel="icon" href="{% static "favicon.ico" %}" type="image/x-icon">
+  {% block form_extra_head %}{% endblock %}
 {% endblock %}
 
 {% block bootstrap3_content %}

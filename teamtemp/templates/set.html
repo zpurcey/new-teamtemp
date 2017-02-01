@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block form_extra_head %}
+  {{ form.media }}
+{% endblock %}
+
+{% load bootstrap3 %}
+
 {% block title %}Settings {{ survey.id }}{% endblock %}
 
 {% block body %}
@@ -66,13 +72,18 @@
           {{ form.next_archive_date.errors }}
           <div class="field">
             <label for="id_next_archive_date">Next Archive Date:</label><br/>
-            {{ form.next_archive_date }} (Date of next automated archive.)
+            <div style="display: inline-block; width: 15%; vertical-align: middle;">{{ form.next_archive_date }}</div> (Date of next automated archive.)
           </div>
 
           {{ form.password.errors }}
           <div class="field">
             <label for="id_password">Change Survey Password:</label><br/>
             {{ form.password }} (Leave blank to retain existing password)
+
+          {{ form.default_tz.errors }}
+          <div class="field">
+            <label for="id_default_tz">Default Timezone:</label><br/>
+            {{ form.default_tz }} (pytz.all_timezones)
           </div>
 
           <h3>Team Name Change</h3>
@@ -82,25 +93,20 @@
           <BR>
           {{ form.current_team_name.errors }}
           <div class="field">
-            <label for="current_team_name">Current team name:</label><br/>
+            <label for="id_current_team_name">Current team name:</label><br/>
             {{ form.current_team_name }} (Check for trailing spaces if name change fails)
           </div>
           {{ form.new_team_name.errors }}
           <div class="field">
-            <label for="new_team_name">New team name:</label><br/>
+            <label for="id_new_team_name">New team name:</label><br/>
             {{ form.new_team_name }} (Blank will delete all team records)
           </div>
           {{ form.censored_word.errors }}
           <div class="field">
-            <label for="censored_word">Censor Word:</label><br/>
-            {{ form.censored_word }} (ALL occurences will be removed from this survey)
+            <label for="id_censored_word">Censor Word:</label><br/>
+            {{ form.censored_word }} (ALL occurrences will be removed from this survey)
           </div>
 
-          {{ form.default_tz.errors }}
-          <div class="field">
-            <label for="id_default_tz">Default Timezone:</label><br/>
-            {{ form.default_tz }} (pytz.all_timezones)
-          </div>
           <br><br>
           <input type="submit" value="Submit"/>
         </form>

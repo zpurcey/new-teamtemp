@@ -1,20 +1,22 @@
-from builtins import str
-from builtins import object
 import re
 
 import pytz
-import sys
+from bootstrap3_datepicker.widgets import DatePickerInput
+from builtins import object
+from builtins import str
 from django import forms
 from django.forms.utils import ErrorList
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from teamtemp.responses.models import TeamTemperature, Teams, TemperatureResponse
 
 
+@python_2_unicode_compatible
 class ErrorBox(ErrorList):
-    def __unicode__(self):
+    def __str__(self):
         return mark_safe(self.as_box())
 
     def as_box(self):
@@ -236,7 +238,9 @@ class SurveySettingsForm(forms.ModelForm):
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
-    next_archive_date = forms.DateField(widget=forms.DateInput({'autocomplete': 'next-archive-date'}), required=False)
+    next_archive_date = forms.DateField(widget=DatePickerInput(format="%Y-%m-%d",
+                                                               attrs={'autocomplete': 'next-archive-date'}),
+                                        required=False)
 
     class Meta(object):
         model = TeamTemperature
