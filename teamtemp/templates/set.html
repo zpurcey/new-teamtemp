@@ -30,8 +30,8 @@
           {{ form.survey_type.errors }}
           <div class="field">
             <label for="id_survey_type">Survey Type:</label><br/>
-            {{ form.survey_type }} (TEAMTEMP - Team Temperature Survey or CUSTOMERFEEDBACK - Customer Feedback Survey or
-            DEPT-REGION-SITE - aggregate results across Departments, Regions and Sites or office locations)
+            {{ form.survey_type }} (<em>Team Temperature Survey</em>, <em>Customer Feedback Survey</em>, or
+            <em>Department-Region-Site Temperature Survey</em> - aggregate results across Departments, Regions and Sites or office locations)
           </div>
 
           {{ form.max_word_count.errors }}
@@ -75,10 +75,17 @@
             <div style="display: inline-block; width: 15%; vertical-align: middle;">{{ form.next_archive_date }}</div> (Date of next automated archive.)
           </div>
 
-          {{ form.password.errors }}
+          {{ form.new_password.errors }}
           <div class="field">
             <label for="id_password">Change Survey Password:</label><br/>
-            {{ form.password }} (Leave blank to retain existing password)
+            {{ form.new_password }} (Leave blank to retain existing password)
+          </div>
+
+          {{ form.confirm_password.errors }}
+          <div class="field">
+            <label for="id_confirm_password">Confirm Survey Password:</label><br/>
+            {{ form.confirm_password }} (Leave blank to retain existing password)
+          </div>
 
           {{ form.default_tz.errors }}
           <div class="field">

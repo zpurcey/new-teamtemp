@@ -43,13 +43,13 @@
 
           {% bootstrap_form_errors form type='non_fields' %}
           {% csrf_token %}
-          {{ form.password.errors }}
-          <label for="id_password">Survey Password (so that you can see the admin pages if you change
-            browser)</label><br/>
-          <div class="row">
-            <div class="col-md-6">
-              {% bootstrap_field form.password layout='inline' size='sm' %}
-            </div>
+
+          <div class="field">
+            {% bootstrap_field form.new_password layout='vertical' size='sm' %}
+          </div>
+
+          <div class="field">
+            {% bootstrap_field form.confirm_password layout='vertical' size='sm' %}
           </div>
 
           {% if survey_type != 'DEPT-REGION-SITE' %}

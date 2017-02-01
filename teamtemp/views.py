@@ -107,23 +107,23 @@ def utc_timestamp():
 @ie_edge()
 def home_view(request, survey_type='TEAMTEMP'):
     timezone.activate(timezone.utc)
+
     if request.method == 'POST':
         form = CreateSurveyForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             csf = form.cleaned_data
+
             survey_id = utils.random_string(8)
             user = get_or_create_user(request)
-            dept_names = csf['dept_names']
-            region_names = csf['region_names']
-            site_names = csf['site_names']
-            survey = TeamTemperature(password=make_password(csf['password']),
+
+            survey = TeamTemperature(id=survey_id,
+                                     password=make_password(csf['new_password']),
                                      creator=user,
                                      survey_type=survey_type,
                                      archive_date=timezone.now(),
-                                     id=survey_id,
-                                     dept_names=dept_names,
-                                     region_names=region_names,
-                                     site_names=site_names,
+                                     dept_names=csf['dept_names'],
+                                     region_names=csf['region_names'],
+                                     site_names=csf['site_names'],
                                      archive_schedule=7,
                                      default_tz='UTC')
             survey.fill_next_archive_date()
@@ -137,6 +137,7 @@ def home_view(request, survey_type='TEAMTEMP'):
             return HttpResponseRedirect(reverse('team', kwargs={'survey_id': survey_id}))
     else:
         form = CreateSurveyForm()
+
     return render(request, 'index.html', {'form': form, 'survey_type': survey_type})
 
 
@@ -171,8 +172,8 @@ def set_view(request, survey_id):
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             srf = form.cleaned_data
-            if srf['password'] != '':
-                survey.password = make_password(srf['password'])
+            if srf['new_password'] != '':
+                survey.password = make_password(srf['new_password'])
                 messages.success(request, 'Password Updated.')
             if srf['archive_schedule'] != survey.archive_schedule:
                 survey.archive_schedule = srf['archive_schedule']
@@ -348,7 +349,7 @@ def admin_view(request, survey_id, team_name=''):
 
     timezone.activate(pytz.timezone(survey.default_tz or 'UTC'))
 
-    form = None
+    form = ResultsPasswordForm()
     if request.method == 'POST':
         form = ResultsPasswordForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
@@ -356,11 +357,12 @@ def admin_view(request, survey_id, team_name=''):
             password = rpf['password'].encode('utf-8')
             if check_password(password, survey.password):
                 responses.add_admin_for_survey(request, survey.id)
+                assert responses.is_admin_for_survey(request, survey_id)
                 return HttpResponseRedirect(reverse('admin', kwargs={'survey_id': survey_id}))
+            else:
+                form.add_error('password', 'Incorrect password')
 
     if not authenticated_user(request, survey):
-        if form is None:
-            form = ResultsPasswordForm()
         return render(request, 'password.html', {'form': form})
 
     if team_name != '':

@@ -5,6 +5,7 @@ from datetime import timedelta
 
 import pytz
 from builtins import object
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
@@ -131,7 +132,7 @@ class TemperatureResponse(models.Model):
     id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
     responder = models.ForeignKey(User, related_name="temperature_responses")
-    score = models.PositiveSmallIntegerField()
+    score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
     word = models.CharField(max_length=32)
     team_name = models.CharField(max_length=64, db_index=True)
     archived = models.BooleanField(default=False, db_index=True)

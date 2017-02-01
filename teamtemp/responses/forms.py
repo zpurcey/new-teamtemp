@@ -31,13 +31,19 @@ class ErrorBox(ErrorList):
 class CreateSurveyForm(forms.Form):
     error_css_class = 'error box'
 
-    password = forms.CharField(widget=forms.PasswordInput(), max_length=256)
     dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
                                  label='DEPT1,DEPT2..', help_text='DEPT1,DEPT2..')
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
                                    label='REGION1,REGION2..', help_text='REGION1,REGION2..')
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
                                  label='SITE1,SITE2..', help_text='SITE1,SITE2..')
+    new_password = forms.CharField(
+        widget=forms.PasswordInput({'placeholder': '', 'autocomplete': 'new-password'}),
+        max_length=256,
+        label='Survey Password (so that you can see the admin pages if you change browser)')
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput({'placeholder': '', 'autocomplete': 'new-password-confirm'}),
+        max_length=256, label='Confirm Survey Password')
 
     def clean_dept_names(self):
         dept_names = self.cleaned_data['dept_names']
@@ -65,6 +71,19 @@ class CreateSurveyForm(forms.Form):
                     '{matches}'.format(site_names=escape(site_names), matches=list({str(x) for x in matches}))
             raise forms.ValidationError(error)
         return site_names
+
+    def clean(self):
+        cleaned_data = super(CreateSurveyForm, self).clean()
+
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if new_password:
+            if not confirm_password:
+                self.add_error('confirm_password', 'Confirm the new password')
+            elif new_password != confirm_password:
+                self.add_error('new_password', 'New password and confirmation must match')
+                self.add_error('confirm_password', 'New password and confirmation must match')
 
 
 class FilteredBvcForm(forms.Form):
@@ -191,17 +210,12 @@ class SurveyResponseForm(forms.ModelForm):
         model = TemperatureResponse
         fields = ['score', 'word']
 
-    score = forms.CharField(label='')
-    word = forms.CharField(label='')
-
     def __init__(self, *args, **kwargs):
         self.max_word_count = kwargs.pop('max_word_count')
         super(SurveyResponseForm, self).__init__(*args, **kwargs)
 
     def clean_score(self):
         score = self.cleaned_data['score']
-        if not score.isdigit():
-            raise forms.ValidationError('Temperature %s may contain numbers only' % score)
         if int(score) < 1:
             raise forms.ValidationError('Temperature %s is too low' % score)
         if int(score) > 10:
@@ -230,7 +244,10 @@ class ResultsPasswordForm(forms.Form):
 
 
 class SurveySettingsForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-survey-password'}), max_length=256, required=False)
+    new_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password'}), max_length=256,
+                                   required=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password-confirm'}),
+                                       max_length=256, required=False)
     new_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     censored_word = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
@@ -309,3 +326,16 @@ class SurveySettingsForm(forms.ModelForm):
         if 1 > int(max_word_count) > 5:
             raise forms.ValidationError('Max Word Count Min Value = 1, Max Value = 5')
         return max_word_count
+
+    def clean(self):
+        cleaned_data = super(SurveySettingsForm, self).clean()
+
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if new_password:
+            if not confirm_password:
+                self.add_error('confirm_password', 'Confirm the new password')
+            elif new_password != confirm_password:
+                self.add_error('new_password', 'New password and confirmation must match')
+                self.add_error('confirm_password', 'New password and confirmation must match')
