@@ -12,31 +12,27 @@
 
         <h1>Create a Team Temperature Survey</h1>
 
-        <label>Select Survey Type</label>
-        <BR>
-        <select class="btn btn-default" id="SurveyTypeSelector">
-          <option value="{% url 'home' %}">TEAMTEMP</option>
+        <div class="field">
+          <label for="id_survey_type">Select Survey Type</label><br>
+          <select id="id_survey_type" name="survey_type" required="">
+            <option value="TEAMTEMP" {% if not survey_type or survey_type == "TEAMTEMP" %}selected{% endif %}>Team Temperature</option>
+            <option value="DEPT-REGION-SITE" {% if survey_type == "DEPT-REGION-SITE" %}selected{% endif %}>Department-Region-Site Temperature</option>
+            <option value="CUSTOMERFEEDBACK" {% if survey_type == "CUSTOMERFEEDBACK" %}selected{% endif %}>Customer Feedback</option>
+          </select>
           <script>
-            document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
+            document.getElementById("id_survey_type").onchange = function () {
+              if (this.value == 'DEPT-REGION-SITE') {
+                window.location.href = "/drs"
+              }
+              else if (this.value == 'CUSTOMERFEEDBACK') {
+                window.location.href = "/cs"
+              }
+              else {
+                window.location.href = "{% url 'home' %}";
+              }
+            };
           </script>
-          <option value="/drs">DEPT-REGION-SITE</option>
-          {% if survey_type == 'DEPT-REGION-SITE' %}
-            <script>
-              document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
-            </script>
-          {% endif %}
-          <option value="/cs">CUSTOMERFEEDBACK</option>
-          {% if survey_type == 'CUSTOMERFEEDBACK' %}
-            <script>
-              document.getElementById("SurveyTypeSelector").selectedIndex = document.getElementById("SurveyTypeSelector").length - 1;
-            </script>
-          {% endif %}
-        </select>
-        <script>
-          document.getElementById("SurveyTypeSelector").onchange = function () {
-            window.location.href = this.value;
-          };
-        </script>
+        </div>
         <br><br>
 
         <form method="post">
