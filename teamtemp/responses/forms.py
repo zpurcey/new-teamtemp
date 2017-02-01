@@ -31,12 +31,6 @@ class ErrorBox(ErrorList):
 class CreateSurveyForm(forms.Form):
     error_css_class = 'error box'
 
-    dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
-                                 label='DEPT1,DEPT2..', help_text='DEPT1,DEPT2..')
-    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
-                                   label='REGION1,REGION2..', help_text='REGION1,REGION2..')
-    site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False,
-                                 label='SITE1,SITE2..', help_text='SITE1,SITE2..')
     new_password = forms.CharField(
         widget=forms.PasswordInput({'placeholder': '', 'autocomplete': 'new-password'}),
         max_length=256,
@@ -44,6 +38,15 @@ class CreateSurveyForm(forms.Form):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput({'placeholder': '', 'autocomplete': 'new-password-confirm'}),
         max_length=256, label='Confirm Survey Password')
+    dept_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'DEPT1,DEPT2..', 'size': '64'}),
+                                 max_length=64, required=False,
+                                 label='Department Names')
+    region_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'REGION1,REGION2..', 'size': '64'}),
+                                   max_length=64, required=False,
+                                   label='Region Names')
+    site_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'SITE1,SITE2..', 'size': '64'}),
+                                 max_length=64, required=False,
+                                 label='Site Names')
 
     def clean_dept_names(self):
         dept_names = self.cleaned_data['dept_names']
