@@ -244,7 +244,9 @@
 
         <div class="centrewordcloud">
           {% if bvc_data.word_cloud_url %}
-            <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" alt="{{ bvc_data.word_list }}">
+            <a href="{{ bvc_data.word_cloud_url }}">
+              <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud">
+            </a>
           {% elif bvc_data.word_list %}
             <div style="font-size: large; margin-top: 50px; color: green;">{{ bvc_data.word_list }}</div>
           {% endif %}
