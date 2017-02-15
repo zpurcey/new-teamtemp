@@ -145,13 +145,13 @@ def authenticated_user(request, survey):
     if survey is None:
         raise Exception('Must supply a survey object')
 
-    if responses.is_admin_for_survey(request, survey.id):
-        return True
-
     user = get_or_create_user(request)
 
     if user and survey.creator.id == user.id:
         responses.add_admin_for_survey(request, survey.id)
+        return True
+
+    if responses.is_admin_for_survey(request, survey.id):
         return True
 
     return False
