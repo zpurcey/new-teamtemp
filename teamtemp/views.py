@@ -172,23 +172,31 @@ def set_view(request, survey_id):
         form = SurveySettingsForm(request.POST, error_class=ErrorBox)
         if form.is_valid():
             srf = form.cleaned_data
-            if srf['new_password'] != '':
-                survey.password = make_password(srf['new_password'])
-                messages.success(request, 'Password Updated.')
+
+            original_next_archive_date = survey.next_archive_date
+
             if srf['archive_schedule'] != survey.archive_schedule:
                 survey.archive_schedule = srf['archive_schedule']
                 messages.success(request, 'Archive Schedule Updated to %d days.' % survey.archive_schedule)
+
             if survey.archive_schedule:
                 survey.fill_next_archive_date()
             else:
                 survey.next_archive_date = None
-            if srf['next_archive_date'] != survey.next_archive_date:
+
+            if srf['next_archive_date'] != survey.next_archive_date and survey.next_archive_date == original_next_archive_date:
                 if survey.archive_schedule:
                     survey.next_archive_date = srf['next_archive_date']
+
+            if survey.next_archive_date != original_next_archive_date:
                 if survey.next_archive_date:
                     messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date.strftime("%A %d %B %Y"))
                 else:
                     messages.success(request, 'Next Archive Date Cleared.')
+
+            if srf['new_password'] != '':
+                survey.password = make_password(srf['new_password'])
+                messages.success(request, 'Password Updated.')
             if srf['survey_type'] != survey.survey_type:
                 survey.survey_type = srf['survey_type']
                 messages.success(request, 'Survey Type Updated.')
