@@ -177,15 +177,13 @@ def set_view(request, survey_id):
                 messages.success(request, 'Password Updated.')
             if srf['archive_schedule'] != survey.archive_schedule:
                 survey.archive_schedule = srf['archive_schedule']
-                messages.success(request, 'Archive Schedule Updated.')
-                if not srf['next_archive_date'] or srf['next_archive_date'] == survey.next_archive_date:
-                    survey.fill_next_archive_date(overwrite=True)
-                    if survey.next_archive_date:
-                        messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date.strftime("%A %d %B %Y"))
-                    else:
-                        messages.success(request, 'Next Archive Date Cleared.')
+                messages.success(request, 'Archive Schedule Updated to %d days.' % survey.archive_schedule)
+                survey.fill_next_archive_date()
             if srf['next_archive_date'] != survey.next_archive_date:
-                survey.next_archive_date = srf['next_archive_date']
+                if survey.archive_schedule:
+                    survey.next_archive_date = srf['next_archive_date']
+                else:
+                    survey.next_archive_date = None
                 if survey.next_archive_date:
                     messages.success(request, 'Next Archive Date Updated to %s.' % survey.next_archive_date.strftime("%A %d %B %Y"))
                 else:
