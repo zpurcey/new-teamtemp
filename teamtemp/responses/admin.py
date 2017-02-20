@@ -50,7 +50,7 @@ class TeamTemperatureAdmin(admin.ModelAdmin):
         super(TeamTemperatureAdmin, self).save_model(request, obj, form, change)
 
     def view_on_site(self, obj):
-        return reverse('admin', kwargs={'survey_id': obj.id})
+        return reverse('bvc', kwargs={'survey_id': obj.id})
 
 
 class TemperatureResponseAdmin(admin.ModelAdmin):
@@ -85,7 +85,7 @@ class TeamsAdmin(admin.ModelAdmin):
     search_fields = ("team_name", "request__id")
 
     def view_on_site(self, obj):
-        return reverse('admin', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name})
+        return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name})
 
 
 admin.site.register(WordCloudImage, WordCloudImageAdmin)
