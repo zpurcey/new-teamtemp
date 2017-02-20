@@ -185,7 +185,7 @@ def set_view(request, survey_id):
                 survey.next_archive_date = None
 
             if srf['next_archive_date'] != survey.next_archive_date and survey.next_archive_date == original_next_archive_date:
-                if survey.archive_schedule:
+                if survey.archive_schedule and srf['next_archive_date']:
                     survey.next_archive_date = srf['next_archive_date']
 
             if survey.next_archive_date != original_next_archive_date:
