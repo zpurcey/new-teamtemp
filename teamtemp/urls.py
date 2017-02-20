@@ -9,7 +9,7 @@ from rest_framework import routers
 
 from teamtemp.views import TeamResponseHistoryViewSet, TeamTemperatureViewSet, TeamsViewSet, TemperatureResponseViewSet, \
     UserViewSet, WordCloudImageViewSet, admin_view, bvc_view, cron_view, health_check_view, home_view, \
-    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view
+    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view, wordcloud_view
 
 router = routers.DefaultRouter()
 router.register(r'word_cloud_images', WordCloudImageViewSet)
@@ -63,6 +63,7 @@ urlpatterns = [
     url(r'^cron/(?P<pin>[0-9]{4,16})$', cron_view, name='cron'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})/(?P<team_name>[-\w]{1,64})$', team_view, name='team'),
     url(r'^team/(?P<survey_id>[0-9a-zA-Z]{8})$', team_view, name='team'),
+    url(r'^wordcloud/(?P<word_hash>[a-f0-9]{40})?$', wordcloud_view, name='wordcloud'),
     url(r'^static/(.*)$', serve_static, {'document_root': settings.STATIC_ROOT}, name='static'),
     url(r'^media/(.*)$', media_view, {'document_root': settings.MEDIA_ROOT}, name='media'),
     url(r'^healthcheck/?$', health_check_view, name='healthcheck'),
