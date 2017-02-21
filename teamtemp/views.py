@@ -527,7 +527,7 @@ def prune_word_cloud_cache(_):
     WordCloudImage.objects.filter(creation_date__lte=yesterday).delete()
 
     for word_cloud in WordCloudImage.objects.all():
-        if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
+        if word_cloud.image_url and not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
             word_cloud.delete()
 
     print("prune_word_cloud_cache: Stop at " + utc_timestamp(), file=sys.stderr)
