@@ -82,6 +82,8 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -112,6 +114,7 @@ INSTALLED_APPS = (
     'bootstrap3_datepicker',
     'rest_framework',
     'crispy_forms',
+    'cspreports',
 )
 
 PASSWORD_HASHERS = (
@@ -193,6 +196,8 @@ CSP_STYLE_SRC = (
     '*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "'self'",)
 CSP_IMG_SRC = ("'self'", 'data:', 'blob:', 'gg.google.com',)
 CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
+CSP_EXCLUDE_URL_PREFIXES = ("/djadmin",)
+CSP_REPORT_URI = reverse_lazy('report_csp')
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,

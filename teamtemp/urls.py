@@ -7,6 +7,8 @@ from django.views.generic.base import RedirectView
 from django.views.static import serve as serve_static
 from rest_framework import routers
 
+import cspreports
+
 from teamtemp.views import TeamResponseHistoryViewSet, TeamTemperatureViewSet, TeamsViewSet, TemperatureResponseViewSet, \
     UserViewSet, WordCloudImageViewSet, admin_view, bvc_view, cron_view, health_check_view, home_view, \
     media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view, wordcloud_view
@@ -72,4 +74,5 @@ urlpatterns = [
     url(r'^djadmin/', include(djadmin.site.urls)),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^csp-reports/', include(cspreports.urls)),
 ]
