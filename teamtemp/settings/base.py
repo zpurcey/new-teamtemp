@@ -1,6 +1,8 @@
 # Django settings for teamtemp project.
 import os
 
+from django.urls import reverse_lazy
+
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
