@@ -426,7 +426,7 @@ def generate_wordcloud(word_list, word_hash):
                                  )
         if response.status_code == 200:
             print("Finish Word Cloud Generation: [%s]" % (word_hash), file=sys.stderr)
-            return save_url(response.json()['url'], 'wordcloud_images', word_hash)
+            return save_url(response.json()['url'], word_hash)
         else:
             print("Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (word_hash, response.status_code, str(response.__dict__)), file=sys.stderr)
 
@@ -452,23 +452,22 @@ def media_filename(src, basename=None):
     return name
 
 
-def media_url(src, directory, basename=None):
+def media_url(src, basename=None):
     image_name = media_filename(src, basename)
-    url = os.path.join(settings.MEDIA_URL, os.path.join(directory, image_name))
+    url = os.path.join(settings.MEDIA_URL, image_name)
     return url
 
 
-def media_file(src, directory, basename=None):
+def media_file(src, basename=None):
     image_name = media_filename(src, basename)
-    media_directory = os.path.join(settings.MEDIA_ROOT, directory)
-    require_dir(media_directory)
-    filename = os.path.join(media_directory, image_name)
+    require_dir(settings.MEDIA_ROOT)
+    filename = os.path.join(settings.MEDIA_ROOT, image_name)
     return filename
 
 
-def save_url(url, directory, basename):
-    return_url = media_url(url, directory, basename)
-    filename = media_file(url, directory, basename)
+def save_url(url, basename):
+    return_url = media_url(url, basename)
+    filename = media_file(url, basename)
 
     print("Saving Word Cloud: %s as %s" % (url, filename), file=sys.stderr)
 
@@ -527,7 +526,7 @@ def prune_word_cloud_cache(_):
 
     for word_cloud_image in WordCloudImage.objects.all():
         if word_cloud_image.image_url:
-            if not os.path.isfile(media_file(word_cloud_image.image_url, 'wordcloud_images')):
+            if not os.path.isfile(media_file(word_cloud_image.image_url)):
                 word_cloud_image.delete()
 
     print("prune_word_cloud_cache: Stop at " + utc_timestamp(), file=sys.stderr)
@@ -900,7 +899,7 @@ def cached_word_cloud(word_list=None, word_hash=None, generate=True):
         return None
 
     if word_cloud_image.image_url:
-        filename = media_file(word_cloud_image.image_url, 'wordcloud_images')
+        filename = media_file(word_cloud_image.image_url)
 
         if os.path.isfile(filename):
             print("Cached Word Cloud: " + filename + " found", file=sys.stderr)
