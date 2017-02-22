@@ -218,6 +218,6 @@ GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get('GOOGLE_ANALYTICS_PROPERTY_ID', No
 GOOGLE_ANALYTICS_DOMAIN = os.environ.get('GOOGLE_ANALYTICS_DOMAIN', 'auto')
 
 if GOOGLE_ANALYTICS_PROPERTY_ID:
-    CSP_SCRIPT_SRC += ("'unsafe-inline'", 'www.google-analytics.com', 'ssl.google-analytics.com', 'data:')
-    CSP_IMG_SRC += ('www.google-analytics.com', 'ssl.google-analytics.com')
+    CSP_SCRIPT_SRC += ("'unsafe-eval'", "'unsafe-inline'", 'www.google-analytics.com', 'data:',)
+    CSP_IMG_SRC += ('www.google-analytics.com',)
 
