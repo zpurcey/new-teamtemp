@@ -197,7 +197,7 @@ CSP_CONNECT_SRC = ("'self'",)
 CSP_STYLE_SRC = (
     '*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "'self'",)
 CSP_IMG_SRC = ("'self'", 'data:', 'blob:', 'gg.google.com',)
-CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
+CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'", "data:",)
 CSP_EXCLUDE_URL_PREFIXES = ("/djadmin",)
 CSP_REPORT_URI = reverse_lazy('report_csp')
 
