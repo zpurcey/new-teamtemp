@@ -27,25 +27,21 @@ div.help-block {
   color: black;
 }
 
-.wordcloud {
-  border: 0 solid #036;
-  height: 7in;
-  margin: 0.2in auto;
-  padding: 0;
-  page-break-after: always;
-  page-break-inside: avoid;
-  width: 8in;
+.wordcloud-text {
+  font-size: large;
+  margin-top: 50px;
+  color: green;
 }
 
 .centregauge {
-  width: 400px;
+  width: 100%;
   min-height: 400px;
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
 
-.centrewordcloud {
+.wordcloud {
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -72,4 +68,10 @@ ul {
 
 .google-visualization-tooltip-item {
   white-space: nowrap;
+}
+
+.next_archive_date {
+  display: inline-block;
+  width: 167px;
+  vertical-align: middle;
 }

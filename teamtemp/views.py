@@ -163,7 +163,6 @@ def authenticated_user(request, survey):
 
 
 @ie_edge()
-@csp_update(STYLE_SRC=["'unsafe-inline'", ])
 def set_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
@@ -346,7 +345,6 @@ def submit_view(request, survey_id, team_name=''):
 
 @no_cache()
 @ie_edge()
-@csp_update(STYLE_SRC=["'unsafe-inline'", ])
 def user_view(request):
     user = get_or_create_user(request)
 
@@ -993,8 +991,8 @@ def wordcloud_view(request, word_hash=''):
 
 
 @ie_edge()
-@csp_update(SCRIPT_SRC=['*.google.com', '*.googleapis.com', "'unsafe-eval'", "'unsafe-inline'", ],
-    STYLE_SRC=['*.google.com', '*.googleapis.com', "'unsafe-inline'", ],
+@csp_update(SCRIPT_SRC=['*.google.com', '*.googleapis.com', "'unsafe-eval'", "'unsafe-inline'",],
+    STYLE_SRC=['*.google.com', '*.googleapis.com', "'unsafe-inline'",],
     IMG_SRC = ['blob:', 'gg.google.com',])
 def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', region_names='', site_names='',
              dept_names=''):
@@ -1020,7 +1018,8 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
     # Cached word cloud
     if bvc_data['word_list']:
         word_cloud_image = cached_word_cloud(bvc_data['word_list'], generate=False)
-        bvc_data['word_cloud_url'] = word_cloud_image.image_url or reverse('wordcloud', kwargs={'word_hash': word_cloud_image.word_hash})
+        if os.environ.get('XMASHAPEKEY'):
+            bvc_data['word_cloud_url'] = word_cloud_image.image_url or reverse('wordcloud', kwargs={'word_hash': word_cloud_image.word_hash})
         bvc_data['word_cloud_width'] = settings.WORDCLOUD_WIDTH
         bvc_data['word_cloud_height'] = settings.WORDCLOUD_HEIGHT
 

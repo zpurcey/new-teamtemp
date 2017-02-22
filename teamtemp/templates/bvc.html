@@ -242,13 +242,13 @@
       <div class="col-md-6">
         <h3 align="center">{{ bvc_data.stats.count }} Response{% if bvc_data.stats.count != 1 %}s{% endif %}:</h3>
 
-        <div class="centrewordcloud">
+        <div class="wordcloud">
           {% if bvc_data.word_cloud_url %}
             <a href="{{ bvc_data.word_cloud_url }}">
               <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud">
             </a>
           {% elif bvc_data.word_list %}
-            <div style="font-size: large; margin-top: 50px; color: green;">{{ bvc_data.word_list }}</div>
+            <div class="wordcloud-text">{{ bvc_data.word_list }}</div>
           {% endif %}
         </div>
       </div>
@@ -261,9 +261,9 @@
       <h1 align="center">Historical {{ bvc_data.survey_type_title }}</h1>
       <h2 align="center">{% now () %}</h2>
       <p>
-      <div class="centregauge" id="table_div_jscode" style="width: 100%"></div>
+      <div class="centregauge" id="table_div_jscode"></div>
       <BR><BR>
-      <div class="centregauge" id="table_div_json" style="width: 100%"></div>
+      <div class="centregauge" id="table_div_json"></div>
     </div>
     {% endif %}
   </div>
