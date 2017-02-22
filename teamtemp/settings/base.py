@@ -174,6 +174,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'teamtemp.context_processors.google_analytics',
             ],
         },
     },
@@ -213,3 +214,5 @@ LOGOUT_URL = "/djadmin/logout/"
 WORDCLOUD_HEIGHT = 500
 WORDCLOUD_WIDTH = 600
 
+GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get('GOOGLE_ANALYTICS_PROPERTY_ID', None)
+GOOGLE_ANALYTICS_DOMAIN = os.environ.get('GOOGLE_ANALYTICS_DOMAIN', 'auto')
