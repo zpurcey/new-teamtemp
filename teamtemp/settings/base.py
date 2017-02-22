@@ -174,6 +174,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'teamtemp.context_processors.google_analytics',
             ],
         },
     },
@@ -190,14 +191,11 @@ SECURE_FRAME_DENY = True
 X_FRAME_OPTIONS = 'DENY'
 
 CSP_DEFAULT_SRC = ("'none'",)
-CSP_SCRIPT_SRC = (
-    '*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-eval'",
-    "'unsafe-inline'", "'self'",)
+CSP_SCRIPT_SRC = ('code.jquery.com', 'maxcdn.bootstrapcdn.com', "'self'",)
 CSP_CONNECT_SRC = ("'self'",)
-CSP_STYLE_SRC = (
-    '*.google.com', '*.googleapis.com', 'code.jquery.com', 'maxcdn.bootstrapcdn.com', "'unsafe-inline'", "'self'",)
-CSP_IMG_SRC = ("'self'", 'data:', 'blob:', 'gg.google.com',)
-CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'", "data:",)
+CSP_STYLE_SRC = ('code.jquery.com', 'maxcdn.bootstrapcdn.com', "'self'",)
+CSP_IMG_SRC = ("'self'", 'data:', 'blob:',)
+CSP_FONT_SRC = ('maxcdn.bootstrapcdn.com', "'self'",)
 CSP_EXCLUDE_URL_PREFIXES = ("/djadmin",)
 CSP_REPORT_URI = reverse_lazy('report_csp')
 
@@ -215,4 +213,11 @@ LOGOUT_URL = "/djadmin/logout/"
 
 WORDCLOUD_HEIGHT = 500
 WORDCLOUD_WIDTH = 600
+
+GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get('GOOGLE_ANALYTICS_PROPERTY_ID', None)
+GOOGLE_ANALYTICS_DOMAIN = os.environ.get('GOOGLE_ANALYTICS_DOMAIN', 'auto')
+
+if GOOGLE_ANALYTICS_PROPERTY_ID:
+    CSP_SCRIPT_SRC += ("'unsafe-inline'", 'www.google-analytics.com', 'ssl.google-analytics.com')
+    CSP_IMG_SRC += ('www.google-analytics.com', 'ssl.google-analytics.com')
 
