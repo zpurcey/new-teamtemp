@@ -437,12 +437,6 @@ def require_dir(path):
             raise
 
 
-def media_dir(directory):
-    media_directory = os.path.join(settings.MEDIA_ROOT, directory)
-    require_dir(media_directory)
-    return media_directory
-
-
 def media_filename(src, basename=None):
     name = urlparse(src).path.split('/')[-1]
     if basename:
@@ -462,7 +456,8 @@ def media_url(src, directory, basename=None):
 
 def media_file(src, directory, basename=None):
     image_name = media_filename(src, basename)
-    media_directory = media_dir(directory)
+    media_directory = os.path.join(settings.MEDIA_ROOT, directory)
+    require_dir(media_directory)
     filename = os.path.join(media_directory, image_name)
     return filename
 
@@ -526,9 +521,10 @@ def prune_word_cloud_cache(_):
 
     WordCloudImage.objects.filter(creation_date__lte=yesterday).delete()
 
-    for word_cloud in WordCloudImage.objects.all():
-        if word_cloud.image_url and not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), word_cloud.image_url)):
-            word_cloud.delete()
+    for word_cloud_image in WordCloudImage.objects.all():
+        if word_cloud_image.image_url:
+            if not os.path.isfile(media_file(word_cloud_image.image_url, 'wordcloud_images')):
+                word_cloud_image.delete()
 
     print("prune_word_cloud_cache: Stop at " + utc_timestamp(), file=sys.stderr)
 
