@@ -96,7 +96,7 @@ def health_check_view(_):
 
 @cache_control('public, max-age=86400')
 def robots_txt_view(_):
-    return HttpResponse('', content_type='text/plain')
+    return HttpResponse('User-agent: *\r\nDisallow:\r\n', content_type='text/plain')
 
 
 @cache_control('public, max-age=315360000')
