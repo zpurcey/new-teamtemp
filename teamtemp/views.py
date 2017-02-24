@@ -13,7 +13,7 @@ import gviz_api
 import os
 import requests
 
-from csp.decorators import csp_update
+from csp.decorators import csp_update, csp_exempt
 
 from django.conf import settings
 from django.contrib import messages
