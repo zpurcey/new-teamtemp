@@ -90,16 +90,19 @@ class TeamsViewSet(viewsets.ModelViewSet):
 
 
 @no_cache()
+@csp_exempt
 def health_check_view(_):
     return HttpResponse('ok', content_type='text/plain')
 
 
 @cache_control('public, max-age=86400')
+@csp_exempt
 def robots_txt_view(_):
     return HttpResponse('User-agent: *\r\nDisallow:\r\n', content_type='text/plain')
 
 
 @cache_control('public, max-age=315360000')
+@csp_exempt
 def media_view(request, *args, **kwargs):
     return serve_static(request, *args, **kwargs)
 
