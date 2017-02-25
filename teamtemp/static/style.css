@@ -48,6 +48,9 @@ div.help-block {
   page-break-after: always;
   page-break-inside: avoid;
   background-image: url("loading.gif");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
 }
 
 @media print {
