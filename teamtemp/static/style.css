@@ -47,6 +47,7 @@ div.help-block {
   margin-right: auto;
   page-break-after: always;
   page-break-inside: avoid;
+  background-image: url("loading.gif");
 }
 
 @media print {
