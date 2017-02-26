@@ -1002,7 +1002,11 @@ def wordcloud_view(request, word_hash=''):
         word_cloud_image = cached_word_cloud(word_hash=word_hash, generate=True)
 
         if word_cloud_image and word_cloud_image.image_url:
-            return redirect(word_cloud_image.image_url, permanent=True)
+            response = serve_static(request, 'loading.gif', document_root=settings.STATIC_ROOT)
+            response.status_code = 301
+            response['Location'] = word_cloud_image.image_url
+            return response
+            # return redirect(word_cloud_image.image_url, permanent=True)
 
         print("Word Cloud: '%s' not found" % word_hash, file=sys.stderr)
 
