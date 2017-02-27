@@ -25,4 +25,4 @@ class WordcloudViewTestCases(TestCase):
     def test_wordcloud_view_found(self):
         word_cloud_image = WordCloudImageFactory(image_url='/media/test.png')
         response = self.client.get(reverse('wordcloud', kwargs={'word_hash': word_cloud_image.word_hash}), follow=True)
-        self.assertWordCloudImage(response, word_cloud_image.image_url, status.HTTP_301_MOVED_PERMANENTLY)
+        self.assertWordCloudImage(response, word_cloud_image.image_url, status.HTTP_302_FOUND)
