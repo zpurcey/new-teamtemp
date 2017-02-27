@@ -995,18 +995,14 @@ def calc_multi_iteration_average(team_name, survey, num_iterations=2, tz='UTC'):
     return None
 
 
-@ie_edge()
+@csp_exempt
 def wordcloud_view(request, word_hash=''):
     # Cached word cloud
     if word_hash:
         word_cloud_image = cached_word_cloud(word_hash=word_hash, generate=True)
 
         if word_cloud_image and word_cloud_image.image_url:
-            response = serve_static(request, 'loading.gif', document_root=settings.STATIC_ROOT)
-            response.status_code = 301
-            response['Location'] = word_cloud_image.image_url
-            return response
-            # return redirect(word_cloud_image.image_url, permanent=True)
+            return redirect(word_cloud_image.image_url)
 
         print("Word Cloud: '%s' not found" % word_hash, file=sys.stderr)
 
