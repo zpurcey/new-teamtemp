@@ -5,9 +5,15 @@
 
 {% block title %}Results {{ survey.id }} {{ bvc_data.team_name }}{% endblock %}
 
+{% block form_extra_head %}
+    <script type='text/javascript' src="//spin.js.org/spin.min.js"></script><script type='text/javascript' src="//spin.js.org/jquery.spin.js"></script>{% endblock %}
+    <script type='text/javascript'>
+      $('.wordcloud').spin()
+      $('#guage_chart').spin()
+    </script>
 {% block bootstrap3_extra_script %}
-  <script type='text/javascript' src="//www.google.com/jsapi"></script>
-  <script type='text/javascript'>
+    <script type='text/javascript' src="//www.google.com/jsapi"></script>
+    <script type='text/javascript'>
 
     google.load('visualization', '1', {packages: ['gauge', 'annotationchart', 'corechart']});
     google.setOnLoadCallback(drawGaugeChart);
@@ -44,6 +50,7 @@
           ['', avg]
         ]);
         gaugeChart.draw(gauge_data, gauge_options);
+        $('#guage_chart').spin(false)
       }, 200);
 
       <!-- Historical Charts -->
