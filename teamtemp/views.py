@@ -542,7 +542,7 @@ def prune_word_cloud_cache(_):
 
     yesterday = timezone.now() + timedelta(days=-1)
 
-    WordCloudImage.objects.filter(creation_date__lte=yesterday).delete()
+    WordCloudImage.objects.filter(modified_date__lte=yesterday).delete()
 
     for word_cloud_image in WordCloudImage.objects.all():
         if word_cloud_image.image_url:
