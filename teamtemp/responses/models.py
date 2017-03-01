@@ -18,7 +18,7 @@ class WordCloudImage(models.Model):
     word_list = models.CharField(max_length=5000)
     image_url = models.CharField(max_length=255, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
-    modified_date = models.DateTimeField(auto_now=True)
+    modified_date = models.DateTimeField(auto_now=True, db_index=True)
 
     def __str__(self):
         return "{}: {} {} {} {}".format(self.id, self.creation_date, self.word_hash, self.word_list, self.image_url)
