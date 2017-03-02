@@ -544,7 +544,7 @@ def prune_word_cloud_cache(_):
 
     yesterday = timezone.now() + timedelta(days=-1)
 
-    old_word_cloud_images = WordCloudImage.objects.filter(modified_date__lte=yesterday).delete()
+    old_word_cloud_images = WordCloudImage.objects.filter(modified_date__lte=yesterday)
 
     for word_cloud_image in old_word_cloud_images:
         if word_cloud_image.image_url:
@@ -555,14 +555,12 @@ def prune_word_cloud_cache(_):
                 except:
                     pass
 
-    rows, _ = old_word_cloud_images.delete()
-    rows_deleted += rows
+    rows_deleted += old_word_cloud_images.delete()
 
     for word_cloud_image in WordCloudImage.objects.all():
         if word_cloud_image.image_url:
             if not os.path.isfile(media_file(word_cloud_image.image_url)):
-                rows, _ = word_cloud_image.delete()
-                rows_deleted += rows
+                rows_deleted += word_cloud_image.delete()
 
     print("prune_word_cloud_cache: %d rows deleted" % rows_deleted, file=sys.stderr)
     print("prune_word_cloud_cache: Stop at %s" % utc_timestamp(), file=sys.stderr)
