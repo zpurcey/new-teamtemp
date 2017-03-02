@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block title %}About Team Temperature{% endblock %}
-{% block footer %}{% endblock %}
 
 {% block body %}
   <div class="container">
@@ -9,17 +8,21 @@
     <p>
       This application is designed to gather 'team temperature' - that is,
       a happiness score.</p>
+
     <p>For the sake of security, very little information is stored or recorded.
-      Each submitter is represented by a random ID, and a cookie is stored so
+      Each submitter is represented by a random ID, and a cookie is stored
       really only to protect against accidental double submissions from the
-      same user with the same browser.</p>
+      same user, with the same browser.</p>
+
     <p>The results page are available to the creator using the same cookie
       mechanism, and also a password in case the cookie is lost.</p>
 
-    <p>It is deployed at teamtempapp.herokuapp.com hosted on Heroku and the source can be examined
-      <a href="https://github.com/rloomans/new-teamtemp">on Github</a>.
-      All reasonable pull requests will be considered, as will any issues raised)</p>
+    <p>It is deployed at <a href="https://teamtempapp.herokuapp.com/">teamtempapp.herokuapp.com</a>
+      hosted on <a href="https://heroku.com">Heroku</a> and the source for this version
+      can be examined <a href="https://github.com/rloomans/new-teamtemp">on Github</a>.
+      All reasonable pull requests will be considered, as will any issues raised.</p>
 
-    <p>The application is written in django against a postgresql database.</p>
+    <p>The application is written in <a href="https://www.djangoproject.com/">Django</a>
+      against a <a href="https://www.postgresql.org/">PostgreSQL</a> database.</p>
   </div>
 {% endblock %}
