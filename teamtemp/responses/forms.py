@@ -62,7 +62,7 @@ class CreateSurveyForm(forms.Form):
         matches = re.findall(r'[^A-Za-z0-9,_-]', region_names)
         if matches:
             error = '"{region_names}" contains invalid characters ' \
-                    '{matches}'.format(regions_names=escape(region_names), matches=list({str(x) for x in matches}))
+                    '{matches}'.format(region_names=escape(region_names), matches=list({str(x) for x in matches}))
             raise forms.ValidationError(error)
         return region_names
 
