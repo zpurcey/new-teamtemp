@@ -12,13 +12,15 @@
 {% block bootstrap3_extra_script %}
   <script type='text/javascript'>
     console.log("spin!");
-    $('#wordcloud-link').spin();
+    {% if bvc_data.word_cloud_url %}
+    $('.wordcloud').spin();
+    {% endif %}
     // $('.centregauge').spin();
     $('#gauge_chart').spin();
 
     $('#wordcloud-image').load(function() {
       console.log("unspin!");
-      $('#wordcloud-link').spin(false);
+      $('.wordcloud').spin(false);
     });
   </script>
   <script type='text/javascript' src="//www.google.com/jsapi"></script>
