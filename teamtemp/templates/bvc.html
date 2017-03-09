@@ -5,7 +5,21 @@
 
 {% block title %}Results {{ survey.id }} {{ bvc_data.team_name }}{% endblock %}
 
+{% block form_extra_head %}
+  <script type='text/javascript' src="{% static "spin.min.js" %}"></script><script type='text/javascript' src="{% static "jquery.spin.min.js" %}"></script>
+{% endblock %}
+
 {% block bootstrap3_extra_script %}
+  <script type='text/javascript'>
+    {% if bvc_data.word_cloud_url %}
+    $('.wordcloud').spin();
+    {% endif %}
+    $('#gauge_chart').spin();
+
+    $('#wordcloud-image').load(function() {
+      $('.wordcloud').spin(false);
+    });
+  </script>
   <script type='text/javascript' src="//www.google.com/jsapi"></script>
   <script type='text/javascript'>
 
@@ -45,6 +59,8 @@
         ]);
         gaugeChart.draw(gauge_data, gauge_options);
       }, 200);
+
+      $('#guage_chart').spin(false)
 
       <!-- Historical Charts -->
       <!-- Historical Chart Data -->
@@ -245,8 +261,8 @@
 
         <div class="wordcloud">
           {% if bvc_data.word_cloud_url %}
-            <a href="{{ bvc_data.word_cloud_url }}">
-              <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud">
+            <a href="{{ bvc_data.word_cloud_url }}" id="wordcloud-link">
+              <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud" id="wordcloud-image">
             </a>
           {% elif bvc_data.word_list %}
             <div class="wordcloud-text">{{ bvc_data.word_list }}</div>
