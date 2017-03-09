@@ -6,11 +6,21 @@
 {% block title %}Results {{ survey.id }} {{ bvc_data.team_name }}{% endblock %}
 
 {% block form_extra_head %}
-	<script type='text/javascript' src="{% static "spin.min.js" %}"></script><script type='text/javascript' src="{% static "jquery.spin.js" %}"></script>{% endblock %}
-    <script type='text/javascript'>
-      $('.wordcloud').spin()
-      $('#guage_chart').spin()
-    </script>
+  <script type='text/javascript' src="{% static "spin.min.js" %}"></script><script type='text/javascript' src="{% static "jquery.spin.js" %}"></script>
+  <script type='text/javascript'>
+    $(document).ready(function() {
+      console.log("spin!");
+      $('.wordcloud').spin();
+      $('.centregauge').spin();
+    });
+    $(document).load(function() {
+      console.log("unspin!");
+      $('.wordcloud').spin(false);
+      $('.centregauge').spin(false);
+    });
+  </script>
+{% endblock %}
+
 {% block bootstrap3_extra_script %}
     <script type='text/javascript' src="//www.google.com/jsapi"></script>
     <script type='text/javascript'>
