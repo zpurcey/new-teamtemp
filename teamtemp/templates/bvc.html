@@ -261,8 +261,8 @@
 
         <div class="wordcloud">
           {% if bvc_data.word_cloud_url %}
-            <a href="{{ bvc_data.word_cloud_url }}" id="wordcloud">
-              <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud">
+            <a href="{{ bvc_data.word_cloud_url }}">
+              <img src="{{ bvc_data.word_cloud_url }}" width="{{ bvc_data.word_cloud_width }}" height="{{ bvc_data.word_cloud_height }}" title="{{ bvc_data.word_list }}" alt="word cloud" id="wordcloud">
             </a>
           {% elif bvc_data.word_list %}
             <div class="wordcloud-text">{{ bvc_data.word_list }}</div>
