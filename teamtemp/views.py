@@ -1010,7 +1010,7 @@ def wordcloud_view(request, word_hash=''):
 
 
 @ie_edge()
-@csp_update(SCRIPT_SRC=['*.google.com', '*.googleapis.com', 'spin.js.org', "'unsafe-eval'", "'unsafe-inline'",],
+@csp_update(SCRIPT_SRC=['*.google.com', '*.googleapis.com', "'unsafe-eval'", "'unsafe-inline'",],
     STYLE_SRC=['*.google.com', '*.googleapis.com',],
     IMG_SRC = ['blob:', 'gg.google.com',])
 def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0', region_names='', site_names='',
