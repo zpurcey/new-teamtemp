@@ -538,18 +538,34 @@ def cron_view(request, pin):
 
 def prune_word_cloud_cache(_):
     timezone.activate(timezone.utc)
-    print("prune_word_cloud_cache: Start at " + utc_timestamp(), file=sys.stderr)
+    print("prune_word_cloud_cache: Start at %s" % utc_timestamp(), file=sys.stderr)
+
+    rows_deleted = 0
 
     yesterday = timezone.now() + timedelta(days=-1)
 
-    WordCloudImage.objects.filter(modified_date__lte=yesterday).delete()
+    old_word_cloud_images = WordCloudImage.objects.filter(modified_date__lte=yesterday)
+
+    for word_cloud_image in old_word_cloud_images:
+        if word_cloud_image.image_url:
+            fname = media_file(word_cloud_image.image_url)
+            if os.path.isfile(fname):
+                try:
+                    os.remove(fname)
+                except:
+                    pass
+
+    rows, _ = old_word_cloud_images.delete()
+    rows_deleted += rows
 
     for word_cloud_image in WordCloudImage.objects.all():
         if word_cloud_image.image_url:
             if not os.path.isfile(media_file(word_cloud_image.image_url)):
-                word_cloud_image.delete()
+                rows, _ = word_cloud_image.delete()
+                rows_deleted += rows
 
-    print("prune_word_cloud_cache: Stop at " + utc_timestamp(), file=sys.stderr)
+    print("prune_word_cloud_cache: %d rows deleted" % rows_deleted, file=sys.stderr)
+    print("prune_word_cloud_cache: Stop at %s" % utc_timestamp(), file=sys.stderr)
 
 
 def auto_archive_surveys(request):
