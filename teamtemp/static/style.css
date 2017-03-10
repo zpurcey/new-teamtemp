@@ -29,8 +29,12 @@ div.help-block {
 
 .wordcloud-text {
   font-size: large;
-  margin-top: 50px;
+  padding-top: 50px;
   color: green;
+  border: 2px solid grey;
+  border-radius: 25px;
+  min-height: 400px;
+  background-color: #eee;
 }
 
 .centregauge {
@@ -47,6 +51,7 @@ div.help-block {
   margin-right: auto;
   page-break-after: always;
   page-break-inside: avoid;
+  min-height: 400px;
 }
 
 @media print {
