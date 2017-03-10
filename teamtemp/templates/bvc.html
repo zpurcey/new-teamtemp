@@ -15,15 +15,12 @@
     $('#gauge_chart').spin();
 
     $(window).load(function() {
-      console.log('document unspin');
       $('.wordcloud').spin(false);
     });
     $('#wordcloud-image').load(function() {
-      console.log('image unspin');
       $('.wordcloud').spin(false);
     });
     setTimeout(function () {
-      console.log('timeout unspin');
       $('.wordcloud').spin(false);
     }, 3000);
   </script>
