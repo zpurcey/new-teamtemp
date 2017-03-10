@@ -29,12 +29,15 @@ div.help-block {
 
 .wordcloud-text {
   font-size: large;
-  padding-top: 50px;
+  padding: 50px;
   color: green;
   border: 2px solid grey;
   border-radius: 25px;
   min-height: 400px;
   background-color: #eee;
+  word-spacing: 10px;
+  line-height: 200%;
+  word-break: keep-all;
 }
 
 .centregauge {
