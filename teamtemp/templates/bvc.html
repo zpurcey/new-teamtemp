@@ -11,14 +11,21 @@
 
 {% block bootstrap3_extra_script %}
   <script type='text/javascript'>
-    {% if bvc_data.word_cloud_url %}
     $('.wordcloud').spin();
-    {% endif %}
     $('#gauge_chart').spin();
 
-    $('#wordcloud-image').load(function() {
+    $(window).load(function() {
+      console.log('document unspin');
       $('.wordcloud').spin(false);
     });
+    $('#wordcloud-image').load(function() {
+      console.log('image unspin');
+      $('.wordcloud').spin(false);
+    });
+    setTimeout(function () {
+      console.log('timeout unspin');
+      $('.wordcloud').spin(false);
+    }, 3000);
   </script>
   <script type='text/javascript' src="//www.google.com/jsapi"></script>
   <script type='text/javascript'>
@@ -60,7 +67,7 @@
         gaugeChart.draw(gauge_data, gauge_options);
       }, 200);
 
-      $('#guage_chart').spin(false)
+      $('#gauge_chart').spin(false)
 
       <!-- Historical Charts -->
       <!-- Historical Chart Data -->
