@@ -292,17 +292,19 @@
 
         <!-- Display Team Temp Gauge -->
         <div class="centregauge" id='gauge_average'> </div>
-        <div class="row">
-          <div class="col-md-6" id='gauge_minimum'> </div>
-          <div class="col-md-6" id='gauge_maximum'> </div>
-        </div>
         {% if bvc_data.stats.minimum %}
         <div class="row">
-          <div class="col-md-6"><strong>Minimum: {{ bvc_data.stats.minimum }}</strong></div>
-          <div class="col-md-6"><strong>Maximum: {{ bvc_data.stats.maximum }}</strong></div>
+          <div class="col-md-6">
+            <div id='gauge_minimum'> </div>
+            <div class="col-md-6"><strong>Minimum: {{ bvc_data.stats.minimum }}</strong></div>
+          </div>
+          <div class="col-md-6">
+            <div id='gauge_maximum'> </div>
+            <div class="col-md-6"><strong>Maximum: {{ bvc_data.stats.maximum }}</strong></div>
+          </div>
         </div>
-        {% endif %}
       </div>
+      {% endif %}
       <div class="col-md-6">
         <h3 align="center">{{ bvc_data.stats.count }} Response{% if bvc_data.stats.count != 1 %}s{% endif %}:</h3>
 
