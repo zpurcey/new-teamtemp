@@ -12,7 +12,7 @@
 {% block bootstrap3_extra_script %}
   <script type='text/javascript'>
     $('.wordcloud').spin();
-    $('#gauge_chart').spin();
+    $('#gauge_average').spin();
 
     $(window).load(function() {
       $('.wordcloud').spin(false);
@@ -34,8 +34,14 @@
 
       <!-- Team Temp Gauge -->
       var avg = 0;
+      var minimum = null;
+      var maximum = null;
       if ( {{bvc_data.stats.count}} > 0 ) {
-        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) )
+        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) );
+        if ( {{bvc_data.stats.minimum}} > 0 ) {
+          minimum = {{bvc_data.stats.minimum}};
+          maximum = {{bvc_data.stats.maximum}};
+        }
       }
 
       var gauge_data = google.visualization.arrayToDataTable([
@@ -53,18 +59,45 @@
         majorTicks: ['0', '2.5', '5', '7.5', '10']
       };
 
-      var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_chart'));
+      var minmax_gauge_options = jQuery.extend({}, gauge_options);
+      minmax_gauge_options['width'] = 150;
+      minmax_gauge_options['height'] = 150;
+      delete minmax_gauge_options['majorTicks'];
+
+      var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_average'));
       gaugeChart.draw(gauge_data, gauge_options);
 
+      var minGaugeChart = new google.visualization.Gauge(document.getElementById('gauge_minimum'));
+      var maxGaugeChart = new google.visualization.Gauge(document.getElementById('gauge_maximum'));
+      if (minimum) {
+        minGaugeChart.draw(gauge_data, minmax_gauge_options);
+        maxGaugeChart.draw(gauge_data, minmax_gauge_options);
+      }
+
       setTimeout(function () {
-        var gauge_data = google.visualization.arrayToDataTable([
+        var average_data = google.visualization.arrayToDataTable([
           ['Label', 'Value'],
           ['', avg]
         ]);
-        gaugeChart.draw(gauge_data, gauge_options);
+        gaugeChart.draw(average_data, gauge_options);
       }, 200);
 
-      $('#gauge_chart').spin(false)
+      if (minimum) {
+        setTimeout(function () {
+          var minimum_data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['Min', minimum]
+          ]);
+          minGaugeChart.draw(minimum_data, minmax_gauge_options);
+          var maximum_data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['Max', maximum]
+          ]);
+          maxGaugeChart.draw(maximum_data, minmax_gauge_options);
+        }, 400);
+      }
+
+      $('#gauge_average').spin(false)
 
       <!-- Historical Charts -->
       <!-- Historical Chart Data -->
@@ -258,7 +291,17 @@
         {% endif %}
 
         <!-- Display Team Temp Gauge -->
-        <div class="centregauge" id='gauge_chart'> </div>
+        <div class="centregauge" id='gauge_average'> </div>
+        <div class="row">
+          <div class="col-md-6" id='gauge_minimum'> </div>
+          <div class="col-md-6" id='gauge_maximum'> </div>
+        </div>
+        {% if bvc_data.stats.minimum %}
+        <div class="row">
+          <div class="col-md-6"><strong>Minimum: {{ bvc_data.stats.minimum }}</strong></div>
+          <div class="col-md-6"><strong>Maximum: {{ bvc_data.stats.maximum }}</strong></div>
+        </div>
+        {% endif %}
       </div>
       <div class="col-md-6">
         <h3 align="center">{{ bvc_data.stats.count }} Response{% if bvc_data.stats.count != 1 %}s{% endif %}:</h3>

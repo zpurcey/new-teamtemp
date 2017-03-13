@@ -601,6 +601,8 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     teams = survey.temperature_responses.filter(archived=False).values('team_name').distinct()
 
     average_total = 0
+    average_minimum = None
+    average_maximum = None
     average_count = 0
     average_responder_total = 0
     average_word_list = ""
@@ -614,6 +616,8 @@ def archive_survey(_, survey, archive_date=timezone.now()):
 
         history = TeamResponseHistory(request=survey,
                                       average_score=("%.5f" % float(team_stats['average']['score__avg'])),
+                                      minimum_score=team_stats['minimum']['score__min'],
+                                      maximum_score=team_stats['maximum']['score__max'],
                                       word_list=word_list,
                                       responder_count=team_stats['count'],
                                       team_name=team['team_name'],
@@ -623,6 +627,10 @@ def archive_survey(_, survey, archive_date=timezone.now()):
         average_total += team_stats['average']['score__avg']
         average_count += 1
         average_responder_total += team_stats['count']
+        if average_minimum is None or average_minimum > team_stats['minimum']['score__min']:
+            average_minimum = team_stats['minimum']['score__min']
+        if average_maximum is None or average_maximum < team_stats['maximum']['score__max']:
+            average_maximum = team_stats['maximum']['score__max']
 
         team_response_objects.update(archived=True, archive_date=archive_date)
 
@@ -630,6 +638,8 @@ def archive_survey(_, survey, archive_date=timezone.now()):
     if average_count > 0:
         history = TeamResponseHistory(request=survey,
                                       average_score=("%.5f" % float(old_div(average_total, float(average_count)))),
+                                      minimum_score=average_minimum,
+                                      maximum_score=average_maximum,
                                       word_list=average_word_list.strip(),
                                       responder_count=average_responder_total,
                                       team_name='Average',
@@ -957,7 +967,7 @@ def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations=0):
     # Generate Stats for Team Temp Average for gauge and wordcloud - look here for Gauge and Word Cloud
     # BVC.html uses stats.count and stats.average.score__avg and cached word cloud uses stats.words below
 
-    agg_stats = {'count': 0, 'average': 0.00, 'words': []}
+    agg_stats = {'count': 0, 'average': 0.00, 'minimum': None, 'maximum': None, 'words': []}
 
     if team_name_list != [''] and archive_date == '':
         stats, _ = survey.team_stats(team_name_list=team_name_list)
@@ -977,6 +987,10 @@ def generate_bvc_stats(survey, team_name_list, archive_date, num_iterations=0):
 
     if stats['average']['score__avg']:
         agg_stats['average'] = stats['average']['score__avg']
+    if stats['minimum']['score__min']:
+        agg_stats['minimum'] = stats['minimum']['score__min']
+    if stats['maximum']['score__max']:
+        agg_stats['maximum'] = stats['maximum']['score__max']
     agg_stats['words'] = list(stats['words'])
 
     return agg_stats

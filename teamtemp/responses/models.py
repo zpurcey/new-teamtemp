@@ -41,6 +41,8 @@ def _stats_for(query_set):
     return {
                'count': query_set.count(),
                'average': query_set.aggregate(models.Avg('score')),
+               'minimum': query_set.aggregate(models.Min('score')),
+               'maximum': query_set.aggregate(models.Max('score')),
                'words': query_set.values('word').annotate(models.Count("id")).order_by()
            }, query_set
 
@@ -159,6 +161,8 @@ class TeamResponseHistory(models.Model):
     id = models.AutoField(primary_key=True)
     request = models.ForeignKey(TeamTemperature, related_name="team_response_histories")
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
+    minimum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
+    maximum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
     word_list = models.CharField(max_length=5000)
     responder_count = models.PositiveSmallIntegerField()
     team_name = models.CharField(max_length=64, null=True, db_index=True)
