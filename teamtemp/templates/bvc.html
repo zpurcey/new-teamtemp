@@ -59,20 +59,8 @@
         majorTicks: ['0', '2.5', '5', '7.5', '10']
       };
 
-      var minmax_gauge_options = jQuery.extend({}, gauge_options);
-      minmax_gauge_options['width'] = 150;
-      minmax_gauge_options['height'] = 150;
-      delete minmax_gauge_options['majorTicks'];
-
       var gaugeChart = new google.visualization.Gauge(document.getElementById('gauge_average'));
       gaugeChart.draw(gauge_data, gauge_options);
-
-      var minGaugeChart = new google.visualization.Gauge(document.getElementById('gauge_minimum'));
-      var maxGaugeChart = new google.visualization.Gauge(document.getElementById('gauge_maximum'));
-      if (minimum) {
-        minGaugeChart.draw(gauge_data, minmax_gauge_options);
-        maxGaugeChart.draw(gauge_data, minmax_gauge_options);
-      }
 
       setTimeout(function () {
         var average_data = google.visualization.arrayToDataTable([
@@ -82,22 +70,7 @@
         gaugeChart.draw(average_data, gauge_options);
       }, 200);
 
-      if (minimum) {
-        setTimeout(function () {
-          var minimum_data = google.visualization.arrayToDataTable([
-            ['Label', 'Value'],
-            ['Min', minimum]
-          ]);
-          minGaugeChart.draw(minimum_data, minmax_gauge_options);
-          var maximum_data = google.visualization.arrayToDataTable([
-            ['Label', 'Value'],
-            ['Max', maximum]
-          ]);
-          maxGaugeChart.draw(maximum_data, minmax_gauge_options);
-        }, 400);
-      }
-
-      $('#gauge_average').spin(false)
+      $('#gauge_average').spin(false);
 
       <!-- Historical Charts -->
       <!-- Historical Chart Data -->
@@ -108,10 +81,13 @@
         var combo_table = new google.visualization.ComboChart(document.getElementById('table_div_jscode'));
         combo_table.draw(historical_data, {{ historical_options|safe }});
 
-        {% if bvc_data.team_name != '' or team_count < 6 %}
+
+        {% if bvc_data.team_name != '' or bvc_data.survey_teams_filtered.count < 6 %}
           <!-- Historical Annotated Chart -->
           var annotation_table = new google.visualization.AnnotationChart(document.getElementById('table_div_json'));
           annotation_table.draw(historical_data, {{ historical_options|safe }});
+        {% else %}
+          $('#table_div_json').hide();
         {% endif %}
       {% endif %}
     }
@@ -295,16 +271,14 @@
         {% if bvc_data.stats.minimum %}
         <div class="row">
           <div class="col-md-6">
-            <div id='gauge_minimum'> </div>
-            <div class="col-md-6"><strong>Minimum: {{ bvc_data.stats.minimum }}</strong></div>
+            <div class="min-max">Minimum: {{ bvc_data.stats.minimum }}</div>
           </div>
           <div class="col-md-6">
-            <div id='gauge_maximum'> </div>
-            <div class="col-md-6"><strong>Maximum: {{ bvc_data.stats.maximum }}</strong></div>
+            <div class="min-max">Maximum: {{ bvc_data.stats.maximum }}</div>
           </div>
         </div>
-      </div>
       {% endif %}
+      </div>
       <div class="col-md-6">
         <h3 align="center">{{ bvc_data.stats.count }} Response{% if bvc_data.stats.count != 1 %}s{% endif %}:</h3>
 
@@ -321,14 +295,15 @@
     </div>
     {% if bvc_data.num_rows > 0 %}
     <div class="row">
+      <br><br>
       <!-- History Trend Graphs -->
       <h1 align="center">{{ bvc_data.pretty_team_name }}</h1>
-      <P>
+      <p>
       <h1 align="center">Historical {{ bvc_data.survey_type_title }}</h1>
       <h2 align="center">{% now () %}</h2>
       <p>
       <div class="centregauge" id="table_div_jscode"></div>
-      <BR><BR>
+      <br><br>
       <div class="centregauge" id="table_div_json"></div>
     </div>
     {% endif %}

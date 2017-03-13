@@ -757,6 +757,8 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
     row = None
     num_scores = 0
     score_sum = 0
+    score_min = None
+    score_max = None
     responder_sum = 0
     for survey_summary in team_history:
         if survey_summary.team_name != 'Average':
@@ -768,9 +770,12 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
                 if num_scores > 0:
                     average_score = float(old_div(score_sum, num_scores))
                     row['Average'] = (average_score,
-                                      "%.2f (%d Response%s)" % (average_score, responder_sum,
-                                                                's' if responder_sum > 1 else ''))
+                            "%.2f %s (%d Response%s)" % (average_score,
+                                                        "Min: %d Max: %d" % (score_min, score_max) if score_min else '',
+                                                        responder_sum, 's' if responder_sum > 1 else ''))
                     score_sum = 0
+                    score_min = None
+                    score_max = None
                     num_scores = 0
                     responder_sum = 0
                 history_chart_data.append(row)
@@ -781,16 +786,22 @@ def populate_chart_data_structures(survey_type_title, teams, team_history, tz='U
 
             # Accumulate for average calc
             score_sum += average_score
+            if survey_summary.minimum_score:
+                score_min = min(score_min, survey_summary.minimum_score) if score_min else survey_summary.minimum_score
+            if survey_summary.maximum_score:
+                score_max = max(score_max, survey_summary.maximum_score) if score_max else survey_summary.maximum_score
             num_scores += 1
             responder_sum += responder_count
 
             row[survey_summary.team_name] = (average_score,
-                                             "%.2f (%d Response%s)" % (average_score, responder_count,
-                                                                       's' if responder_count > 1 else ''))
+                                             "%.2f %s (%d Response%s)" % (average_score,
+                                                        "Min: %d Max: %d" % (survey_summary.minimum_score, survey_summary.minimum_score) if survey_summary.minimum_score else '',
+                                                         responder_count, 's' if responder_count > 1 else ''))
 
     average_score = float(old_div(score_sum, num_scores))
-    row['Average'] = (average_score, "%.2f (%d Response%s)" % (average_score, responder_sum,
-                                                               's' if responder_sum > 1 else ''))
+    row['Average'] = (average_score, "%.2f %s (%d Response%s)" % (average_score,
+                                                        "Min: %d Max: %d" % (score_min, score_max) if score_min else '',
+                                                        responder_sum, 's' if responder_sum > 1 else ''))
 
     history_chart_data.append(row)
 
