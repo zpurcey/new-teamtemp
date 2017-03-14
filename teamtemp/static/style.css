@@ -2,6 +2,12 @@ body {
   font-family: Tahoma, Verdana, Arial, sans-serif;
 }
 
+.min-max {
+  font-size: small;
+  font-weight: bold;
+  text-align: center;
+}
+
 .footer {
   font-size: smaller;
   text-align: center;
@@ -38,6 +44,10 @@ div.help-block {
   word-spacing: 10px;
   line-height: 200%;
   word-break: keep-all;
+}
+
+#wordcloud-link::after {
+  display: none;
 }
 
 .centregauge {
