@@ -46,6 +46,10 @@ div.help-block {
   word-break: keep-all;
 }
 
+#wordcloud-link::after {
+  display: none;
+}
+
 .centregauge {
   width: 100%;
   min-height: 400px;
