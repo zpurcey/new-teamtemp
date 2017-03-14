@@ -65,7 +65,7 @@
       setTimeout(function () {
         var average_data = google.visualization.arrayToDataTable([
           ['Label', 'Value'],
-          ['', avg]
+          ['Avg', avg]
         ]);
         gaugeChart.draw(average_data, gauge_options);
       }, 200);
@@ -271,10 +271,10 @@
         {% if bvc_data.stats.minimum %}
         <div class="row">
           <div class="col-md-6">
-            <div class="min-max">Minimum: {{ bvc_data.stats.minimum }}</div>
+            <div class="min-max">Min score: {{ bvc_data.stats.minimum }}</div>
           </div>
           <div class="col-md-6">
-            <div class="min-max">Maximum: {{ bvc_data.stats.maximum }}</div>
+            <div class="min-max">Max score: {{ bvc_data.stats.maximum }}</div>
           </div>
         </div>
       {% endif %}
