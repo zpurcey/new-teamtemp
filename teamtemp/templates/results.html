@@ -74,27 +74,29 @@
               <h1>Survey Results</h1>
               <h2>Summary</h2>
               <table class="table table-striped table-condensed">
-                <tr>
-                  <th>Submissions:</th><td>{{ stats.count }}</td>
-                </tr>
-                <tr>
-                  <th>Average temperature</th><td>{{ stats.average.score__avg }}</td>
-                </tr>
-                <tr>
-                  <th>Minimum temperature</th><td>{{ stats.minimum.score__min }}</td>
-                </tr>
-                <tr>
-                  <th>Maximum temperature</th><td>{{ stats.maximum.score__max }}</td>
-                </tr>
-                <tr>
-                  <th>Words</th>
-                  <td>
-                    {% for word in stats.words %}
-                      {{ word.word }}
-                      {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
-                    {% endfor %}
-                  </td>
-                </tr>
+                <tbody>
+                  <tr>
+                    <th scope="row">Submissions:</th><td>{{ stats.count }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Average temperature:</th><td>{{ stats.average.score__avg }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Minimum temperature:</th><td>{{ stats.minimum.score__min }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Maximum temperature:</th><td>{{ stats.maximum.score__max }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Words:</th>
+                    <td>
+                      {% for word in stats.words %}
+                        {{ word.word }}
+                        {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+                      {% endfor %}
+                    </td>
+                  </tr>
+                </tbody>
               </table>
 
               <h2>Individual Responses</h2>
