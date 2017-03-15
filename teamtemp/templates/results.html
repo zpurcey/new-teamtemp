@@ -73,17 +73,29 @@
             <td>
               <h1>Survey Results</h1>
               <h2>Summary</h2>
-              <ul>
-                <li>Submissions: {{ stats.count }}</li>
-                <li>Average temperature: {{ stats.average.score__avg }}</li>
-                <li>Minimum temperature: {{ stats.minimum.score__min }}</li>
-                <li>Maximum temperature: {{ stats.maximum.score__max }}</li>
-                <li>Words:
-                  {% for word in stats.words %}
-                    {{ word.word }}
-                    {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
-                  {% endfor %}</li>
-              </ul>
+              <table class="table table-striped table-condensed">
+                <tr>
+                  <th>Submissions:</th><td>{{ stats.count }}</td>
+                </tr>
+                <tr>
+                  <th>Average temperature</th><td>{{ stats.average.score__avg }}</td>
+                </tr>
+                <tr>
+                  <th>Minimum temperature</th><td>{{ stats.minimum.score__min }}</td>
+                </tr>
+                <tr>
+                  <th>Maximum temperature</th><td>{{ stats.maximum.score__max }}</td>
+                </tr>
+                <tr>
+                  <th>Words</th>
+                  <td>
+                    {% for word in stats.words %}
+                      {{ word.word }}
+                      {% if word.id__count > 1 %}({{ word.id__count }}){% endif %}
+                    {% endfor %}
+                  </td>
+                </tr>
+              </table>
 
               <h2>Individual Responses</h2>
               <table class="table table-striped table-condensed" id="results-table">
