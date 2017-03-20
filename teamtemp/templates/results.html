@@ -115,7 +115,7 @@
                       <td>{{ result.word }}</td>
                       <td>
                         {% if result.team_name != '' %}
-                          <a href="{% url 'admin' survey_id=id team_name=result.team_name %}">{{ result.team_name }}</a>
+                          <a href="{% url 'admin' survey_id=id team_name=result.team_name %}">{{ result.pretty_team_name }}</a>
                         {% endif %}</td>
                     </tr>
                   {% endfor %}

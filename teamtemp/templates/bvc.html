@@ -271,10 +271,10 @@
         {% if bvc_data.stats.minimum %}
         <div class="row">
           <div class="col-md-6">
-            <div class="min-max">Min temperature: {{ bvc_data.stats.minimum }}</div>
+            <div class="min-max">Min{% if survey.survey_type != 'CUSTOMERFEEDBACK' %} temperature{% endif %}: {{ bvc_data.stats.minimum }}</div>
           </div>
           <div class="col-md-6">
-            <div class="min-max">Max temperature: {{ bvc_data.stats.maximum }}</div>
+            <div class="min-max">Max{% if survey.survey_type != 'CUSTOMERFEEDBACK' %} temperature{% endif %}: {{ bvc_data.stats.maximum }}</div>
           </div>
         </div>
       {% endif %}
