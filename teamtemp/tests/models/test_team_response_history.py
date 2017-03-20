@@ -29,3 +29,7 @@ class TeamResponseHistoryTestCases(TestCase):
     def test_response_history_float(self):
         response_history = TeamResponseHistoryFactory(average_score=("%.5f" % float(old_div(1, float(3)))))
         self.assertEqual(response_history.average_score, Decimal("0.33333"))
+
+    def test_pretty_team_name(self):
+        response_history = TeamResponseHistoryFactory(team_name='bob_and_his_friends')
+        self.assertEqual(response_history.pretty_team_name(), 'bob and his friends')

@@ -55,3 +55,7 @@ class TemperatureResponseTestCases(TestCase):
         self.assertEqual(flat_words, sorted([response1.word, response2.word, response3.word]))
 
         self.assertEqual(query_set.count(), 3)
+
+    def test_pretty_team_name(self):
+        response = TemperatureResponseFactory(team_name='bob_and_his_friends')
+        self.assertEqual(response.pretty_team_name(), 'bob and his friends')

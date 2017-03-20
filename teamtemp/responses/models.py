@@ -142,6 +142,9 @@ class TemperatureResponse(models.Model):
     response_date = models.DateTimeField(db_index=True)
     archive_date = models.DateTimeField(blank=True, null=True, db_index=True)
 
+    def pretty_team_name(self):
+        return self.team_name.replace('_', ' ')
+
     def __str__(self):
         return "{}: {} {} {} {} {} {} {} {}".format(self.id, self.request.id,
                                                     self.responder.id,
@@ -167,6 +170,9 @@ class TeamResponseHistory(models.Model):
     responder_count = models.PositiveSmallIntegerField()
     team_name = models.CharField(max_length=64, null=True, db_index=True)
     archive_date = models.DateTimeField(db_index=True)
+
+    def pretty_team_name(self):
+        return self.team_name.replace('_', ' ')
 
     def __str__(self):
         return "{}: {} {} {} {} {} {}".format(self.id, self.request.id,
