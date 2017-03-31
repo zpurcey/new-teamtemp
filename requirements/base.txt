@@ -15,7 +15,7 @@ gunicorn==19.7.1
 #http://downloads.sourceforge.net/project/google-visualization-python/gviz_api_py-1.8.2.tar.gz
 py-bcrypt==0.4
 psycopg2==2.7.1
-pytz==2016.10
+pytz==2017.2
 requests==2.13.0
 static==1.1.1
 whitenoise==3.3.0
