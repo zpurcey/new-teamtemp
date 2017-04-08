@@ -1,5 +1,5 @@
-Django==1.10.6
-django-bootstrap3==8.2.1
+Django==1.11
+django-bootstrap3==8.2.2
 django-bootstrap3-datepicker==0.4.1
 dj-database-url==0.4.2
 dj-static==0.0.6
