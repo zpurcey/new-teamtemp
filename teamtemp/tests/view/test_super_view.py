@@ -21,7 +21,6 @@ class SuperViewTestCases(AdminOnlyViewTestCase):
         )
 
     def test_super_view(self):
-        self.setUpAdmin()
         self.client.force_login(self.superuser)
         super_url = reverse('super', kwargs={'survey_id': self.teamtemp.id})
         response = self.client.get(super_url, follow=True)
