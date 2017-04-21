@@ -12,7 +12,8 @@ from rest_framework.documentation import include_docs_urls
 
 from teamtemp.views import TeamResponseHistoryViewSet, TeamTemperatureViewSet, TeamsViewSet, TemperatureResponseViewSet, \
     UserViewSet, WordCloudImageViewSet, admin_view, bvc_view, cron_view, health_check_view, home_view, \
-    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view, wordcloud_view, login_view
+    media_view, reset_view, robots_txt_view, set_view, submit_view, team_view, user_view, wordcloud_view, login_view, \
+    super_view
 
 router = routers.DefaultRouter()
 router.register(r'word_cloud_images', WordCloudImageViewSet)
@@ -29,6 +30,7 @@ urlpatterns = [
     url(r'^about$', TemplateView.as_view(template_name='about.html'),
         name='about'),
     url(r'^user/?$', user_view, name='user'),
+    url(r'^super/(?P<survey_id>[0-9a-zA-Z]{8})/?$', super_view, name='super'),
     url(r'^admin/(?P<survey_id>[0-9a-zA-Z]{8})/?$', admin_view, name='admin'),
     url(r'^login/(?P<survey_id>[0-9a-zA-Z]{8})/?$', login_view, name='login'),
     url(r'^login/(?P<survey_id>[0-9a-zA-Z]{8})(?P<redirect_to>/.+)$', login_view, name='login'),
