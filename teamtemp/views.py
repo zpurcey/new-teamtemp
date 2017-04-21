@@ -974,10 +974,8 @@ def cached_word_cloud(word_list=None, word_hash=None, generate=True):
         filename = media_file(word_cloud_image.image_url)
 
         if os.path.isfile(filename):
-            print("Cached Word Cloud: " + filename + " found", file=sys.stderr)
             return word_cloud_image
         else:
-            print("Cached Word Cloud: " + filename + " not found", file=sys.stderr)
             word_cloud_image.image_url = None
 
     if generate and not word_cloud_image.image_url:
@@ -1060,8 +1058,6 @@ def wordcloud_view(request, word_hash=''):
 
         if word_cloud_image and word_cloud_image.image_url:
             return redirect(word_cloud_image.image_url)
-
-        print("Word Cloud: '%s' not found" % word_hash, file=sys.stderr)
 
     return redirect('/media/blank.png')
 
