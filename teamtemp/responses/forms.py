@@ -330,6 +330,15 @@ class SurveySettingsForm(forms.ModelForm):
             raise forms.ValidationError('Max Word Count Min Value = 1, Max Value = 5')
         return max_word_count
 
+    def clean_new_team_name(self):
+        team_name = re.sub(r' +', '_', self.cleaned_data['new_team_name'].strip())
+        matches = re.findall(r'[^\w-]', team_name)
+        if matches:
+            error = '"{team_name}" contains invalid characters ' \
+                    '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
+            raise forms.ValidationError(error)
+        return team_name
+
     def clean(self):
         cleaned_data = super(SurveySettingsForm, self).clean()
 
