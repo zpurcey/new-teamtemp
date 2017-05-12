@@ -111,6 +111,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django_filters',
     'teamtemp.responses',
     'bootstrap3',
     'bootstrap3_datepicker',
