@@ -1,7 +1,6 @@
 import re
 
 import pytz
-from bootstrap3_datepicker.widgets import DatePickerInput
 from builtins import object
 from builtins import str
 from django import forms
@@ -258,11 +257,7 @@ class SurveySettingsForm(forms.ModelForm):
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
-    next_archive_date = forms.DateField(widget=DatePickerInput(format="%Y-%m-%d",
-                                                               options={'autoclose': True, 'startDate': '-1d',
-                                                                        'todayBtn': True, 'todayHighlight': True },
-                                                               attrs={'autocomplete': 'next-archive-date'}),
-                                        required=False)
+    next_archive_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}, format="%Y-%m-%d"), required=False)
 
     class Meta(object):
         model = TeamTemperature
