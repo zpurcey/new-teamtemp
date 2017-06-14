@@ -257,7 +257,13 @@ class SurveySettingsForm(forms.ModelForm):
     region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
     default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
-    next_archive_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}, format="%Y-%m-%d"), required=False)
+    next_archive_date = forms.DateField(widget=forms.DateInput(
+        attrs={
+            'type': 'date',
+            'class': 'datepicker',
+            'pattern': '(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))'
+        },
+        format='%Y-%m-%d'), required=False)
 
     class Meta(object):
         model = TeamTemperature
