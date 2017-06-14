@@ -79,7 +79,7 @@
                     <th scope="row">Submissions:</th><td>{{ stats.count }}</td>
                   </tr>
                   <tr>
-                    <th scope="row">Average temperature:</th><td>{{ stats.average.score__avg }}</td>
+                    <th scope="row">Average temperature:</th><td>{{ stats.average.score__avg|floatformat:"-2" }}</td>
                   </tr>
                   <tr>
                     <th scope="row">Minimum temperature:</th><td>{{ stats.minimum.score__min }}</td>

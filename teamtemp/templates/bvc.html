@@ -37,11 +37,7 @@
       var minimum = null;
       var maximum = null;
       if ( {{bvc_data.stats.count}} > 0 ) {
-        avg = parseFloat( {{ bvc_data.stats.average }}.toFixed(2) );
-        if ( {{bvc_data.stats.minimum}} > 0 ) {
-          minimum = {{bvc_data.stats.minimum}};
-          maximum = {{bvc_data.stats.maximum}};
-        }
+        avg = {{ bvc_data.stats.average|floatformat:"-2" }}
       }
 
       var gauge_data = google.visualization.arrayToDataTable([
@@ -270,10 +266,13 @@
         <div class="centregauge" id='gauge_average'> </div>
         {% if bvc_data.stats.minimum %}
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="min-max">Min{% if survey.survey_type != 'CUSTOMERFEEDBACK' %} temperature{% endif %}: {{ bvc_data.stats.minimum }}</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <div class="min-max">Avg{% if survey.survey_type != 'CUSTOMERFEEDBACK' %} temperature{% endif %}: {{ bvc_data.stats.average|floatformat:"-2" }}</div>
+          </div>
+          <div class="col-md-4">
             <div class="min-max">Max{% if survey.survey_type != 'CUSTOMERFEEDBACK' %} temperature{% endif %}: {{ bvc_data.stats.maximum }}</div>
           </div>
         </div>
