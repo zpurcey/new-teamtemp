@@ -166,7 +166,8 @@ def authenticated_user(request, survey):
 
 
 @ie_edge()
-@csp_update(SCRIPT_SRC=["'unsafe-inline'", ])
+@csp_update(SCRIPT_SRC=["'unsafe-inline'", ],
+        IMG_SRC=["'self'", 'data:', 'blob:', 'code.jquery.com',],)
 def set_view(request, survey_id):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 

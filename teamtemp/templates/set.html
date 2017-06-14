@@ -2,6 +2,8 @@
 
 {% block form_extra_head %}
   {{ form.media }}
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.min.css">
+  <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 {% endblock %}
 
 {% load bootstrap3 %}
@@ -72,7 +74,7 @@
           {{ form.next_archive_date.errors }}
           <div class="field">
             <label for="id_next_archive_date">Next Archive Date:</label><br/>
-            <div class="next_archive_date">{{ form.next_archive_date }}</div> (Date of next automated archive.)
+            <div class="next_archive_date">{{ form.next_archive_date }}</div> (Date of next automated archive)
           </div>
 
           {{ form.new_password.errors }}
@@ -120,4 +122,9 @@
       </div>
     </div>
   </div>
+  <script>
+  $( function() {
+      $('.datepicker').datepicker({dateFormat: 'yy-mm-dd'});
+  } );
+  </script>
 {% endblock %}

@@ -114,7 +114,6 @@ INSTALLED_APPS = (
     'django_filters',
     'teamtemp.responses',
     'bootstrap3',
-    'bootstrap3_datepicker',
     'rest_framework',
     'crispy_forms',
     'cspreports',
