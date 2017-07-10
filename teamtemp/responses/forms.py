@@ -155,14 +155,20 @@ class AddTeamForm(forms.ModelForm):
     region_name = forms.CharField(max_length=64)
 
     def __init__(self, *args, **kwargs):
-        dept_name_choices = [(x, x) for x in kwargs.pop('dept_names_list')]
-        dept_name_choices.append(('', '-'))
+        dept_name_choices = []
+        if 'dept_names_list' in kwargs:
+            dept_name_choices = [(x, x) for x in kwargs.pop('dept_names_list')]
+            dept_name_choices.append(('', '-'))
 
-        region_name_choices = [(x, x) for x in kwargs.pop('region_names_list')]
-        region_name_choices.append(('', '-'))
+        region_name_choices = []
+        if 'region_names_list' in kwargs:
+            region_name_choices = [(x, x) for x in kwargs.pop('region_names_list')]
+            region_name_choices.append(('', '-'))
 
-        site_name_choices = [(x, x) for x in kwargs.pop('site_names_list')]
-        site_name_choices.append(('', '-'))
+        site_name_choices = []
+        if 'site_names_list' in kwargs:
+            site_name_choices = [(x, x) for x in kwargs.pop('site_names_list')]
+            site_name_choices.append(('', '-'))
 
         super(AddTeamForm, self).__init__(*args, **kwargs)
 
@@ -278,9 +284,8 @@ class SurveySettingsForm(forms.ModelForm):
 
     def clean_next_archive_date(self):
         next_archive_date = self.cleaned_data['next_archive_date']
-        if next_archive_date is not None:
-            if next_archive_date < timezone.now().date():
-                raise forms.ValidationError('Next Archive Date must not be past')
+        if next_archive_date is not None and next_archive_date < timezone.now().date():
+            raise forms.ValidationError('Next Archive Date must not be past')
         return next_archive_date
 
     def clean_survey_type(self):
