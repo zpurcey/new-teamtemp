@@ -13,6 +13,52 @@ from django.utils.safestring import mark_safe
 from teamtemp.responses.models import TeamTemperature, Teams, TemperatureResponse
 
 
+def _clean_value(field_value, regex):
+    matches = re.findall(regex, field_value)
+    if matches:
+        error = '"{names}" contains invalid characters ' \
+                '{matches}'.format(names=escape(field_value), matches=list({str(x) for x in matches}))
+        raise forms.ValidationError(error)
+    return field_value
+
+
+def _clean_field(obj, field_name, regex):
+    field_value = obj.cleaned_data[field_name]
+    return _clean_value(field_value, regex)
+
+
+def _clean_names_field_list(obj, field_name):
+    names = obj.cleaned_data[field_name]
+    for name in names:
+        _clean_value(name, r'[^A-Za-z0-9_-]')
+    return names
+
+
+def _clean_names_field(obj, field_name):
+    return _clean_field(obj, field_name, r'[^A-Za-z0-9,_-]')
+
+
+def _clean_name_field(obj, field_name):
+    return _clean_field(obj, field_name, r'[^A-Za-z0-9_-]')
+
+
+def _clean_team_name_field(obj, field_name):
+    team_name = re.sub(r' +', '_', obj.cleaned_data[field_name].strip())
+    return _clean_value(team_name, r'[^\w-]')
+
+
+def _check_passwords(obj, cleaned_data):
+    new_password = cleaned_data.get('new_password')
+    confirm_password = cleaned_data.get('confirm_password')
+
+    if new_password:
+        if not confirm_password:
+            obj.add_error('confirm_password', 'Confirm the new password')
+        elif new_password != confirm_password:
+            obj.add_error('new_password', 'New password and confirmation must match')
+            obj.add_error('confirm_password', 'New password and confirmation must match')
+
+
 @python_2_unicode_compatible
 class ErrorBox(ErrorList):
     def __str__(self):
@@ -48,44 +94,18 @@ class CreateSurveyForm(forms.Form):
                                  label='Site Names')
 
     def clean_dept_names(self):
-        dept_names = self.cleaned_data['dept_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', dept_names)
-        if matches:
-            error = '"{dept_names}" contains invalid characters ' \
-                    '{matches}'.format(dept_names=escape(dept_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return dept_names
+        return _clean_names_field(self, 'dept_names')
 
     def clean_region_names(self):
-        region_names = self.cleaned_data['region_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', region_names)
-        if matches:
-            error = '"{region_names}" contains invalid characters ' \
-                    '{matches}'.format(region_names=escape(region_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return region_names
+        return _clean_names_field(self, 'region_names')
 
     def clean_site_names(self):
-        site_names = self.cleaned_data['site_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', site_names)
-        if matches:
-            error = '"{site_names}" contains invalid characters ' \
-                    '{matches}'.format(site_names=escape(site_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return site_names
+        return _clean_names_field(self, 'site_names')
 
     def clean(self):
         cleaned_data = super(CreateSurveyForm, self).clean()
 
-        new_password = cleaned_data.get('new_password')
-        confirm_password = cleaned_data.get('confirm_password')
-
-        if new_password:
-            if not confirm_password:
-                self.add_error('confirm_password', 'Confirm the new password')
-            elif new_password != confirm_password:
-                self.add_error('new_password', 'New password and confirmation must match')
-                self.add_error('confirm_password', 'New password and confirmation must match')
+        _check_passwords(self, cleaned_data)
 
 
 class FilteredBvcForm(forms.Form):
@@ -113,34 +133,13 @@ class FilteredBvcForm(forms.Form):
                                                                      required=False, initial=site_names_list_on)
 
     def clean_filter_dept_names(self):
-        filter_dept_names = self.cleaned_data['filter_dept_names']
-        for dept_name in filter_dept_names:
-            matches = re.findall(r'[^A-Za-z0-9_-]', dept_name)
-            if matches:
-                error = '"{dept_name}" contains invalid characters ' \
-                        '{matches}'.format(dept_name=escape(dept_name), matches=list({str(x) for x in matches}))
-                raise forms.ValidationError(error)
-        return filter_dept_names
+        return _clean_names_field_list(self, 'filter_dept_names')
 
     def clean_filter_site_names(self):
-        filter_site_names = self.cleaned_data['filter_site_names']
-        for site_name in filter_site_names:
-            matches = re.findall(r'[^A-Za-z0-9_-]', site_name)
-            if matches:
-                error = '"{site_name}" contains invalid characters ' \
-                        '{matches}'.format(site_name=escape(site_name), matches=list({str(x) for x in matches}))
-                raise forms.ValidationError(error)
-        return filter_site_names
+        return _clean_names_field_list(self, 'filter_site_names')
 
     def clean_filter_region_names(self):
-        filter_region_names = self.cleaned_data['filter_region_names']
-        for region_name in filter_region_names:
-            matches = re.findall(r'[^A-Za-z0-9_-]', region_name)
-            if matches:
-                error = '"{region_name}" contains invalid characters ' \
-                        '{matches}'.format(region_name=escape(region_name), matches=list({str(x) for x in matches}))
-                raise forms.ValidationError(error)
-        return filter_region_names
+        return _clean_names_field_list(self, 'filter_region_names')
 
 
 class AddTeamForm(forms.ModelForm):
@@ -177,40 +176,16 @@ class AddTeamForm(forms.ModelForm):
         self.fields['site_name'] = forms.ChoiceField(choices=site_name_choices, initial='', required=False)
 
     def clean_team_name(self):
-        team_name = re.sub(r' +', '_', self.cleaned_data['team_name'].strip())
-        matches = re.findall(r'[^\w-]', team_name)
-        if matches:
-            error = '"{team_name}" contains invalid characters ' \
-                    '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return team_name
+        return _clean_team_name_field(self, 'team_name')
 
     def clean_dept_name(self):
-        dept_name = self.cleaned_data['dept_name']
-        matches = re.findall(r'[^A-Za-z0-9_-]', dept_name)
-        if matches:
-            error = '"{dept_name}" contains invalid characters ' \
-                    '{matches}'.format(dept_name=escape(dept_name), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return dept_name
+        return _clean_name_field(self, 'dept_name')
 
     def clean_site_name(self):
-        site_name = self.cleaned_data['site_name']
-        matches = re.findall(r'[^A-Za-z0-9_-]', site_name)
-        if matches:
-            error = '"{site_name}" contains invalid characters ' \
-                    '{matches}'.format(site_name=escape(site_name), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return site_name
+        return _clean_name_field(self, 'site_name')
 
     def clean_region_name(self):
-        region_name = self.cleaned_data['region_name']
-        matches = re.findall(r'[^A-Za-z0-9_-]', region_name)
-        if matches:
-            error = '"{region_name}" contains invalid characters ' \
-                    '{matches}'.format(region_name=escape(region_name), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return region_name
+        return _clean_name_field(self, 'region_name')
 
 
 class SurveyResponseForm(forms.ModelForm):
@@ -235,11 +210,7 @@ class SurveyResponseForm(forms.ModelForm):
 
     def clean_word(self):
         word = self.cleaned_data['word']
-        matches = re.findall(r'[^A-Za-z0-9-]', word)
-        if matches:
-            error = '"{word}" contains invalid characters ' \
-                    '{matches}'.format(word=escape(word), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
+        _clean_value(word, r'[^A-Za-z0-9-]')
 
         word_count = len(word.split())
         if word_count > self.max_word_count:
@@ -274,7 +245,7 @@ class SurveySettingsForm(forms.ModelForm):
             'pattern': '(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))'
         },
         format='%Y-%m-%d'), required=False)
-    max_word_count = forms.IntegerField(min_value=1, max_value=10)
+    max_word_count = forms.IntegerField(min_value=1, max_value=5)
 
     class Meta(object):
         model = TeamTemperature
@@ -300,40 +271,16 @@ class SurveySettingsForm(forms.ModelForm):
         return survey_type
 
     def clean_dept_names(self):
-        dept_names = self.cleaned_data['dept_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', dept_names)
-        if matches:
-            error = '"{dept_names}" contains invalid characters ' \
-                    '{matches}'.format(dept_names=escape(dept_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return dept_names
+        return _clean_names_field(self, 'dept_names')
 
     def clean_region_names(self):
-        region_names = self.cleaned_data['region_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', region_names)
-        if matches:
-            error = '"{region_names}" contains invalid characters ' \
-                    '{matches}'.format(regions_names=escape(region_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return region_names
+        return _clean_names_field(self, 'region_names')
 
     def clean_site_names(self):
-        site_names = self.cleaned_data['site_names']
-        matches = re.findall(r'[^A-Za-z0-9,_-]', site_names)
-        if matches:
-            error = '"{site_names}" contains invalid characters ' \
-                    '{matches}'.format(site_names=escape(site_names), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return site_names
+        return _clean_names_field(self, 'site_names')
 
     def clean_default_tz(self):
-        default_tz = self.cleaned_data['default_tz']
-        matches = re.findall(r'[^A-Za-z0-9-/]', default_tz)
-        if matches:
-            error = '"{default_tz}" contains invalid characters ' \
-                    '{matches}'.format(default_tz=escape(default_tz), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return default_tz
+        return _clean_field(self, 'default_tz', r'[^A-Za-z0-9-/]')
 
     def clean_max_word_count(self):
         max_word_count = self.cleaned_data['max_word_count']
@@ -342,23 +289,9 @@ class SurveySettingsForm(forms.ModelForm):
         return max_word_count
 
     def clean_new_team_name(self):
-        team_name = re.sub(r' +', '_', self.cleaned_data['new_team_name'].strip())
-        matches = re.findall(r'[^\w-]', team_name)
-        if matches:
-            error = '"{team_name}" contains invalid characters ' \
-                    '{matches}'.format(team_name=escape(team_name), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
-        return team_name
+        return _clean_team_name_field(self, 'new_team_name')
 
     def clean(self):
         cleaned_data = super(SurveySettingsForm, self).clean()
 
-        new_password = cleaned_data.get('new_password')
-        confirm_password = cleaned_data.get('confirm_password')
-
-        if new_password:
-            if not confirm_password:
-                self.add_error('confirm_password', 'Confirm the new password')
-            elif new_password != confirm_password:
-                self.add_error('new_password', 'New password and confirmation must match')
-                self.add_error('confirm_password', 'New password and confirmation must match')
+        _check_passwords(self, cleaned_data)
