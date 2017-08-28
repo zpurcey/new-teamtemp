@@ -218,6 +218,9 @@ class SurveyResponseForm(forms.ModelForm):
         model = TemperatureResponse
         fields = ['score', 'word']
 
+    error_css_class = 'error box'
+    score = forms.IntegerField(min_value=1, max_value=10)
+
     def __init__(self, *args, **kwargs):
         self.max_word_count = kwargs.pop('max_word_count')
         super(SurveyResponseForm, self).__init__(*args, **kwargs)

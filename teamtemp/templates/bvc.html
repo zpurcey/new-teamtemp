@@ -14,10 +14,10 @@
     $('.wordcloud').spin();
     $('#gauge_average').spin();
 
-    $(window).load(function() {
+    $(window).on('load', function() {
       $('.wordcloud').spin(false);
     });
-    $('#wordcloud-image').load(function() {
+    $('#wordcloud-image').on('load', function() {
       $('.wordcloud').spin(false);
     });
     setTimeout(function () {
@@ -94,7 +94,7 @@
 
   <div class="container" align="center">
     <div class="row">
-      <div class="no-print">
+      <div class="col no-print">
         <BR>
         <div class="btn-group" role="group" aria-label="nav">
           <a href="{% url 'admin' survey_id=survey.id %}" class="btn btn-info"
@@ -232,7 +232,9 @@
     </div>
     <div class="row">
       <h1 align="center">{{ bvc_data.pretty_team_name }} {{ bvc_data.survey_type_title }}</h1>
+    </div>
 
+    <div class="row">
       <div class="col-md-6">
         {% if bvc_data.archived %}
           <h2 align="center">{{ bvc_data.archive_date|date:"M. d, Y" }}</h2>
