@@ -27,6 +27,13 @@ def _clean_field(obj, field_name, regex):
     return _clean_value(field_value, regex)
 
 
+def _clean_names_field_list(obj, field_name):
+    names = obj.cleaned_data[field_name]
+    for name in names:
+        _clean_value(name, r'[^A-Za-z0-9_-]')
+    return names
+
+
 def _clean_names_field(obj, field_name):
     return _clean_field(obj, field_name, r'[^A-Za-z0-9,_-]')
 
@@ -126,22 +133,13 @@ class FilteredBvcForm(forms.Form):
                                                                      required=False, initial=site_names_list_on)
 
     def clean_filter_dept_names(self):
-        filter_dept_names = self.cleaned_data['filter_dept_names']
-        for dept_name in filter_dept_names:
-            _clean_value(dept_name, r'[^A-Za-z0-9_-]')
-        return filter_dept_names
+        return _clean_names_field_list(self, 'filter_dept_names')
 
     def clean_filter_site_names(self):
-        filter_site_names = self.cleaned_data['filter_site_names']
-        for site_name in filter_site_names:
-            _clean_value(site_name, r'[^A-Za-z0-9_-]')
-        return filter_site_names
+        return _clean_names_field_list(self, 'filter_site_names')
 
     def clean_filter_region_names(self):
-        filter_region_names = self.cleaned_data['filter_region_names']
-        for region_name in filter_region_names:
-            _clean_value(region_name, r'[^A-Za-z0-9_-]')
-        return filter_region_names
+        return _clean_names_field_list(self, 'filter_region_names')
 
 
 class AddTeamForm(forms.ModelForm):
@@ -212,11 +210,7 @@ class SurveyResponseForm(forms.ModelForm):
 
     def clean_word(self):
         word = self.cleaned_data['word']
-        matches = re.findall(r'[^A-Za-z0-9-]', word)
-        if matches:
-            error = '"{word}" contains invalid characters ' \
-                    '{matches}'.format(word=escape(word), matches=list({str(x) for x in matches}))
-            raise forms.ValidationError(error)
+        _clean_value(word, r'[^A-Za-z0-9-]')
 
         word_count = len(word.split())
         if word_count > self.max_word_count:
