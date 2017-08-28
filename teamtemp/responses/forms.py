@@ -21,7 +21,7 @@ class ErrorBox(ErrorList):
     def as_box(self):
         if not self:
             return u''
-        return u'<div class="error box">%s</div>' % self.as_lines()
+        return u'<br/><div class="error box">%s</div>' % self.as_lines()
 
     def as_lines(self):
         return "<br/>".join(e for e in self)
