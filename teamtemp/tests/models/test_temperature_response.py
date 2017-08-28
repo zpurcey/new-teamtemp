@@ -4,6 +4,7 @@ from past.utils import old_div
 import itertools
 
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 
 from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponseFactory, UserFactory
 
@@ -11,6 +12,7 @@ from teamtemp.tests.factories import TeamTemperatureFactory, TemperatureResponse
 class TemperatureResponseTestCases(TestCase):
     def test_response(self):
         response = TemperatureResponseFactory()
+        response.clean()
         self.assertTrue(len(response.word) > 0)
         self.assertTrue(response.score > 0)
         self.assertTrue(len(response.team_name) > 0)
@@ -59,3 +61,9 @@ class TemperatureResponseTestCases(TestCase):
     def test_pretty_team_name(self):
         response = TemperatureResponseFactory(team_name='bob_and_his_friends')
         self.assertEqual(response.pretty_team_name(), 'bob and his friends')
+
+    def test_invalid_score(self):
+        with self.assertRaises(ValidationError):
+            TemperatureResponseFactory(score=0)
+        with self.assertRaises(ValidationError):
+            TemperatureResponseFactory(score=11)

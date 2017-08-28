@@ -72,7 +72,7 @@ class TeamTemperature(models.Model):
     region_names = models.CharField(blank=True, null=True, max_length=64)
     site_names = models.CharField(blank=True, null=True, max_length=64)
     default_tz = models.CharField(default='Australia/Queensland', choices=TIMEZONE_CHOICES, max_length=64)
-    max_word_count = models.PositiveSmallIntegerField(default=1)
+    max_word_count = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     creation_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
@@ -98,13 +98,11 @@ class TeamTemperature(models.Model):
 
     def fill_next_archive_date(self, overwrite=False):
         if self.archive_schedule > 0:
-            if self.next_archive_date is None or overwrite:
+            if self.next_archive_date is None:
                 if self.archive_date is not None:
                     self.next_archive_date = (self.archive_date + timedelta(days=self.archive_schedule)).date()
                 else:
                     self.next_archive_date = timezone.localtime(timezone.now(), timezone=pytz.timezone(self.default_tz)).date()
-        elif overwrite:
-            self.next_archive_date = None
 
         return self.next_archive_date
 

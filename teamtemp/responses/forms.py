@@ -21,7 +21,7 @@ class ErrorBox(ErrorList):
     def as_box(self):
         if not self:
             return u''
-        return u'<div class="error box">%s</div>' % self.as_lines()
+        return u'<br/><div class="error box">%s</div>' % self.as_lines()
 
     def as_lines(self):
         return "<br/>".join(e for e in self)
@@ -255,6 +255,7 @@ class ResultsPasswordForm(forms.Form):
 
 
 class SurveySettingsForm(forms.ModelForm):
+    error_css_class = 'error box'
     new_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password'}), max_length=256,
                                    required=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password-confirm'}),
@@ -273,6 +274,7 @@ class SurveySettingsForm(forms.ModelForm):
             'pattern': '(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))'
         },
         format='%Y-%m-%d'), required=False)
+    max_word_count = forms.IntegerField(min_value=1, max_value=10)
 
     class Meta(object):
         model = TeamTemperature
