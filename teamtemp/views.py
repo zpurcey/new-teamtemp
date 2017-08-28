@@ -333,7 +333,6 @@ def submit_view(request, survey_id, team_name=''):
     numbers = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
     if 1 < survey.max_word_count <= len(numbers):
         word_question_title = numbers[survey.max_word_count] + ' words to describe how you are feeling:'
-
     if survey.survey_type == 'CUSTOMERFEEDBACK':
         survey_type_title = 'Customer Feedback'
         temp_question_title = 'Please give feedback on our team performance (1 - 10) (1 is very poor - 10 is very positive):'
