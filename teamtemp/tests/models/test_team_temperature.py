@@ -44,3 +44,9 @@ class TeamTemperatureTestCases(TestCase):
         with self.assertRaises(ValidationError):
             TeamTemperatureFactory(id='bob')
             TeamTemperatureFactory(id='bob')
+
+    def test_invalid_max_word_count(self):
+        with self.assertRaises(ValidationError):
+            TeamTemperatureFactory(max_word_count=0)
+        with self.assertRaises(ValidationError):
+            TeamTemperatureFactory(max_word_count=11)
