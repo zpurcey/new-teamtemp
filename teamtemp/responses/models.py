@@ -164,7 +164,7 @@ class TeamResponseHistory(models.Model):
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
     minimum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
     maximum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
-    word_list = models.CharField(max_length=5000, db_index=True)
+    word_list = models.CharField(max_length=5000)
     responder_count = models.PositiveSmallIntegerField()
     team_name = models.CharField(max_length=64, null=True, db_index=True)
     archive_date = models.DateTimeField(db_index=True)
