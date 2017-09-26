@@ -7,7 +7,7 @@ django-csp-reports==1.1
 django-crispy-forms==1.6.1
 django-filter==1.0.4
 #djangorestframework==3.6.4
-git+https://github.com/encode/django-rest-framework.git@master
+git+https://github.com/encode/django-rest-framework.git@master#egg=djangorestframework
 django-secure==1.0.1
 django-toolbelt==0.0.1
 gunicorn==19.7.1
