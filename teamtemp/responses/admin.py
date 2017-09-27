@@ -24,7 +24,7 @@ class WordCloudImageAdmin(admin.ModelAdmin):
     list_display = ("id", "word_hash", "image_url", "creation_date", "modified_date")
     list_display_links = ("id", "word_hash", "image_url")
     readonly_fields = ("id", "creation_date", "modified_date", "word_list", "word_hash")
-    search_fields = ("id", "word_hash")
+    search_fields = ("id", "word_hash", "word_list")
 
     def view_on_site(self, obj):
         return obj.image_url
@@ -58,7 +58,7 @@ class TemperatureResponseAdmin(admin.ModelAdmin):
     list_filter = ("archived",)
     readonly_fields = ("id",)
     raw_id_fields = ("responder", "request")
-    search_fields = ("team_name", "request__id")
+    search_fields = ("team_name", "request__id", "word")
 
     def view_on_site(self, obj):
         return reverse('bvc', kwargs={'survey_id': obj.request.id, 'team_name': obj.team_name})

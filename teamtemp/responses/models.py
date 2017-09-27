@@ -134,7 +134,7 @@ class TemperatureResponse(models.Model):
     request = models.ForeignKey(TeamTemperature, related_name="temperature_responses", on_delete=models.CASCADE)
     responder = models.ForeignKey(User, related_name="temperature_responses", on_delete=models.DO_NOTHING)
     score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
-    word = models.CharField(max_length=32)
+    word = models.CharField(max_length=32, db_index=True)
     team_name = models.CharField(max_length=64, db_index=True)
     archived = models.BooleanField(default=False, db_index=True)
     response_date = models.DateTimeField(db_index=True)
