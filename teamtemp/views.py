@@ -1136,11 +1136,12 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
             filter_site_names = ','.join(csf['filter_site_names'])
 
             print("Filter this bvc:", filter_this_bvc, file=sys.stderr)
-        else:
+
             return redirect('bvc', survey_id=survey_id,
                             dept_names=filter_dept_names,
                             region_names=filter_region_names,
                             site_names=filter_site_names)
+        else:
             raise Exception('Form Is Not Valid:', form)
 
     return render(request, 'bvc.html',
