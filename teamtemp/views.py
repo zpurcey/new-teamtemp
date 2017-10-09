@@ -1142,23 +1142,23 @@ def bvc_view(request, survey_id, team_name='', archive_id='', num_iterations='0'
                             region_names=filter_region_names,
                             site_names=filter_site_names)
             raise Exception('Form Is Not Valid:', form)
-    else:
-        return render(request, 'bvc.html',
-                      {
-                          'bvc_data': bvc_data,
-                          'survey': survey,
-                          'archive_id': archive_id,
-                          'json_historical_data': json_history_chart_table,
-                          'historical_options': historical_options,
-                          'num_iterations': num_iterations,
-                          'dept_names': dept_names, 'region_names': region_names, 'site_names': site_names,
-                          'form': FilteredBvcForm(dept_names_list=sorted(all_dept_names),
-                                                  region_names_list=sorted(all_region_names),
-                                                  site_names_list=sorted(all_site_names),
-                                                  dept_names_list_on=sorted(dept_names_list_on),
-                                                  region_names_list_on=sorted(region_names_list_on),
-                                                  site_names_list_on=sorted(site_names_list_on))
-                      })
+
+    return render(request, 'bvc.html',
+                  {
+                      'bvc_data': bvc_data,
+                      'survey': survey,
+                      'archive_id': archive_id,
+                      'json_historical_data': json_history_chart_table,
+                      'historical_options': historical_options,
+                      'num_iterations': num_iterations,
+                      'dept_names': dept_names, 'region_names': region_names, 'site_names': site_names,
+                      'form': FilteredBvcForm(dept_names_list=sorted(all_dept_names),
+                                              region_names_list=sorted(all_region_names),
+                                              site_names_list=sorted(all_site_names),
+                                              dept_names_list_on=sorted(dept_names_list_on),
+                                              region_names_list_on=sorted(region_names_list_on),
+                                              site_names_list_on=sorted(site_names_list_on))
+                  })
 
 
 def get_user(request):
