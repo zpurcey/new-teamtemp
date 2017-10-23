@@ -76,7 +76,7 @@ urlpatterns = [
     url(r'^healthcheck/?$', health_check_view, name='healthcheck'),
     url(r'^robots\.txt', robots_txt_view, name='robots_txt'),
     url(r'^favicon\.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')), name='favicon'),
-    url(r'^djadmin/', include(djadmin.site.urls)),
+    url(r'^djadmin/', djadmin.site.urls),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', include_docs_urls(title='Team Temperature API')),

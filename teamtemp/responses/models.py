@@ -62,7 +62,7 @@ class TeamTemperature(models.Model):
     TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.all_timezones]
 
     id = models.CharField(max_length=8, primary_key=True)
-    creator = models.ForeignKey(User, related_name="team_temperatures")
+    creator = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="team_temperatures")
     password = models.CharField(max_length=256)
     archive_schedule = models.PositiveSmallIntegerField(default=0)
     archive_date = models.DateTimeField(blank=True, null=True)
@@ -131,8 +131,8 @@ class TemperatureResponse(models.Model):
     #     unique_together = ("request", "responder", "team_name", "archive_date")
 
     id = models.AutoField(primary_key=True)
-    request = models.ForeignKey(TeamTemperature, related_name="temperature_responses")
-    responder = models.ForeignKey(User, related_name="temperature_responses")
+    request = models.ForeignKey(TeamTemperature, on_delete=models.CASCADE, related_name="temperature_responses")
+    responder = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="temperature_responses")
     score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
     word = models.CharField(max_length=32, db_index=True)
     team_name = models.CharField(max_length=64, db_index=True)
@@ -160,7 +160,7 @@ class TeamResponseHistory(models.Model):
         verbose_name_plural = "Team response histories"
 
     id = models.AutoField(primary_key=True)
-    request = models.ForeignKey(TeamTemperature, related_name="team_response_histories")
+    request = models.ForeignKey(TeamTemperature, on_delete=models.CASCADE, related_name="team_response_histories")
     average_score = models.DecimalField(decimal_places=5, max_digits=10)
     minimum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
     maximum_score = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)], null=True, blank=True)
@@ -190,7 +190,7 @@ class Teams(models.Model):
         unique_together = ("request", "team_name")
 
     id = models.AutoField(primary_key=True)
-    request = models.ForeignKey(TeamTemperature, related_name="teams")
+    request = models.ForeignKey(TeamTemperature, on_delete=models.CASCADE, related_name="teams")
     team_name = models.CharField(max_length=64, db_index=True)
     dept_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     site_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
