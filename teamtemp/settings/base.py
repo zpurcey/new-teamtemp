@@ -191,9 +191,14 @@ SECURE_FRAME_DENY = True
 X_FRAME_OPTIONS = 'DENY'
 
 CSP_DEFAULT_SRC = ("'none'",)
-CSP_SCRIPT_SRC = ( "'self'", 'code.jquery.com', 'maxcdn.bootstrapcdn.com',)
+CSP_SCRIPT_SRC = ("'self'", 'code.jquery.com', 'maxcdn.bootstrapcdn.com',)
 CSP_CONNECT_SRC = ("'self'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", 'code.jquery.com', 'maxcdn.bootstrapcdn.com',)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    'code.jquery.com',
+    'maxcdn.bootstrapcdn.com',
+)
 CSP_IMG_SRC = ("'self'", 'data:', 'blob:',)
 CSP_FONT_SRC = ("'self'", 'maxcdn.bootstrapcdn.com',)
 CSP_EXCLUDE_URL_PREFIXES = ("/djadmin",)
@@ -215,10 +220,11 @@ LOGOUT_URL = "/djadmin/logout/"
 WORDCLOUD_HEIGHT = 400
 WORDCLOUD_WIDTH = 500
 
-GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get('GOOGLE_ANALYTICS_PROPERTY_ID', None)
+GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get(
+    'GOOGLE_ANALYTICS_PROPERTY_ID', None)
 GOOGLE_ANALYTICS_DOMAIN = os.environ.get('GOOGLE_ANALYTICS_DOMAIN', 'auto')
 
 if GOOGLE_ANALYTICS_PROPERTY_ID:
-    CSP_SCRIPT_SRC += ("'unsafe-eval'", "'unsafe-inline'", 'www.google-analytics.com', 'data:',)
+    CSP_SCRIPT_SRC += ("'unsafe-eval'", "'unsafe-inline'",
+                       'www.google-analytics.com', 'data:',)
     CSP_IMG_SRC += ('www.google-analytics.com',)
-

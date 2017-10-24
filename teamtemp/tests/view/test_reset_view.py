@@ -12,6 +12,11 @@ class AdminViewTestCases(AdminOnlyViewTestCase):
 
     def test_admin_reset_team_view(self):
         self.setUpAdmin()
-        response = self.client.get(reverse('reset', kwargs={'survey_id': self.teamtemp.id}), follow=True)
+        response = self.client.get(
+            reverse(
+                'reset',
+                kwargs={
+                    'survey_id': self.teamtemp.id}),
+            follow=True)
         self.assertIsNotPasswordForm(response)
         self.assertIsAdminForm(response)

@@ -7,13 +7,24 @@ from .models import TeamResponseHistory, TeamTemperature, Teams, TemperatureResp
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta(object):
         model = User
-        fields = ('url', 'id', 'creation_date', 'team_temperatures', 'temperature_responses')
+        fields = (
+            'url',
+            'id',
+            'creation_date',
+            'team_temperatures',
+            'temperature_responses')
 
 
 class WordCloudImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta(object):
         model = WordCloudImage
-        fields = ('url', 'id', 'creation_date', 'word_list', 'word_hash', 'image_url')
+        fields = (
+            'url',
+            'id',
+            'creation_date',
+            'word_list',
+            'word_hash',
+            'image_url')
 
 
 class TeamTemperatureSerializer(serializers.HyperlinkedModelSerializer):
@@ -29,19 +40,43 @@ class TeamTemperatureSerializer(serializers.HyperlinkedModelSerializer):
 class TemperatureResponseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta(object):
         model = TemperatureResponse
-        fields = ('url', 'id', 'request', 'responder', 'score', 'word', 'team_name',
-                  'archived', 'response_date', 'archive_date')
+        fields = (
+            'url',
+            'id',
+            'request',
+            'responder',
+            'score',
+            'word',
+            'team_name',
+            'archived',
+            'response_date',
+            'archive_date')
 
 
 class TeamSerializer(serializers.HyperlinkedModelSerializer):
     class Meta(object):
         model = Teams
-        fields = ('url', 'id', 'request', 'team_name', 'dept_name', 'site_name',
-                  'region_name', 'creation_date', 'modified_date')
+        fields = (
+            'url',
+            'id',
+            'request',
+            'team_name',
+            'dept_name',
+            'site_name',
+            'region_name',
+            'creation_date',
+            'modified_date')
 
 
 class TeamResponseHistorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta(object):
         model = TeamResponseHistory
-        fields = ('url', 'id', 'request', 'average_score', 'word_list', 'responder_count',
-                  'team_name', 'archive_date')
+        fields = (
+            'url',
+            'id',
+            'request',
+            'average_score',
+            'word_list',
+            'responder_count',
+            'team_name',
+            'archive_date')

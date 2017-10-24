@@ -12,7 +12,12 @@ class AdminViewTestCases(AdminOnlyViewTestCase):
 
     def test_admin_set_view(self):
         self.setUpAdmin()
-        response = self.client.get(reverse('set', kwargs={'survey_id': self.teamtemp.id}), follow=True)
+        response = self.client.get(
+            reverse(
+                'set',
+                kwargs={
+                    'survey_id': self.teamtemp.id}),
+            follow=True)
         self.assertIsNotPasswordForm(response)
         self.assertTemplateUsed(response, 'set.html')
         self.assertContains(response, "Settings %s" % self.teamtemp.id)
