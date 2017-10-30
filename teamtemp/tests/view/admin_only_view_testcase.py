@@ -16,7 +16,11 @@ class AdminOnlyViewTestCase(TestCase):
 
     def admin_url(self, for_team=False):
         if for_team:
-            return reverse('admin', kwargs={'survey_id': self.teamtemp.id, 'team_name': self.team.team_name})
+            return reverse(
+                'admin',
+                kwargs={
+                    'survey_id': self.teamtemp.id,
+                    'team_name': self.team.team_name})
         else:
             return reverse('admin', kwargs={'survey_id': self.teamtemp.id})
 
@@ -24,7 +28,11 @@ class AdminOnlyViewTestCase(TestCase):
         if not redirect_to:
             redirect_to = self.admin_url()
 
-        return reverse('login', kwargs={'survey_id': self.teamtemp.id, 'redirect_to': redirect_to})
+        return reverse(
+            'login',
+            kwargs={
+                'survey_id': self.teamtemp.id,
+                'redirect_to': redirect_to})
 
     def assertIsPasswordForm(self, response):
         self.assertContains(response, 'Enter the admin password')
@@ -36,16 +44,25 @@ class AdminOnlyViewTestCase(TestCase):
 
     def assertIsAdminForm(self, response, for_team=False):
         if for_team:
-            self.assertContains(response, "Admin %s %s" % (self.teamtemp.id, self.team.team_name))
+            self.assertContains(
+                response, "Admin %s %s" %
+                (self.teamtemp.id, self.team.team_name))
         else:
             self.assertContains(response, "Admin %s" % self.teamtemp.id)
         self.assertTemplateUsed(response, 'results.html')
 
-    def assertDoesLoginRedirect(self, response, expected_url=None, redirect_to=None):
+    def assertDoesLoginRedirect(
+            self,
+            response,
+            expected_url=None,
+            redirect_to=None):
         if not expected_url:
             expected_url = self.login_url(redirect_to=redirect_to)
 
-        self.assertRedirects(response, expected_url=expected_url, status_code=status.HTTP_302_FOUND)
+        self.assertRedirects(
+            response,
+            expected_url=expected_url,
+            status_code=status.HTTP_302_FOUND)
 
     def setUpAdmin(self):
         session = self.client.session

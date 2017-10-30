@@ -11,7 +11,9 @@ class TeamTestCases(TestCase):
         self.assertTrue(len(team.team_name) > 0)
         self.assertIsNotNone(team.creation_date)
         self.assertIsNotNone(team.modified_date)
-        self.assertRegexpMatches(str(team), "^%d: %s %s " % (team.id, team.request.id, team.team_name))
+        self.assertRegexpMatches(
+            str(team), "^%d: %s %s " %
+            (team.id, team.request.id, team.team_name))
 
     def test_pretty_team_name(self):
         team = TeamFactory(team_name='bob_and_his_friends')

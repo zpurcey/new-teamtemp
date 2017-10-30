@@ -16,8 +16,8 @@ from teamtemp.responses.models import TeamTemperature, Teams, TemperatureRespons
 def _clean_value(field_value, regex):
     matches = re.findall(regex, field_value)
     if matches:
-        error = '"{names}" contains invalid characters ' \
-                '{matches}'.format(names=escape(field_value), matches=list({str(x) for x in matches}))
+        error = '"{names}" contains invalid characters ' '{matches}'.format(
+            names=escape(field_value), matches=list({str(x) for x in matches}))
         raise forms.ValidationError(error)
     return field_value
 
@@ -55,8 +55,11 @@ def _check_passwords(obj, cleaned_data):
         if not confirm_password:
             obj.add_error('confirm_password', 'Confirm the new password')
         elif new_password != confirm_password:
-            obj.add_error('new_password', 'New password and confirmation must match')
-            obj.add_error('confirm_password', 'New password and confirmation must match')
+            obj.add_error(
+                'new_password',
+                'New password and confirmation must match')
+            obj.add_error('confirm_password',
+                          'New password and confirmation must match')
 
 
 @python_2_unicode_compatible
@@ -83,15 +86,30 @@ class CreateSurveyForm(forms.Form):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput({'placeholder': '', 'autocomplete': 'new-password-confirm'}),
         max_length=256, label='Confirm Survey Password')
-    dept_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'DEPT1,DEPT2..', 'size': '64'}),
-                                 max_length=64, required=False,
-                                 label='Department Names')
-    region_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'REGION1,REGION2..', 'size': '64'}),
-                                   max_length=64, required=False,
-                                   label='Region Names')
-    site_names = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'SITE1,SITE2..', 'size': '64'}),
-                                 max_length=64, required=False,
-                                 label='Site Names')
+    dept_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'DEPT1,DEPT2..',
+                'size': '64'}),
+        max_length=64,
+        required=False,
+        label='Department Names')
+    region_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'REGION1,REGION2..',
+                'size': '64'}),
+        max_length=64,
+        required=False,
+        label='Region Names')
+    site_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'SITE1,SITE2..',
+                'size': '64'}),
+        max_length=64,
+        required=False,
+        label='Site Names')
 
     def clean_dept_names(self):
         return _clean_names_field(self, 'dept_names')
@@ -116,21 +134,36 @@ class FilteredBvcForm(forms.Form):
         region_names_list = kwargs.pop('region_names_list')
         site_names_list = kwargs.pop('site_names_list')
 
-        dept_names_list_on = kwargs.pop('dept_names_list_on') if 'dept_names_list_on' in kwargs else None
-        region_names_list_on = kwargs.pop('region_names_list_on') if 'region_names_list_on' in kwargs else None
-        site_names_list_on = kwargs.pop('site_names_list_on') if 'site_names_list_on' in kwargs else None
+        dept_names_list_on = kwargs.pop(
+            'dept_names_list_on') if 'dept_names_list_on' in kwargs else None
+        region_names_list_on = kwargs.pop(
+            'region_names_list_on') if 'region_names_list_on' in kwargs else None
+        site_names_list_on = kwargs.pop(
+            'site_names_list_on') if 'site_names_list_on' in kwargs else None
 
         super(FilteredBvcForm, self).__init__(*args, **kwargs)
 
-        self.fields['filter_dept_names'] = forms.MultipleChoiceField(choices=[(x, x) for x in dept_names_list],
-                                                                     widget=forms.CheckboxSelectMultiple,
-                                                                     required=False, initial=dept_names_list_on)
-        self.fields['filter_region_names'] = forms.MultipleChoiceField(choices=[(x, x) for x in region_names_list],
-                                                                       widget=forms.CheckboxSelectMultiple,
-                                                                       required=False, initial=region_names_list_on)
-        self.fields['filter_site_names'] = forms.MultipleChoiceField(choices=[(x, x) for x in site_names_list],
-                                                                     widget=forms.CheckboxSelectMultiple,
-                                                                     required=False, initial=site_names_list_on)
+        self.fields['filter_dept_names'] = forms.MultipleChoiceField(
+            choices=[
+                (x,
+                 x) for x in dept_names_list],
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            initial=dept_names_list_on)
+        self.fields['filter_region_names'] = forms.MultipleChoiceField(
+            choices=[
+                (x,
+                 x) for x in region_names_list],
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            initial=region_names_list_on)
+        self.fields['filter_site_names'] = forms.MultipleChoiceField(
+            choices=[
+                (x,
+                 x) for x in site_names_list],
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            initial=site_names_list_on)
 
     def clean_filter_dept_names(self):
         return _clean_names_field_list(self, 'filter_dept_names')
@@ -161,7 +194,8 @@ class AddTeamForm(forms.ModelForm):
 
         region_name_choices = []
         if 'region_names_list' in kwargs:
-            region_name_choices = [(x, x) for x in kwargs.pop('region_names_list')]
+            region_name_choices = [(x, x)
+                                   for x in kwargs.pop('region_names_list')]
             region_name_choices.append(('', '-'))
 
         site_name_choices = []
@@ -171,9 +205,12 @@ class AddTeamForm(forms.ModelForm):
 
         super(AddTeamForm, self).__init__(*args, **kwargs)
 
-        self.fields['dept_name'] = forms.ChoiceField(choices=dept_name_choices, initial='', required=False)
-        self.fields['region_name'] = forms.ChoiceField(choices=region_name_choices, initial='', required=False)
-        self.fields['site_name'] = forms.ChoiceField(choices=site_name_choices, initial='', required=False)
+        self.fields['dept_name'] = forms.ChoiceField(
+            choices=dept_name_choices, initial='', required=False)
+        self.fields['region_name'] = forms.ChoiceField(
+            choices=region_name_choices, initial='', required=False)
+        self.fields['site_name'] = forms.ChoiceField(
+            choices=site_name_choices, initial='', required=False)
 
     def clean_team_name(self):
         return _clean_team_name_field(self, 'team_name')
@@ -214,7 +251,8 @@ class SurveyResponseForm(forms.ModelForm):
 
         word_count = len(word.split())
         if word_count > self.max_word_count:
-            error = 'Max {max_word_count} Words'.format(max_word_count=escape(self.max_word_count))
+            error = 'Max {max_word_count} Words'.format(
+                max_word_count=escape(self.max_word_count))
             raise forms.ValidationError(error)
 
         return word.lower()
@@ -227,17 +265,48 @@ class ResultsPasswordForm(forms.Form):
 
 class SurveySettingsForm(forms.ModelForm):
     error_css_class = 'error box'
-    new_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password'}), max_length=256,
-                                   required=False)
-    confirm_password = forms.CharField(widget=forms.PasswordInput({'autocomplete': 'new-password-confirm'}),
-                                       max_length=256, required=False)
-    new_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    current_team_name = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    censored_word = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    dept_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    region_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    site_names = forms.CharField(widget=forms.TextInput(attrs={'size': '64'}), max_length=64, required=False)
-    default_tz = forms.ChoiceField(choices=[(x, x) for x in pytz.all_timezones], required=False)
+    new_password = forms.CharField(widget=forms.PasswordInput(
+        {'autocomplete': 'new-password'}), max_length=256, required=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput(
+        {'autocomplete': 'new-password-confirm'}), max_length=256, required=False)
+    new_team_name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    current_team_name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    censored_word = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    dept_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    region_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    site_names = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'size': '64'}),
+        max_length=64,
+        required=False)
+    default_tz = forms.ChoiceField(
+        choices=[(x, x) for x in pytz.all_timezones], required=False)
     next_archive_date = forms.DateField(widget=forms.DateInput(
         attrs={
             'type': 'date',
@@ -249,8 +318,15 @@ class SurveySettingsForm(forms.ModelForm):
 
     class Meta(object):
         model = TeamTemperature
-        fields = ['archive_schedule', 'survey_type', 'dept_names', 'region_names', 'site_names', 'default_tz',
-                  'max_word_count', 'next_archive_date']
+        fields = [
+            'archive_schedule',
+            'survey_type',
+            'dept_names',
+            'region_names',
+            'site_names',
+            'default_tz',
+            'max_word_count',
+            'next_archive_date']
 
     def clean_archive_schedule(self):
         archive_schedule = self.cleaned_data['archive_schedule']
@@ -266,8 +342,12 @@ class SurveySettingsForm(forms.ModelForm):
 
     def clean_survey_type(self):
         survey_type = self.cleaned_data['survey_type']
-        if survey_type not in ['TEAMTEMP', 'CUSTOMERFEEDBACK', 'DEPT-REGION-SITE']:
-            raise forms.ValidationError('Supported Survey Types: TEAMTEMP and CUSTOMERFEEDBACK only')
+        if survey_type not in [
+            'TEAMTEMP',
+            'CUSTOMERFEEDBACK',
+                'DEPT-REGION-SITE']:
+            raise forms.ValidationError(
+                'Supported Survey Types: TEAMTEMP and CUSTOMERFEEDBACK only')
         return survey_type
 
     def clean_dept_names(self):
@@ -285,7 +365,8 @@ class SurveySettingsForm(forms.ModelForm):
     def clean_max_word_count(self):
         max_word_count = self.cleaned_data['max_word_count']
         if 1 > int(max_word_count) > 5:
-            raise forms.ValidationError('Max Word Count Min Value = 1, Max Value = 5')
+            raise forms.ValidationError(
+                'Max Word Count Min Value = 1, Max Value = 5')
         return max_word_count
 
     def clean_new_team_name(self):

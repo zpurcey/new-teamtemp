@@ -30,7 +30,9 @@ class TeamTemperatureTestCases(TestCase):
         self.assertEqual(teamtemp.survey_type, 'CUSTOMERFEEDBACK')
 
     def test_uniq_teamtemp_ids(self):
-        self.assertNotEqual(TeamTemperatureFactory().id, TeamTemperatureFactory().id)
+        self.assertNotEqual(
+            TeamTemperatureFactory().id,
+            TeamTemperatureFactory().id)
 
     def test_multiple_surveys_for_user(self):
         user = UserFactory()

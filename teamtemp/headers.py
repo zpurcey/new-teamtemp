@@ -35,11 +35,14 @@ def header(name, value):
 def x_ua_compatible(ie):
     return header('X-UA-Compatible', ie)
 
+
 def ie_edge():
     return x_ua_compatible('IE=edge')
 
+
 def cache_control(control):
     return header('Cache-Control', control)
+
 
 def no_cache():
     return cache_control('no-cache')

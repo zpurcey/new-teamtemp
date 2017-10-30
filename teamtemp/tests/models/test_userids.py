@@ -38,10 +38,15 @@ class UserIdTestCases(TestCase):
 
         survey_ids = ['test1', 'test2', 'test3']
         for survey_id in survey_ids:
-            self.assertFalse(responses.is_admin_for_survey(self.request, survey_id))
+            self.assertFalse(
+                responses.is_admin_for_survey(
+                    self.request, survey_id))
 
             responses.add_admin_for_survey(self.request, survey_id)
 
-            self.assertTrue(responses.is_admin_for_survey(self.request, survey_id))
+            self.assertTrue(
+                responses.is_admin_for_survey(
+                    self.request, survey_id))
 
-        self.assertEqual(len(responses.get_admin_for_surveys(self.request)), len(survey_ids))
+        self.assertEqual(
+            len(responses.get_admin_for_surveys(self.request)), len(survey_ids))

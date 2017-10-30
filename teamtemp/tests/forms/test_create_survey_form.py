@@ -3,6 +3,7 @@ from django.test import TestCase
 from teamtemp.tests.factories import TeamTemperatureFactory
 from teamtemp.responses.forms import SurveySettingsForm
 
+
 class SurveySettingsFormTestCases(TestCase):
     def test_empty_survey_settings_form(self):
         form = SurveySettingsForm()

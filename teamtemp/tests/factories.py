@@ -41,7 +41,10 @@ class TeamFactory(CleanModelFactory):
         django_get_or_create = ('team_name',)
 
     request = factory.SubFactory(TeamTemperatureFactory)
-    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
+    team_name = FuzzyText(
+        length=random.randint(
+            1, 64), chars=(
+            utils.chars + '_-'))
 
 
 class TemperatureResponseFactory(CleanModelFactory):
@@ -51,9 +54,15 @@ class TemperatureResponseFactory(CleanModelFactory):
     request = factory.SubFactory(TeamTemperatureFactory)
     responder = factory.SubFactory(UserFactory)
     score = FuzzyInteger(1, 10)
-    word = FuzzyText(length=random.randint(2, 32), chars=(string.ascii_letters + '-'))
+    word = FuzzyText(
+        length=random.randint(
+            2, 32), chars=(
+            string.ascii_letters + '-'))
     response_date = factory.LazyFunction(timezone.now)
-    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
+    team_name = FuzzyText(
+        length=random.randint(
+            1, 64), chars=(
+            utils.chars + '_-'))
 
 
 class TeamResponseHistoryFactory(CleanModelFactory):
@@ -63,7 +72,10 @@ class TeamResponseHistoryFactory(CleanModelFactory):
     request = factory.SubFactory(TeamTemperatureFactory)
     average_score = FuzzyDecimal(1, 10, 5)
     responder_count = FuzzyInteger(1, 25)
-    team_name = FuzzyText(length=random.randint(1, 64), chars=(utils.chars + '_-'))
+    team_name = FuzzyText(
+        length=random.randint(
+            1, 64), chars=(
+            utils.chars + '_-'))
     archive_date = factory.LazyFunction(timezone.now)
 
     @factory.lazy_attribute
