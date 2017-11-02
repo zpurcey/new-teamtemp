@@ -16,3 +16,4 @@ same browser.
 
 The results page are available to the creator using the same cookie mechanism,
 and also a password in case the cookie is lost.
+
