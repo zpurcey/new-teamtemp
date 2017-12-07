@@ -12,5 +12,5 @@ OPBEAT = {
     'SECRET_TOKEN': os.environ['OPBEAT_SECRET_TOKEN'],
 }
 
-MIDDLEWARE_CLASSES.insert(
+MIDDLEWARE.insert(
     0, 'opbeat.contrib.django.middleware.OpbeatAPMMiddleware')
