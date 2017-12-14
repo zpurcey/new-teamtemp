@@ -11,7 +11,6 @@ django-secure==1.0.1
 django-toolbelt==0.0.1
 gunicorn==19.7.1
 gviz_api==1.9.0
-#http://downloads.sourceforge.net/project/google-visualization-python/gviz_api_py-1.8.2.tar.gz
 py-bcrypt==0.4
 psycopg2==2.7.3.1
 pytz==2017.2
