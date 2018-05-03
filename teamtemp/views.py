@@ -620,7 +620,7 @@ def save_url(url, basename):
                 return None
             with open(filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=128):
-                    fd.write(chunk)
+                    f.write(chunk)
         except IOError as exc:
             print("Failed Saving Word Cloud: IOError:%s %s as %s" %
                   (str(exc), url, filename), file=sys.stderr)
