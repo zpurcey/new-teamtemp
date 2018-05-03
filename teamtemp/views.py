@@ -551,7 +551,7 @@ def generate_wordcloud(word_list, word_hash):
             "Start Word Cloud Generation: [%s] %s" %
             (word_hash, word_list), file=sys.stderr)
         response = requests.post(
-            "http://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
+            "https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
             headers={
                 "Word-Cloud-Key": word_cloud_key},
             json={
@@ -561,7 +561,8 @@ def generate_wordcloud(word_list, word_hash):
                 "s_fit": "TRUE",
                 "fixed_asp": fixed_asp,
                 "rotate": rotate},
-            timeout=timeout)
+            timeout=timeout,
+            verify=False)
         if response.status_code == 200:
             print(
                 "Finish Word Cloud Generation: [%s]" %
