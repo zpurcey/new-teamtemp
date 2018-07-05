@@ -1,2 +1,2 @@
 -r base.txt
-opbeat==3.5.3
+opbeat==3.6.1
