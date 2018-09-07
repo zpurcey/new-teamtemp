@@ -32,7 +32,7 @@ class TeamTemperatureFactory(CleanModelFactory):
 
     id = FuzzyText(length=8, chars=utils.chars)
     creator = factory.SubFactory(UserFactory)
-    password = make_password(None)
+    password = make_password('testing')
 
 
 class TeamFactory(CleanModelFactory):
