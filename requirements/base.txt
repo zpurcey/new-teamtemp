@@ -12,7 +12,7 @@ django-toolbelt==0.0.1
 gunicorn==19.9.0
 gviz_api==1.9.0
 py-bcrypt==0.4
-psycopg2==2.7.5
+psycopg2==2.7.6
 pytz==2018.7
 requests==2.20.1
 static==1.1.1
