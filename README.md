@@ -19,3 +19,20 @@ same browser.
 The results page are available to the creator using the same cookie mechanism,
 and also a password in case the cookie is lost.
 
+
+One-click Deploy
+----------------
+
+After you successfully deploy your app to Heroku, make sure that you add the following to the Heroku Scheduler as a daily job:
+
+```
+python bin/archive_scores.py
+```
+
+Also, if you want to access the Django admin site, add a super user using the heroku CLI:
+
+```
+heroku run --app <Your Heroku app name here> python manage.py createsuperuser --username <admin user> --email <admin email address>
+```
+
+and then go to https://\<Your Heroku app name here>.herokuapp.com/djadmin/
