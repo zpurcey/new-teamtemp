@@ -23,6 +23,7 @@
     },
     "TEAM_TEMP_CRON_URL": {
       "description": "The URL to initiate the CRON task",
+      "value": "https://<Your Heroku app name here>.herokuapp.com/cron/",
       "required": false
     },
     "TEAMTEMP_SECRET_KEY": {
@@ -42,7 +43,7 @@
   },
   "addons": [
     "heroku-postgresql",
-    "heroku-scheduler"
+    "scheduler"
   ],
   "buildpacks": [
     {
