@@ -6,7 +6,6 @@ new-teamtemp
 [![Codecov](https://img.shields.io/codecov/c/github/rloomans/new-teamtemp/master.svg?maxAge=2592000)](http://codecov.io/github/rloomans/new-teamtemp?branch=master)
 [![Code Climate](https://codeclimate.com/github/rloomans/new-teamtemp/badges/gpa.svg)](https://codeclimate.com/github/rloomans/new-teamtemp)
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=rloomans/new-teamtemp)](https://dependabot.com)
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 This application is designed to gather 'team temperature' - that is, a
 happiness score.
@@ -20,8 +19,10 @@ The results page are available to the creator using the same cookie mechanism,
 and also a password in case the cookie is lost.
 
 
-One-click Deploy
-----------------
+Heroku One-click Deploy
+-----------------------
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 After you successfully deploy your app to Heroku, make sure that you add the following to the Heroku Scheduler as a daily job:
 
