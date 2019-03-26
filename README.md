@@ -6,6 +6,7 @@ new-teamtemp
 [![Codecov](https://img.shields.io/codecov/c/github/rloomans/new-teamtemp/master.svg?maxAge=2592000)](http://codecov.io/github/rloomans/new-teamtemp?branch=master)
 [![Code Climate](https://codeclimate.com/github/rloomans/new-teamtemp/badges/gpa.svg)](https://codeclimate.com/github/rloomans/new-teamtemp)
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=rloomans/new-teamtemp)](https://dependabot.com)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 This application is designed to gather 'team temperature' - that is, a
 happiness score.
