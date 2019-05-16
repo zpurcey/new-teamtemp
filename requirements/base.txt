@@ -14,7 +14,7 @@ gviz_api==1.9.0
 py-bcrypt==0.4
 psycopg2-binary==2.8.2
 pytz==2019.1
-requests==2.21.0
+requests==2.22.0
 static==1.1.1
 whitenoise[brotli]==4.1.2
 urllib3[secure]==1.24.2
