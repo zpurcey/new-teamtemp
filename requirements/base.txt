@@ -21,4 +21,4 @@ urllib3[secure]==1.25.3
 future==0.17.1
 coreapi==2.3.3
 Markdown==3.1.1
-pygments==2.4.1
+pygments==2.4.2
