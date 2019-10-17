@@ -18,7 +18,7 @@ requests==2.22.0
 static==1.1.1
 whitenoise[brotli]==4.1.4
 urllib3[secure]==1.25.6
-future==0.18.0
+future==0.18.1
 coreapi==2.3.3
 Markdown==3.1.1
 pygments==2.4.2
