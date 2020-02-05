@@ -17,7 +17,7 @@ pytz==2019.3
 requests==2.22.0
 static==1.1.1
 whitenoise[brotli]==5.0.1
-urllib3[secure]==1.25.7
+urllib3[secure]==1.25.8
 future==0.18.2
 coreapi==2.3.3
 Markdown==3.1.1
