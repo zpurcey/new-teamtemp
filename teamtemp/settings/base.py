@@ -187,6 +187,7 @@ TEMPLATES = [
 # Settings for django-bootstrap3
 BOOTSTRAP3 = {
     'javascript_in_head': True,
+    'jquery_url': 'https://code.jquery.com/jquery-3.4.1.min.js',
 }
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
