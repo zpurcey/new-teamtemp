@@ -6,7 +6,9 @@
 {% block title %}Results {{ survey.id }} {{ bvc_data.team_name }}{% endblock %}
 
 {% block form_extra_head %}
-  <script type='text/javascript' src="{% static "spin.min.js" %}"></script><script type='text/javascript' src="{% static "jquery.spin.min.js" %}"></script>
+  <script type='text/javascript' src="{% static "spin.min.js" %}"></script>
+  <script type='text/javascript' src="{% static "jquery.spin.min.js" %}"></script>
+  <script type='text/javascript' src="{% static "wordcloud2.js" %}">
 {% endblock %}
 
 {% block bootstrap3_extra_script %}
@@ -15,6 +17,22 @@
     $('#gauge_average').spin();
 
     $(window).on('load', function() {
+      var wordlist = "{{ bvc_data.word_list }}".split(' ');
+      var wordmap = {};
+      wordlist.forEach(function(d) {
+        if (wordmap.hasOwnProperty(d)) {
+          wordcloud.wordmap[d].size++;
+        } else {
+          wordcloud.wordmap[d] = { text: d, size: 1 };
+        }
+      });
+      var wordfreq = [];
+      Object.keys(wordmap).forEach(function(k) {
+        wordfreq.push([k, wordmap[k].size])
+      });
+
+      WordCloud($('.wordcloud-text'), { list: wordfreq } );
+
       $('.wordcloud').spin(false);
     });
     $('#wordcloud-image').on('load', function() {
