@@ -10,7 +10,7 @@ import sys
 
 import gviz_api
 import os
-import requests
+from wordcloud import WordCloud
 
 from csp.decorators import csp_update, csp_exempt
 
@@ -535,42 +535,28 @@ def admin_view(request, survey_id, team_name=''):
 
 
 def generate_wordcloud(word_list, word_hash):
-    word_cloud_key = os.environ.get('XMASHAPEKEY')
-    if word_cloud_key is not None:
-        timeout = 25
-        word_list = word_list.lower()
-        fixed_asp = "FALSE"
-        rotate = "FALSE"
-        word_count = len(word_list.split())
-        if word_count < 20:
-            fixed_asp = "TRUE"
-            rotate = "TRUE"
-        print(
-            "Start Word Cloud Generation: [%s] %s" %
-            (word_hash, word_list), file=sys.stderr)
-        response = requests.post(
-            "https://www.teamtempapp.com/wordcloud/api/v1.0/generate_wc",
-            headers={
-                "Word-Cloud-Key": word_cloud_key},
-            json={
-                "textblock": word_list,
-                "height": settings.WORDCLOUD_HEIGHT,
-                "width": settings.WORDCLOUD_WIDTH,
-                "s_fit": "TRUE",
-                "fixed_asp": fixed_asp,
-                "rotate": rotate},
-            timeout=timeout,
-            verify=False)
-        if response.status_code == requests.codes.ok:
-            print(
-                "Finish Word Cloud Generation: [%s]" %
-                (word_hash), file=sys.stderr)
-            return save_url(response.json()['url'], word_hash)
-        else:
-            print("Failed Word Cloud Generation: [%s] status_code=%d response=%s" % (
-                word_hash, response.status_code, str(response.__dict__)), file=sys.stderr)
+    print("Start Word Cloud Generation: [%s] %s" %
+          (word_hash, word_list), file=sys.stderr)
 
-    return None
+    wordcloud = WordCloud(
+        max_words=1000,
+        margin=20,
+        # random_state=1,
+        width=settings.WORDCLOUD_WIDTH,
+        height=settings.WORDCLOUD_HEIGHT,
+        background_color="white",
+        # prefer_horizontal=0.6,
+        regexp=r"[^\s]+",
+    )
+
+    wordcloud.generate(word_list)
+
+    image = wordcloud.to_image()
+
+    print("Finish Word Cloud Generation: [%s]" %
+          (word_hash), file=sys.stderr)
+
+    return save_image(image, word_hash + '.png')
 
 
 def require_dir(path):
@@ -605,22 +591,15 @@ def media_file(src, basename=None):
     return filename
 
 
-def save_url(url, basename):
-    return_url = media_url(url, basename)
-    filename = media_file(url, basename)
+def save_image(image, basename):
+    return_url = media_url(basename)
+    filename = media_file(basename)
 
-    print("Saving Word Cloud: %s as %s" % (url, filename), file=sys.stderr)
+    print("Saving Word Cloud: %s as %s" % (basename, filename), file=sys.stderr)
 
     if not os.path.exists(filename):
         try:
-            r = requests.get(url, stream=True, verify=False)
-            if r.status_code != requests.codes.ok:
-                print("Failed Saving Word Cloud: [%s] status_code=%d response=%s" % (
-                    url, r.status_code, str(r.__dict__)), file=sys.stderr)
-                return None
-            with open(filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=128):
-                    f.write(chunk)
+            image.save(filename, format='png', optimize=True)
         except IOError as exc:
             print("Failed Saving Word Cloud: IOError:%s %s as %s" %
                   (str(exc), url, filename), file=sys.stderr)
@@ -1344,9 +1323,8 @@ def bvc_view(
     if bvc_data['word_list']:
         word_cloud_image = cached_word_cloud(
             bvc_data['word_list'], generate=False)
-        if os.environ.get('XMASHAPEKEY'):
-            bvc_data['word_cloud_url'] = word_cloud_image.image_url or reverse(
-                'wordcloud', kwargs={'word_hash': word_cloud_image.word_hash})
+        bvc_data['word_cloud_url'] = word_cloud_image.image_url or reverse(
+            'wordcloud', kwargs={'word_hash': word_cloud_image.word_hash})
         bvc_data['word_cloud_width'] = settings.WORDCLOUD_WIDTH
         bvc_data['word_cloud_height'] = settings.WORDCLOUD_HEIGHT
 
