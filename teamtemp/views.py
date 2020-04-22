@@ -541,7 +541,6 @@ def generate_wordcloud(word_list, word_hash):
     wordcloud = WordCloud(
         max_words=1000,
         margin=20,
-        # random_state=1,
         width=settings.WORDCLOUD_WIDTH,
         height=settings.WORDCLOUD_HEIGHT,
         background_color="white",
