@@ -7,6 +7,7 @@ from builtins import range, str
 from past.utils import old_div
 import errno
 import sys
+import time
 
 import gviz_api
 import os
@@ -544,8 +545,10 @@ def generate_wordcloud(word_list, word_hash):
         width=settings.WORDCLOUD_WIDTH,
         height=settings.WORDCLOUD_HEIGHT,
         background_color="white",
-        # prefer_horizontal=0.6,
+        prefer_horizontal=0.7,
         regexp=r"[^\s]+",
+        relative_scaling=1,
+        normalize_plurals=False,
     )
 
     wordcloud.generate(word_list)
@@ -555,7 +558,7 @@ def generate_wordcloud(word_list, word_hash):
     print("Finish Word Cloud Generation: [%s]" %
           (word_hash), file=sys.stderr)
 
-    return save_image(image, word_hash + '.png')
+    return save_image(image, "%s_%d.png" % (word_hash, time.time()))
 
 
 def require_dir(path):
