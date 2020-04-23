@@ -203,6 +203,7 @@ CSP_STYLE_SRC = (
     "'unsafe-inline'",
     'code.jquery.com',
     'stackpath.bootstrapcdn.com',
+    'www.gstatic.com',
 )
 CSP_IMG_SRC = ("'self'", 'data:', 'blob:',)
 CSP_FONT_SRC = ("'self'", 'data:', 'stackpath.bootstrapcdn.com', 'fonts.gstatic.com',)
