@@ -12,7 +12,7 @@ gunicorn==20.0.4
 gviz_api==1.9.0
 py-bcrypt==0.4
 psycopg2-binary==2.8.5
-pytz==2019.3
+pytz==2020.1
 static==1.1.1
 whitenoise[brotli]==5.0.1
 urllib3[secure]==1.25.9
