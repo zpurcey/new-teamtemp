@@ -20,4 +20,4 @@ future==0.18.2
 coreapi==2.3.3
 Markdown==3.2.1
 pygments==2.6.1
-wordcloud==1.6.0
+wordcloud==1.7.0
