@@ -449,13 +449,14 @@ def user_view(request):
 
 @no_cache()
 @login_required
-def super_view(request, survey_id):
+def super_view(request, survey_id, redirect_to=None):
     survey = get_object_or_404(TeamTemperature, pk=survey_id)
 
     if not authenticated_user(request, survey):
         responses.add_admin_for_survey(request, survey.id)
 
-    redirect_to = request.get_full_path().replace('/super/', '/admin/')
+    if not redirect_to:
+        redirect_to = request.get_full_path().replace('/super/', '/admin/')
 
     return redirect('login', survey_id=survey_id, redirect_to=redirect_to)
 
@@ -489,7 +490,7 @@ def login_view(request, survey_id, redirect_to=None):
     if authenticated_user(request, survey):
         return redirect(redirect_to)
 
-    return render(request, 'password.html', {'form': form})
+    return render(request, 'password.html', {'form': form, 'survey_id': survey_id, 'redirect_to': redirect_to})
 
 
 @ie_edge()
