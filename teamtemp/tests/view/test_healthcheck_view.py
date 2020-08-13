@@ -1,8 +1,6 @@
 from django.urls import reverse
 from django.test import TestCase
-from django.utils import six
 from rest_framework import status
-
 
 class HealthcheckViewTestCases(TestCase):
     def test_health_check_view(self):
