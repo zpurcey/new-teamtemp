@@ -18,5 +18,5 @@ whitenoise[brotli]==5.2.0
 urllib3[secure]==1.25.11
 future==0.18.2
 coreapi==2.3.3
-pygments==2.7.1
+pygments==2.7.2
 wordcloud==1.8.0
